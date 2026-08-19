@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_8",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "oligodendrocyte precursor cell",
+    "final_cell_ontology_id": "CL:0002453",
+    "confidence_primary": 0.9
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "oligodendrocyte precursor cell",
+      "cell_ontology_id": "CL:0002453",
+      "strengths": [
+        "Exact OPC ontology match (CL:0002453)",
+        "Supported by canonical OPC markers PDGFRA, OLIG2, VCAN, PTPRZ1, LHFPL3, BCAN, TNR"
+      ],
+      "weaknesses": [
+        "Top2 strings include activated/homeostatic/pre-oligodendrocyte states that are not required for the primary identity and are not independently supported at cluster level"
+      ],
+      "reviewer_cl_id": "CL:0002453"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "glial cell",
+      "cell_ontology_id": "CL:0000125",
+      "strengths": [
+        "Correctly recognizes the glial lineage",
+        "Secondary prediction includes oligodendrocyte precursor cell (CL:0002453)"
+      ],
+      "weaknesses": [
+        "Top1 label is the ancestor glial cell and is under-specified",
+        "Does not use the available OPC-specific marker evidence to refine to CL:0002453"
+      ],
+      "reviewer_cl_id": "CL:0000125"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "oligodendrocyte precursor cell",
+      "cell_ontology_id": "CL:0002453",
+      "strengths": [
+        "Exact OPC prediction with high confidence",
+        "Explicitly notes canonical OPC markers and absence of mature oligodendrocyte markers MBP/PLP1/MOBP"
+      ],
+      "weaknesses": [
+        "Relies primarily on marker enrichment, but here enrichment is concordant with the observed DEG evidence"
+      ],
+      "reviewer_cl_id": "CL:0002453"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top positive DEGs include canonical OPC markers PDGFRA, OLIG2, VCAN, PTPRZ1, LHFPL3, BCAN, TNR, C1QL1.",
+      "Mature oligodendrocyte markers MBP, PLP1, MOBP are absent, supporting OPC over mature oligodendrocyte.",
+      "Hierarchical refinement from in-house glial cell (CL:0000125) to OPC (CL:0002453) is justified by direct OPC-specific DEG support.",
+      "Consistent with literature evidence in PMID 29945882."
+    ],
+    "conflicting": [
+      "The enrichment term 'Neuron' is not supported by canonical neuronal markers (RBFOX3, SNAP25 absent); SEMA5A and NTN1 are known OPC-expressed genes.",
+      "In-house 'glial cell' top1 is not conflicting but is less specific than the cluster-level OPC evidence allows."
+    ],
+    "enrichment_or_literature": [
+      "Enrichment for proteoglycan metabolic process, extracellular matrix organization, Glycosaminoglycan metabolism, Chondroitin sulfate/dermatan sulfate metabolism, and MDK/PTN in ALK signaling is consistent with OPC biology.",
+      "PMID 29945882 is included as supporting literature."
+    ],
+    "cited_pmids": [
+      "29945882"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "oligodendrocyte precursor cell",
+    "reference_cl_term": "oligodendrocyte precursor cell",
+    "reference_cl_id": "CL:0002453",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_8_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

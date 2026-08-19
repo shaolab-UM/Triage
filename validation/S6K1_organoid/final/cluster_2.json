@@ -1,0 +1,110 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_2",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neuron",
+    "final_cell_ontology_id": "CL:0000540",
+    "confidence_primary": 0.7
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "stressed neural cells",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly prioritizes the dominant integrated stress response (DDIT4, DDIT3, HERPUD1, HSPA1A/A6, DNAJB1) as a state rather than a primary lineage.",
+        "Recognizes the underlying neural/neuronal cue from ENO2 and NRN1.",
+        "Holistic marker interpretation with appropriate caution about subtype calls."
+      ],
+      "weaknesses": [
+        "Label is not ontology-mapped and encodes a state rather than a cell identity.",
+        "Cortical excitatory/inhibitory/retinal neuron subtypes are speculative without markers such as SLC17A7 or GAD1."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neural cell",
+      "cell_ontology_id": "CL:0002319",
+      "strengths": [
+        "Ontology-valid deterministic mapping and conservative interpretation.",
+        "Directly compatible with observed neural markers (ENO2, NRN1, EEF1A2).",
+        "Top2 neuron is a valid hierarchical refinement with positive neuronal marker support."
+      ],
+      "weaknesses": [
+        "Stops at the generic neural cell level and does not explicitly represent the dominant stress/UPR state.",
+        "Does not take the supported hierarchical step to neuron."
+      ],
+      "reviewer_cl_id": "CL:0002319"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Correctly identifies the stress and metabolic reprogramming as the dominant phenotype.",
+        "Notes the absence of mature neuronal/glial lineage markers."
+      ],
+      "weaknesses": [
+        "No positive NPC-specific marker evidence (e.g., PAX6, SOX2, NES); HIST1H1C is only a general proliferation-associated histone.",
+        "Neural progenitor cell is non-hierarchical to neural cell/neuron in the ontology graph; branch selection requires cluster-level positive evidence, which is missing.",
+        "Absence of mature markers and tissue context cannot create specificity for a progenitor identity."
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "ENO2, NRN1, and EEF1A2 are present in the ORIGINAL DEG list and provide positive neuronal-supporting evidence for refining neural cell (CL:0002319) to neuron (CL:0000540).",
+      "Stress/UPR markers (DDIT4, DDIT3, HERPUD1, HSPA1A/HSPA6, DNAJB1, ATF5, FTL, FTH1) are directly observed and explain the dominant cellular state without indicating an alternative lineage.",
+      "Enrichment terms such as glycolytic process and response to oxygen levels are consistent with the stress/metabolic phenotype."
+    ],
+    "conflicting": [
+      "No NPC-specific markers (PAX6, SOX2, NES) are present; HIST1H1C is a general proliferation marker and cannot establish neural progenitor identity.",
+      "No cortical excitatory/inhibitory or retinal subtype markers (e.g., SLC17A7, GAD1) support CASSIA's rank-2 subtype proposals.",
+      "KRT10 is a weak epithelial signal and HLA-B an immune/ambient signal; both are minor and do not outweigh the neural/neuronal assignment."
+    ],
+    "enrichment_or_literature": [
+      "glycolytic process; response to oxygen levels; hsa04066 (HIF-1 signaling); hsa04141 (protein processing in ER); Cellular response to starvation; translation/ribosome terms reflect the stress state, not lineage."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": [
+      "glycolytic process",
+      "response to oxygen levels",
+      "Cellular response to starvation",
+      "hsa04066",
+      "hsa04141"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Immature neuron",
+    "reference_cl_term": "Immature neuron",
+    "reference_cl_id": "CL:4042028",
+    "cl_similarity": 29.867258509595818
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_2_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

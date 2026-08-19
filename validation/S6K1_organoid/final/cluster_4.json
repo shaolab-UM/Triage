@@ -1,0 +1,99 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neuron",
+    "final_cell_ontology_id": "CL:0000540",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "excitatory neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Correctly identifies the glutamatergic/excitatory branch; supported by NEUROD2, NEUROD6, GRIA2, FEZF2, BCL11B, SOX5.",
+        "Pan-neuronal markers (SYT1, SNAP25, MAPT, STMN2, DCX, GAP43) are fully consistent with the assignment.",
+        "Appropriately dismisses astrocyte identity despite SLC1A2 because GFAP/AQP4 are absent."
+      ],
+      "weaknesses": [
+        "Layer 5/6 projection-neuron subtype was not mapped to an ontology ID in the frozen context, so specificity beyond glutamatergic neuron is not confirmable.",
+        "No numeric confidence score was provided for the top prediction."
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Correctly recognizes the broad neuronal identity using pan-neuronal and synaptic markers.",
+        "Lists glutamatergic neuron as its second-ranked candidate with a higher score (0.95), showing the evidence supports refinement."
+      ],
+      "weaknesses": [
+        "Top1 label 'neuron' is under-specific relative to the glutamatergic markers present (GRIA2, NEUROD2, NEUROD6)."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Integrates pan-neuronal markers and notes absence of GABAergic, glial, and progenitor markers.",
+        "Cites FEZF2, BCL11B, SOX5 as deep-layer excitatory neuron regulators in the rationale."
+      ],
+      "weaknesses": [
+        "Final label remains generic 'neuron' despite the rationale explicitly supporting glutamatergic/excitatory specificity."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Pan-neuronal identity supported by SYT1, SNAP25, MAPT, DCX, STMN2, GAP43.",
+      "Glutamatergic/excitatory refinement supported by GRIA2, NEUROD2, NEUROD6, FEZF2, BCL11B, SOX5.",
+      "Absence of GABAergic markers (GAD1/DLX) and glial markers (GFAP/AQP4/OLIG1) supports glutamatergic neuron over generic neuron or alternative lineages."
+    ],
+    "conflicting": [
+      "SLC1A2 appears at rank 43 and could reflect weak ambient astrocyte signal, but core astrocyte markers are absent, so it does not overturn the neuronal/glutamatergic assignment."
+    ],
+    "enrichment_or_literature": [
+      "Enrichment terms are consistent with neuronal maturation and synaptic signaling: neuron fate commitment, axonogenesis, regulation of synapse organization, Activation of NMDA receptors and postsynaptic events, Transmission across Chemical Synapses."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Excitatory Neuron",
+    "reference_cl_term": "Excitatory Neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

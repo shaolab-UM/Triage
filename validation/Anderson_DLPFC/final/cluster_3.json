@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_3",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "GABAergic interneuron",
+    "final_cell_ontology_id": "CL:0011005",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "GABAergic cortical interneuron (inhibitory neuron)",
+      "cell_ontology_id": "CL:0011005",
+      "strengths": [
+        "Direct markers GAD1 and GAD2 are positive in the original DEG list and establish GABAergic identity.",
+        "LHX6, SOX6, ARX, MAF, MAFB, NXPH1, NXPH2 and TAC1/TACR1 provide interneuron and migratory GABAergic lineage support.",
+        "Selecting CL:0011005 rather than an unsupported SST/cortical subtype keeps the label at the level directly supported by the original cluster evidence."
+      ],
+      "weaknesses": [
+        "CASSIA's own top-k text suggested rosehip/SST-TAC1 subtype, whose canonical SST component is absent from the DEGs; the top1 mapping itself is sufficient and avoids that unsupported refinement."
+      ],
+      "reviewer_cl_id": "CL:0011005"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Broad neuronal identity is consistent with the synaptic/neuronal enrichment terms (Neuronal System, Transmission across Chemical Synapses)."
+      ],
+      "weaknesses": [
+        "Ranking only neuron loses the directly observed GAD1/GAD2 and LHX6/SOX6/ARX evidence, which specifically support GABAergic interneuron identity rather than neuron broadly.",
+        "CL:0000540 is an ancestor of the supported CL:0011005; the more specific, evidence-supported descendant is preferable."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "cerebellar inhibitory GABAergic interneuron",
+      "cell_ontology_id": "CL:4023057",
+      "strengths": [
+        "GABAergic/interneuron component is consistent with GAD1, GAD2, LHX6, ARX, SOX6."
+      ],
+      "weaknesses": [
+        "No original DLPFC/cortical evidence is present; the cluster is annotated as dorsolateral prefrontal cortex / whole-tissue brain, and cerebellar-specific positive markers are absent from the DEG list.",
+        "The 'cerebellar' branch is non-hierarchical relative to the cortical SST branch and is not supported by any cluster-level positive signal for cerebellar identity."
+      ],
+      "reviewer_cl_id": "CL:4023057"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "GAD1 and GAD2 in the original DEG list directly establish a GABAergic neuron identity.",
+      "LHX6, SOX6, and ARX in the original DEG list support an MGE-derived GABAergic interneuron identity.",
+      "TAC1/TACR1, NXPH1/NXPH2, MAF/MAFB are expressed markers consistent with GABAergic interneuron subtype identity but do not add canonical SST or cerebellar specificity."
+    ],
+    "conflicting": [
+      "Canonical SST is absent from the DEG list, so 'sst' specificity (CL:4023017) is not directly supported.",
+      "No cerebellar-specific marker (e.g., cerebellar granule/Purkinje-associated genes) is present in the DEG list, so 'cerebellar' specificity (CL:4023057) is not directly supported.",
+      "No cortical subregion-specific positive marker uniquely supplements the interneuron identity; cortical region is contextual rather than a defined cellular marker."
+    ],
+    "enrichment_or_literature": [
+      "Enrichment terms GABA synthesis, release, reuptake and degradation; Neuronal System; Transmission across Chemical Synapses (hsa04727, hsa04082, hsa04724, hsa00430) support a GABAergic neuron identity.",
+      "PMID 26337038 is listed in the supplied citations and is consistent with SST-TAC1/rosehip interneuron literature, but SST itself is not observed in the original DEGs, so it cannot support the 'sst' label."
+    ],
+    "cited_pmids": [
+      "26337038"
+    ],
+    "cited_enrichment_terms": [
+      "GABA synthesis, release, reuptake and degradation",
+      "Neuronal System",
+      "Transmission across Chemical Synapses"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 2
+  },
+  "evaluation": {
+    "published_reference_annotation": "GABAergic neuron",
+    "reference_cl_term": "GABAergic neuron",
+    "reference_cl_id": "CL:0000617",
+    "cl_similarity": 95.11368136866147
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_3_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

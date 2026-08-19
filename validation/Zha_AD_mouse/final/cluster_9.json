@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_9",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "endothelial cell",
+    "final_cell_ontology_id": "CL:0000115",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "endothelial cell",
+      "cell_ontology_id": "CL:0000115",
+      "strengths": [
+        "Correctly identifies the endothelial lineage from canonical markers (Cdh5, Tek, Flt1, Emcn, Cldn5, Icam2)",
+        "Handles the unusual top marker Scgb3a1 by contextualizing rather than over-classifying",
+        "Recognizes subpopulation complexity (arterial/capillary) without overcommitting in absence of strong subtype evidence"
+      ],
+      "weaknesses": [
+        "Remains at the ancestor-level CL:0000115 and does not incorporate original microvascular/BBB evidence (Slco1a4, Abcb1a, Ly6c1, Car4, Nostrin, Wfdc1, Srarp)",
+        "Third suggested subtype 'activated/dysfunctional' is speculative and lacks direct marker support in the cluster evidence"
+      ],
+      "reviewer_cl_id": "CL:0000115"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "microvascular endothelial cell",
+      "cell_ontology_id": "CL:2000008",
+      "strengths": [
+        "Provides the most specific supported ontology-valid descendant (microvascular endothelial cell) of the confirmed endothelial lineage",
+        "Supported by direct original markers of microvascular/BBB endothelium: Emcn, Ly6c1, Slco1a4, Abcb1a, Car4, Slc38a5, Nostrin, Srarp, Wfdc1, Depp1, Myct1",
+        "Consistent with tight junction/BBB biological processes observed in the cluster"
+      ],
+      "weaknesses": [
+        "Does not explicitly reconcile arterial-associated genes (Sox17, Sox18, Foxc1) in the reasoning",
+        "Supporting rationale is terse; subtype evidence is inferable from the marker list but not fully spelled out"
+      ],
+      "reviewer_cl_id": "CL:2000008"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "endothelial cell",
+      "cell_ontology_id": "CL:0000115",
+      "strengths": [
+        "Enrichment terms are strongly endothelial (angiogenesis, vasculogenesis, VEGF receptor signaling, tight junction assembly, vascular wall interactions)",
+        "Correctly applies rule of exclusion when top GO term is T cell activation despite absence of T cell markers"
+      ],
+      "weaknesses": [
+        "Does not refine to microvascular endothelial cell even though capillary/BBB markers are present in the original DEG list",
+        "Resolution is limited to the ancestor-level endothelial identity"
+      ],
+      "reviewer_cl_id": "CL:0000115"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Canonical pan-endothelial markers: Cdh5, Tek, Flt1, Emcn, Cldn5, Icam2, Esam, Ptprb, Ramp2, Adgrf5.",
+      "Microvascular/BBB markers providing positive support for the added microvascular component: Emcn, Ly6c1, Slco1a4, Abcb1a, Car4, Slc38a5, Nostrin, Srarp, Wfdc1, Depp1, Myct1.",
+      "Original endothelial enrichment/program terms: positive regulation of angiogenesis, vasculogenesis, cellular response to vascular endothelial growth factor stimulus, endothelial cell proliferation, bicellular tight junction assembly, Cell surface interactions at the vascular wall, Signaling by VEGF."
+    ],
+    "conflicting": [
+      "Arterial-associated genes Sox17, Sox18, Foxc1 are present, which could suggest an arterial endothelial subprogram, but they do not outweigh the dominant microvascular/BBB signature.",
+      "The highly ranked gene Scgb3a1 is atypical but is an observed microvascular/capillary-associated marker in this context; it does not challenge the endothelial assignment."
+    ],
+    "enrichment_or_literature": [
+      "GO/REACTOME evidence: positive regulation of angiogenesis, vasculogenesis, cellular response to vascular endothelial growth factor stimulus, tight junction assembly, mmu04514, Cell surface interactions at the vascular wall.",
+      "PMID 34500759 is included as an endorsed literature correlation for brain vascular/endothelial identity."
+    ],
+    "cited_pmids": [
+      "34500759"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "endothelial cell",
+    "reference_cl_term": "endothelial cell",
+    "reference_cl_id": "CL:0000115",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_9_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

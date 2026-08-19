@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_3",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "radial glial cell",
+    "final_cell_ontology_id": "CL:0000681",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "radial glial cell",
+      "cell_ontology_id": "CL:0000681",
+      "strengths": [
+        "Provides the most specific ontology-valid label supported by direct radial glia markers: FABP7, VIM, SOX2, SLC1A3, TTYH1, HOPX, ID4, HES1, EMX2, ARX.",
+        "Consistent with enriched glial lineage terms: gliogenesis, glial cell differentiation, negative regulation of neuron differentiation."
+      ],
+      "weaknesses": [
+        "Top1 composite label conflates radial glial cell with neural progenitor cell, which are non-hierarchical in the frozen ontology.",
+        "Top-k list contains unrelated retinal ganglion and immune candidates despite strong radial glia evidence."
+      ],
+      "reviewer_cl_id": "CL:0000681"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "glial cell",
+      "cell_ontology_id": "CL:0000125",
+      "strengths": [
+        "Correctly recognizes glial identity, supported by glial cell differentiation/gliogenesis enrichment and markers such as SLC1A3, CRYAB, QKI, PLP1."
+      ],
+      "weaknesses": [
+        "Top1 glial cell is an ancestor of the more specific supported radial glial cell; the in-house method itself ranks radial glial cell higher (0.925 vs 0.6).",
+        "Less informative than the supported descendant label."
+      ],
+      "reviewer_cl_id": "CL:0000125"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Identifies the general neural progenitor character using SOX2, VIM, HES1, HES4 and stem cell population maintenance terms."
+      ],
+      "weaknesses": [
+        "Neural progenitor cell is non-hierarchical to radial glial cell in the frozen ontology; the shared progenitor program does not favor this branch over radial glia.",
+        "Ignores the glial-specific enrichment (gliogenesis, glial cell differentiation, astrocyte/oligodendrocyte differentiation) that supports the radial glial identity."
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Direct DEGs: FABP7, VIM, SOX2, SLC1A3, TTYH1, HOPX, ID4, HES1, EMX2, ARX support radial glial cell identity.",
+      "Enrichment observations: gliogenesis, glial cell differentiation, negative regulation of neuron differentiation, stem cell population maintenance, oligodendrocyte differentiation, astrocyte differentiation."
+    ],
+    "conflicting": [
+      "Neural progenitor cell (CL:0011020) is non-hierarchical to radial glial cell in the frozen ontology; only shared progenitor markers (SOX2, VIM, HES1) support it, without branch-specific evidence.",
+      "In-house top1 glial cell (CL:0000125) is an ancestor of the more specific supported radial glial cell."
+    ],
+    "enrichment_or_literature": [
+      "gliogenesis",
+      "glial cell differentiation",
+      "oligodendrocyte differentiation",
+      "astrocyte differentiation",
+      "negative regulation of neuron differentiation",
+      "stem cell population maintenance",
+      "cell fate commitment"
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Radial glia-1 (bRG-1)",
+    "reference_cl_term": "Radial glia-1 (bRG-1)",
+    "reference_cl_id": "CL:0000681",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_3_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

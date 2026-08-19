@@ -1,0 +1,97 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "microglial cell",
+    "final_cell_ontology_id": "CL:0000129",
+    "confidence_primary": 0.94
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "microglial cell",
+      "cell_ontology_id": "CL:0000129",
+      "strengths": [
+        "Correctly prioritized microglia using canonical markers P2ry12, Cx3cr1, Siglech, Fcrls, Gpr34.",
+        "Recognized activated/DAM-like state from Trem2, C1q, Cd68 while noting P2ry12 is not top-ranked."
+      ],
+      "weaknesses": [
+        "DAM call was somewhat overstated given Clec7a was not observed; transitional/activated microglia is equally plausible."
+      ],
+      "reviewer_cl_id": "CL:0000129"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "myeloid cell",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "Correctly captured the broad myeloid lineage via Csf1r, Lyz2, Itgam, Adgre1, Cd68."
+      ],
+      "weaknesses": [
+        "Too coarse; failed to refine to microglia despite strong microglial-specific evidence (P2ry12, Cx3cr1, Siglech, Fcrls, Gpr34)."
+      ],
+      "reviewer_cl_id": "CL:0000763"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "microglial cell",
+      "cell_ontology_id": "CL:0000129",
+      "strengths": [
+        "Used canonical microglial markers (P2ry12, Cx3cr1, Siglech, Trem2) and exclusion of monocyte/DC/neutrophil markers to assign microglia.",
+        "Matches final lineage at exact ontology granularity."
+      ],
+      "weaknesses": [
+        "Relied partly on absence of other myeloid markers; some enriched terms are broad immune pathways rather than microglia-specific."
+      ],
+      "reviewer_cl_id": "CL:0000129"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Microglial-specific markers P2ry12, Cx3cr1, Siglech, Fcrls, and Gpr34 in the top DEG list directly support refinement from myeloid cell (CL:0000763) to microglial cell (CL:0000129).",
+      "Myeloid/microglial context supported by C1qa, C1qb, C1qc, Trem2, Ctss, Cd68, Csf1r, Adgre1, Itgam.",
+      "Canonical microglial markers observed (PMID 35202111)."
+    ],
+    "conflicting": [],
+    "enrichment_or_literature": [
+      "Microglial cell activation and neuroinflammatory response terms were enriched, consistent with an activated microglial state.",
+      "Complement cascade and DAP12 signaling terms further support microglial effector function."
+    ],
+    "cited_pmids": [
+      "35202111"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "microglia",
+    "reference_cl_term": "microglia",
+    "reference_cl_id": "CL:0000129",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

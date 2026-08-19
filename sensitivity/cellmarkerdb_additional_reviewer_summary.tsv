@@ -1,0 +1,3 @@
+condition	n	mean_cl_similarity	delta_vs_full_triage	ci_low	ci_high	exact_rate_percent	manual_review_rate_percent	raw_p	holm_adjusted_p
+CellMarkerDB added	50	78.7712340295342	-1.20775432641363	-6.72639834637476	3.3270094230369	46	2	0.781820284651372	0.781820284651372
+CellMarkerDB added with reliability filtering	50	80.1512474030248	0.172259047077018	-2.94654583030337	4.26852025107794	44	4	0.16593283439205	0.3318656687841

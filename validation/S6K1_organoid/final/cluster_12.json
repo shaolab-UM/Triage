@@ -1,0 +1,98 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_12",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "fibroblast",
+    "final_cell_ontology_id": "CL:0000057",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "mesenchymal stem cell",
+      "cell_ontology_id": "CL:0000134",
+      "strengths": [
+        "Correctly recognizes the dominant ECM/mesenchymal-stromal signature",
+        "Correctly excludes neuronal, glial, epithelial, endothelial and immune lineages from the marker panel"
+      ],
+      "weaknesses": [
+        "CL:0000134 is non-hierarchical to fibroblast; the marker panel lacks direct stemness/multipotency evidence",
+        "COL1A1, COL3A1, FN1, LUM, DCN, POSTN and SPARC are shared with fibroblasts and do not specifically select the MSC branch"
+      ],
+      "reviewer_cl_id": "CL:0000134"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "fibroblast",
+      "cell_ontology_id": "CL:0000057",
+      "strengths": [
+        "Directly supported by canonical fibroblast/ECM markers COL1A1, COL3A1, COL1A2, FN1, LUM, DCN, BGN, POSTN, SPARC and VIM",
+        "Avoids unsupported anatomical or stemness specificity and matches the observed matrix-producing phenotype"
+      ],
+      "weaknesses": [
+        "Does not further refine the myofibroblast-like contractile component (TAGLN, CALD1, TPM2) into a subtype label"
+      ],
+      "reviewer_cl_id": "CL:0000057"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "stromal cell of endometrium",
+      "cell_ontology_id": "CL:0002255",
+      "strengths": [
+        "Identifies the stromal/ECM-producing nature of the cluster using classic ECM markers"
+      ],
+      "weaknesses": [
+        "No endometrium-specific evidence (e.g., ESR1, PGR, DKK1, FOXO1) or tissue context supports CL:0002255",
+        "Over-specific relative to the generic fibroblast/stromal marker panel"
+      ],
+      "reviewer_cl_id": "CL:0002255"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "COL1A1, COL3A1, COL1A2, FN1, LUM, DCN, BGN, POSTN, SPARC and VIM are canonical fibroblast/ECM-producing markers directly supporting the fibroblast branch",
+      "TAGLN, CALD1, TPM1 and TPM2 are consistent with a contractile fibroblast/myofibroblast-like state within the fibroblast identity"
+    ],
+    "conflicting": [
+      "No direct MSC-specific stemness markers are present to support CL:0000134",
+      "No endometrial-specific markers or tissue evidence support CL:0002255"
+    ],
+    "enrichment_or_literature": [
+      "Original enrichment output (extracellular matrix organization, collagen fibril organization, ECM-receptor interaction) is consistent with fibroblast identity"
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Mesenchymal Stromal Cell (MSC)",
+    "reference_cl_term": "Mesenchymal Stromal Cell (MSC)",
+    "reference_cl_id": "CL:0002540",
+    "cl_similarity": 48.67683768574735
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_12_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

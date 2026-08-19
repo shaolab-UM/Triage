@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_7",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neuron",
+    "final_cell_ontology_id": "CL:0000540",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "excitatory (glutamatergic) neurons",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Correctly prioritizes SLC17A6 (VGLUT2), a defining marker of glutamatergic neurons.",
+        "Refines the majority broad neuron label to the ontology-valid descendant CL:0000679."
+      ],
+      "weaknesses": [
+        "Top-k subtype suggestions (deep-layer/upper-layer) are only partially supported by FEZF1/NR2F2/RELN and lack mature subtype markers such as BCL11B.",
+        "Initial raw label mapping was internally flagged as ambiguous, though the frozen reviewer candidate resolved to CL:0000679."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Correctly identifies the dominant broad lineage as neuron based on MAP2, DCX, TUBB2A/B, NEFM, STMN2.",
+        "Avoids unsupported subtype over-specification."
+      ],
+      "weaknesses": [
+        "Underspecific: it does not incorporate SLC17A6 (VGLUT2) to refine to glutamatergic neuron.",
+        "The exact CL:0000540 label discards the strongest lineage-specific evidence in the DEGs."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Neurons (likely glutamatergic cortical neurons)",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Recognizes the glutamatergic nature via SLC17A6 and synapse-related enrichment.",
+        "Correctly excludes glial, immune, and non-neural identities."
+      ],
+      "weaknesses": [
+        "Mapped to the broad CL:0000540 (neuron) instead of CL:0000679 despite direct glutamatergic evidence.",
+        "The 'cortical' modifier is not directly supported beyond forebrain/telencephalon developmental terms."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "SLC17A6 (VGLUT2) is present in cluster DEGs and directly supports the added glutamatergic component.",
+      "Pan-neuronal markers MAP2, DCX, TUBB2A/B, NEFM, STMN2 are the dominant identity signal.",
+      "Enrichment terms axonogenesis, forebrain development, and telencephalon development support a CNS neuronal identity."
+    ],
+    "conflicting": [
+      "DLX6-AS1, LHX1, and RELN are present but are insufficient to establish a competing GABAergic or Cajal-Retzius lineage.",
+      "No glial, immune, or epithelial lineage markers are present at cluster-defining levels."
+    ],
+    "enrichment_or_literature": [
+      "axonogenesis",
+      "forebrain development",
+      "neuron migration",
+      "telencephalon development",
+      "growth cone"
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Excitatory Neuron",
+    "reference_cl_term": "Excitatory Neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_7_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

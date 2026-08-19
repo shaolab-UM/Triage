@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_9",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "glutamatergic neuron",
+    "final_cell_ontology_id": "CL:0000679",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Cortical glutamatergic / excitatory neuron",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies glutamatergic/excitatory cortical identity using RORB, TSHZ2, SLC22A10, FOXP2, DCC, TOX, POU6F2.",
+        "Recognizes absence of inhibitory neuronal and glial markers.",
+        "Acknowledges mixed layer-specific signals rather than overcommitting to one subtype."
+      ],
+      "weaknesses": [
+        "No exact CLID mapping; raw label is broad and not ontology-resolvable.",
+        "Does not provide enough specificity for a final ontology label."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "intratelencephalic-projecting glutamatergic cortical neuron",
+      "cell_ontology_id": "CL:4023008",
+      "strengths": [
+        "Provides an ontology-valid, more specific glutamatergic cortical neuron subtype.",
+        "Genes such as RORB, TSHZ2, SLC22A10, and GABRG1 are compatible with an IT-projection identity."
+      ],
+      "weaknesses": [
+        "Over-specified: FOXP2, TOX, DCC, and POU6F2 support deep-layer/projection-associated features that are not uniquely IT.",
+        "No direct positive marker evidence distinguishes intratelencephalic projection from other glutamatergic cortical neuron subtypes."
+      ],
+      "reviewer_cl_id": "CL:4023008"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "glutamatergic neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Exact ontology mapping to CL:0000679.",
+        "Aligned with the dominant excitatory marker program and absence of inhibitory/glial markers.",
+        "Excitatory neuron enrichment signature supports the core identity without over-specification."
+      ],
+      "weaknesses": [
+        "Broad label does not resolve layer or projection subtype.",
+        "Medium confidence because layer-discriminatory markers are incomplete."
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Excitatory cortical neuron markers dominate: RORB, TSHZ2, SLC22A10, SLC22A9, SLC22A25, TPBG, PTK7, COBLL1, FOXP2, DCC, TOX, POU6F2.",
+      "Absence of canonical inhibitory (GAD1/GAD2/SST/PVALB/VIP), astrocyte, oligodendrocyte, and microglial markers.",
+      "Excitatory neuron enrichment signature (PMID 28485729) is consistent with the observed marker program.",
+      "No added hierarchical component was supported beyond CL:0000679; the IT-projection descendant CL:4023008 was not refined because the added IT component lacks direct positive support."
+    ],
+    "conflicting": [
+      "In-house IT-projection specificity is not directly supported: FOXP2, TOX, DCC, POU6F2 are deep-layer/projection-associated and do not uniquely establish intratelencephalic identity.",
+      "Non-neuronal markers (CD53, FAP, DPP4, GREM2, CCDC39, CATSPERB) are present at low level and interpreted as ambient/contamination."
+    ],
+    "enrichment_or_literature": [
+      "Excitatory neuron/excitatory cortical neuron enrichment from Lake et al. (PMID 28485729)."
+    ],
+    "cited_pmids": [
+      "28485729"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "glutamatergic neuron",
+    "reference_cl_term": "glutamatergic neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_9_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

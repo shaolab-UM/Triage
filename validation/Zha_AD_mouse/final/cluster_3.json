@@ -1,0 +1,100 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_3",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "choroid plexus epithelial cell",
+    "final_cell_ontology_id": "CL:0000706",
+    "confidence_primary": 0.96
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "choroid plexus epithelial cell",
+      "cell_ontology_id": "CL:0000706",
+      "strengths": [
+        "Exact CL:0000706 supported by canonical CPE markers Ttr, Igf2, Slc4a10, Car12, Folr1, Cldn2 in the original DEG list.",
+        "Comprehensive reasoning integrating transport, junction, secretory, and ECM programs consistent with CPE biology."
+      ],
+      "weaknesses": [
+        "Second-tier narrative substates (mature/reactive/embryonic CPE) are not mapped ontology labels and lack direct cluster-level positive support."
+      ],
+      "reviewer_cl_id": "CL:0000706"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "choroid plexus epithelial cell",
+      "cell_ontology_id": "CL:0000706",
+      "strengths": [
+        "Predicts exact CL:0000706 matching the reviewer majority.",
+        "Focused marker subset (Car12, Perp, Folr1, Igf2, Slc4a10, Prlr, Ttr) is consistent with choroid plexus epithelium."
+      ],
+      "weaknesses": [
+        "Minimal independent reasoning; no explicit negative-marker or functional interpretation provided."
+      ],
+      "reviewer_cl_id": "CL:0000706"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "choroid plexus epithelial cell",
+      "cell_ontology_id": "CL:0000706",
+      "strengths": [
+        "Explicitly anchors to definitive CPE markers Ttr, Slc4a10, Atp1b1, Cldn2, and Igf2.",
+        "Correctly notes absence of competing neuronal or immune lineage markers in the observed DEG list."
+      ],
+      "weaknesses": [
+        "Enrichment evidence includes off-target CNS myelination and platelet terms not supported by lineage markers; no confidence score provided."
+      ],
+      "reviewer_cl_id": "CL:0000706"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Canonical choroid plexus epithelial markers Ttr, Igf2, Slc4a10, Car12, Folr1, and Cldn2 are present among the top positive DEGs.",
+      "Supporting CPE-associated genes Otx2, Kl, Enpp2, Rbp1, Pltp, and Fxyd1 reinforce transport/secretory epithelial identity.",
+      "PMID 41618467 provides literature context consistent with choroid plexus epithelial annotation."
+    ],
+    "conflicting": [
+      "Enrichment terms for CNS myelination, oligodendrocyte development, and platelet degranulation appear without corresponding lineage markers in the DEG list and are considered off-target/ambient."
+    ],
+    "enrichment_or_literature": [
+      "Observed enrichment includes apical plasma membrane, cell-substrate junction organization, retinoid metabolism/transport, and IGF1R signaling, consistent with CPE barrier/transport function.",
+      "No strong competing lineage evidence (neuronal, immune, oligodendrocyte, endothelial) is present in the marker set."
+    ],
+    "cited_pmids": [
+      "41618467"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "endothelial cell",
+    "reference_cl_term": "endothelial cell",
+    "reference_cl_id": "CL:0000115",
+    "cl_similarity": 2.598924056353215
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_3_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_5",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "gamma-delta T cell",
+    "final_cell_ontology_id": "CL:0000798",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "gamma-delta T cell",
+      "cell_ontology_id": "CL:0000798",
+      "strengths": [
+        "TRGC2 is a decisive gamma-delta TCR lineage marker and ranks near the top of the DEG list.",
+        "T-lineage markers CD3D, CD2, FYN and lower-rank TRAC confirm T-cell identity.",
+        "Cytotoxic effector markers GZMK, GZMH, GZMA, GZMB, GZMM, NKG7, CTSW, FGFBP2 and GNLY fit an effector/memory gamma-delta T-cell phenotype.",
+        "CD8A/CD8B and NK-like receptors (KLRK1, KLRD1, KLRB1, HCST) are plausibly interpreted within a CD8+ or innate-like gamma-delta T-cell context."
+      ],
+      "weaknesses": [
+        "The specific Vdelta2/Vgamma9Vdelta2 subtype inference is not directly supported by TRGV9/TRDV2 markers.",
+        "The distinction between CD8+ gamma-delta and CD8+ alpha-beta T cells cannot be fully resolved from the provided markers, but TRGC2 strongly favors gamma-delta."
+      ],
+      "reviewer_cl_id": "CL:0000798"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Broad T-cell identity is directly supported by CD3D, CD2, FYN and TRAC.",
+        "The label is safe and not contradicted by the observed lineage markers."
+      ],
+      "weaknesses": [
+        "Under-specified: it does not use TRGC2 to resolve the gamma-delta versus alpha-beta T-cell branch.",
+        "The rank-2 subtype CD8-positive alpha-beta T cell lacks direct alpha-beta TCR evidence (e.g., TRBC1/TRBC2, high TRAC) and is not favored over gamma-delta T cell given TRGC2."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Cytotoxic memory/effector CD8+ T cell (with NK-like features)",
+      "cell_ontology_id": "CL:0000913",
+      "strengths": [
+        "Correctly recognized T-cell identity over NK cells using CD3D, TRAC, CD2 and CD8A/CD8B.",
+        "Correctly emphasized the strong cytotoxic effector program (GZMK, GZMH, GZMA, GZMM, NKG7, CTSW)."
+      ],
+      "weaknesses": [
+        "The selected CD8+ alpha-beta T-cell branch is not supported by direct alpha-beta TCR markers and conflicts with TRGC2.",
+        "The enrichment terms are largely generic cytotoxic/immune terms and do not distinguish alpha-beta from gamma-delta T cells.",
+        "The NK-cell candidate is contradicted by T-lineage markers CD3D, CD2 and TRAC.",
+        "Mapping status is review/unmapped and the proposed CLID is not directly supported by the observed branch-specific markers."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "TRGC2 (top DEG) is direct positive evidence for the gamma-delta TCR, supporting hierarchical refinement from T cell to gamma-delta T cell.",
+      "CD3D, CD2, FYN and TRAC confirm T-cell lineage.",
+      "GZMK, GZMH, GZMA, GZMB, GZMM, NKG7, CTSW, FGFBP2 and GNLY support a cytotoxic effector/memory phenotype consistent with gamma-delta T cells.",
+      "CD8A and CD8B are compatible with a CD8+ gamma-delta T-cell subset and do not establish alpha-beta TCR identity.",
+      "KLRK1, KLRD1, KLRB1 and HCST reflect the innate-like/NK-like receptor program commonly present in gamma-delta T cells.",
+      "Retrieved literature PMIDs 38177168, 38678059, 33932031, 24293448, 27589570, 34124223, 35646049 and 40221598 provide contextual support for gamma-delta T-cell identity."
+    ],
+    "conflicting": [
+      "No high-confidence alpha-beta TCR genes (e.g., TRBC1/TRBC2 or strongly elevated TRAC) support a CD8+ alpha-beta T-cell call",
+      "TRAC is ranked only 43rd.",
+      "TRGC2 directly favors the gamma-delta branch over the CD8+ alpha-beta branch proposed by enrichment.",
+      "The NK-cell interpretation is contradicted by T-lineage markers CD3D, CD2 and TRAC.",
+      "NK cell-mediated cytotoxicity and DAP12 enrichment terms reflect cytotoxic effector machinery and are not branch-specific."
+    ],
+    "enrichment_or_literature": [
+      "T cell receptor signaling pathway",
+      "natural killer cell mediated cytotoxicity",
+      "granzyme-mediated programmed cell death signaling pathway",
+      "DAP12 signaling",
+      "Retrieved PMIDs: 38177168, 38678059, 33932031, 24293448, 27589570, 34124223, 35646049, 40221598"
+    ],
+    "cited_pmids": [
+      "38177168",
+      "38678059",
+      "33932031",
+      "24293448",
+      "27589570",
+      "34124223",
+      "35646049",
+      "40221598"
+    ],
+    "cited_enrichment_terms": [
+      "T cell receptor signaling pathway",
+      "natural killer cell mediated cytotoxicity",
+      "granzyme-mediated programmed cell death signaling pathway",
+      "DAP12 signaling"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "cytotoxic T cell",
+    "reference_cl_term": "cytotoxic T cell",
+    "reference_cl_id": "CL:0000910",
+    "cl_similarity": 46.2426495756355
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_5_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

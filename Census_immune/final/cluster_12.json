@@ -1,0 +1,121 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_12",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "natural killer cell",
+    "final_cell_ontology_id": "CL:0000623",
+    "confidence_primary": 0.97
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "natural killer cell",
+      "cell_ontology_id": "CL:0000623",
+      "strengths": [
+        "Correctly identifies NK identity from the full marker set including KLRF1, KLRC1, SPON2, PRF1, S1PR5, GZMB, GNLY, FCGR3A, NKG7, KLRD1, KLRK1.",
+        "Appropriately notes absence of T-cell markers (CD3D/CD3E/TRAC) and lack of B/myeloid signatures."
+      ],
+      "weaknesses": [
+        "Rank-2 subtype proposal (CD56dim CD16bright) includes CD56-dim without direct positive NCAM1 evidence; the subtype string itself is unmapped in the frozen registry."
+      ],
+      "reviewer_cl_id": "CL:0000623"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "natural killer cell",
+      "cell_ontology_id": "CL:0000623",
+      "strengths": [
+        "Conservative top1 is fully supported by original DEGs and enrichment terms.",
+        "Rank-2 CD16-positive CD56-dim NK cell is partially supported by FCGR3A, FGFBP2, S1PR5, SPON2 expression."
+      ],
+      "weaknesses": [
+        "CD56-dim component of rank-2 subtype is not directly evidenced because NCAM1 is absent from the observed top markers."
+      ],
+      "reviewer_cl_id": "CL:0000623"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "natural killer cell",
+      "cell_ontology_id": "CL:0000623",
+      "strengths": [
+        "Enrichment terms such as 'natural killer cell mediated cytotoxicity', 'natural killer cell activation', and 'natural killer cell chemotaxis' independently reinforce NK identity.",
+        "Relies on canonical NK effectors and chemokines (KLRF1, KLRC1, GNLY, PRF1, GZMB, XCL2, CD160, CMC1)."
+      ],
+      "weaknesses": [
+        "Uses rule-of-exclusion and pathway inference rather than direct subtype markers; provides no refinement beyond broad NK cell."
+      ],
+      "reviewer_cl_id": "CL:0000623"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs KLRF1, KLRC1, SPON2, PRF1, S1PR5, GZMB, GNLY, FCGR3A, FGFBP2, NKG7, KLRD1, KLRK1, XCL2, CD160, CMC1 provide direct positive support for NK cell identity.",
+      "Enrichment terms 'natural killer cell mediated cytotoxicity', 'natural killer cell activation', and 'natural killer cell chemotaxis' independently support NK identity.",
+      "Absence of T-cell markers CD3D/CD3E/TRAC and of B-cell/myeloid markers in the original DEG list supports a clean NK population rather than a mixed lineage.",
+      "PMID 36099049 is consistent with the canonical NK-cell marker interpretation."
+    ],
+    "conflicting": [
+      "No strong conflicting lineage signal",
+      "IL2RB, CD247, FCER1G, KLRB1, and CD160 can occur in some T-cell subsets but are outweighed by the NK-specific program."
+    ],
+    "enrichment_or_literature": [
+      "natural killer cell mediated cytotoxicity",
+      "natural killer cell activation",
+      "natural killer cell chemotaxis",
+      "granzyme-mediated programmed cell death signaling pathway",
+      "cytolytic granule",
+      "hsa04650",
+      "PMID 36099049, PMID 38678059, PMID 37116791, PMID 30061880, PMID 41277843, PMID 33216732, PMID 36918801, PMID 41325410"
+    ],
+    "cited_pmids": [
+      "36099049",
+      "38678059",
+      "37116791",
+      "30061880",
+      "41277843",
+      "33216732",
+      "36918801",
+      "41325410"
+    ],
+    "cited_enrichment_terms": [
+      "natural killer cell mediated cytotoxicity",
+      "natural killer cell activation",
+      "natural killer cell chemotaxis",
+      "granzyme-mediated programmed cell death signaling pathway",
+      "cytolytic granule",
+      "hsa04650"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "natural killer cell",
+    "reference_cl_term": "natural killer cell",
+    "reference_cl_id": "CL:0000623",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_12_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

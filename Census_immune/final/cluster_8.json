@@ -1,0 +1,111 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_8",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "mesenchymal stem cell",
+    "final_cell_ontology_id": "CL:0000134",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Mesenchymal stromal cell (MSC) / fibroblast-like non-hematopoietic cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies the non-hematopoietic, mesenchymal/ECM lineage from top DEGs (VGLL3, MDFI, TIMP4, PPIC, ECM2, CHRDL1, LIFR, APOD, FMO3).",
+        "Integrates ECM, niche, and perivascular signals without invoking immune identity.",
+        "Proposed CL:0000134 as the likely MSC ontology term."
+      ],
+      "weaknesses": [
+        "Raw label is not directly mapped to an ontology ID; mapping remained ambiguous.",
+        "Includes speculative 'fibrocyte' component not directly supported by CD45/CD34 evidence."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "immune cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "No strength from original evidence; the immune-cell hypothesis is not supported by any DEG or enrichment signal."
+      ],
+      "weaknesses": [
+        "Contradicted by the absence of PTPRC, CD3D, CD19, LYZ, NKG7 and the dominance of ECM/mesenchymal genes (TIMP4, PPIC, ECM2, CHRDL1, VGLL3, LIFR, FMO3)."
+      ],
+      "reviewer_cl_id": null
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "mesenchymal stem cell",
+      "cell_ontology_id": "CL:0000134",
+      "strengths": [
+        "Deterministic mapping to CL:0000134.",
+        "Supported by original ECM/mesenchymal DEGs, protein-interaction hubs (LUM, BGN, DCN, COL3A1, CXCL12), and terms including 'Extracellular matrix organization', 'collagen fibril organization', 'regulation of stem cell proliferation', 'ossification', and 'cartilage development'."
+      ],
+      "weaknesses": [
+        "Some supporting markers overlap with fibroblasts/pericytes; stemness is inferred from regulatory/developmental gene programs rather than a functional stem-cell assay."
+      ],
+      "reviewer_cl_id": "CL:0000134"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs (VGLL3, MDFI, CP, AMOTL2, TIMP4, PPIC, CCN1, GHR, SRPX, FMO3, LIFR, APOD, C1QTNF1, ECM2, CHRDL1) are ECM/mesenchymal and contain no immune markers.",
+      "Original bioinformatics protein-interaction hubs include LUM, BGN, DCN, COL3A1, and CXCL12, supporting a mesenchymal stromal/niche identity.",
+      "Enrichment terms 'Extracellular matrix organization', 'collagen fibril organization', 'regulation of stem cell proliferation', 'ossification', and 'cartilage development' support the added stem-cell/developmental component of CL:0000134.",
+      "PMID 34944787 provides literature context for mesenchymal stem/stromal cell identity."
+    ],
+    "conflicting": [
+      "In-house 'immune cell' is unsupported: no PTPRC, CD3D, CD19, LYZ, NKG7, CD14, or FCGR3A signal is present in the original DEGs."
+    ],
+    "enrichment_or_literature": [
+      "ECM proteoglycans",
+      "Extracellular matrix organization",
+      "collagen fibril organization",
+      "regulation of stem cell proliferation",
+      "ossification",
+      "cartilage development",
+      "PMID 34944787"
+    ],
+    "cited_pmids": [
+      "34944787"
+    ],
+    "cited_enrichment_terms": [
+      "Extracellular matrix organization",
+      "collagen fibril organization",
+      "regulation of stem cell proliferation",
+      "ossification",
+      "cartilage development"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "mesenchymal stem cell of the bone marrow",
+    "reference_cl_term": "mesenchymal stem cell of the bone marrow",
+    "reference_cl_id": "CL:0002540",
+    "cl_similarity": 79.5495012320026
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_8_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

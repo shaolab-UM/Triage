@@ -1,0 +1,98 @@
+raw_label	gt_cl_id	exact_syn_clid	ols_exact_clid	ols_search_clid
+Monocyte (myeloid lineage)	CL:0000576	NA	NA	CL:0000040
+T lymphocytes / T cells	CL:0000084	NA	CL:0020033	CL:0000794
+T lymphocyte (αβ T cell)	CL:0000084	NA	NA	CL:0000796
+Natural killer (NK) cell	CL:0000623	NA	CL:0000545	CL:4047101
+Plasma cells / plasmablasts	CL:0000786	NA	NA	CL:0000945
+Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)	CL:0000784	NA	NA	CL:0000784
+B-lymphoid lineage cells	CL:0000236	NA	NA	CL:0000037
+B-cell lineage, early B-cell precursor / immature B-lymphoid progenitor	CL:0000817	NA	NA	NA
+CD8+ naïve T cells	CL:0000900	NA	NA	CL:0000625
+Hematopoietic stem/progenitor cells (HSPCs) — CD34+ primitive hematopoietic stem/progenitor cell cluster	CL:0008001	NA	NA	NA
+Dendritic cell (DC)	CL:0000451	NA	NA	CL:0000990
+γδ T cell	CL:0000798	NA	CL:0000800	CL:0000800
+Erythroid lineage cell	CL:0000764	NA	CL:0000764	CL:0000764
+Platelets (megakaryocyte/platelet lineage; circulating blood platelets)	CL:0000233	NA	NA	CL:0000049
+Mesenchymal stromal cell (MSC) / fibroblast-like non-hematopoietic cell	CL:0000134	NA	NA	NA
+B cell / B lymphocyte	CL:0000236	NA	NA	CL:0000822
+monocyte	CL:0000576	CL:0000576	CL:0000576	CL:0000576
+T cell	CL:0000084	CL:0000084	CL:0000084	CL:0000084
+natural killer cell	CL:0000623	CL:0000623	CL:0000623	CL:0000623
+lymphocyte of B lineage	CL:0000236	CL:0000945	CL:0000945	CL:0000945
+dendritic cell	CL:0000451	CL:0000451	CL:0000451	CL:0000451
+B cell	CL:0000236	CL:0000236	CL:0000236	CL:0000236
+hematopoietic precursor cell	CL:0008001	CL:0008001	CL:0008001	CL:0008001
+erythroid lineage cell	CL:0000764	CL:0000764	CL:0000764	CL:0000764
+megakaryocyte	CL:0000556	CL:0000556	CL:0000556	CL:0000556
+immune cell	CL:0000988	NA	CL:0000097	CL:0000492
+classical monocyte	CL:0000860	CL:0000860	CL:0000860	CL:0000860
+Naive/Quiescent CD4+ T cell (progenitor-like)	CL:0000895	NA	NA	NA
+stem cell memory CD8-positive, alpha-beta T cell	CL:0000907	NA	CL:0020034	CL:0020034
+plasma cell	CL:0000786	CL:0000786	CL:0000786	CL:0000786
+plasmacytoid dendritic cell	CL:0000784	CL:0000784	CL:0000784	CL:0000784
+Plasma cell / differentiated B cell (likely plasmablast or plasma cell)	CL:0000786	NA	NA	NA
+pro-B cell	CL:0000826	CL:0000826	CL:0000826	CL:0000826
+naive thymus-derived CD8-positive, alpha-beta T cell	CL:0000900	CL:0000900	CL:0000900	CL:0000900
+Hematopoietic Stem/Progenitor Cell (HSPC) / Early Myeloid Progenitor	CL:0008001	NA	NA	NA
+Conventional Dendritic Cell Type 2 (cDC2)	CL:0000990	NA	NA	CL:0002394
+Cytotoxic memory/effector CD8+ T cell (with NK-like features)	CL:0000910	NA	NA	NA
+Erythroid precursor (orthochromatic erythroblast)	CL:0000552	NA	NA	NA
+mesenchymal stem cell	CL:0000134	CL:0000134	CL:0000134	CL:0000134
+naive/mature B cell	CL:0000788	NA	NA	CL:0000980
+Lung epithelial cell, specifically alveolar type 2 (AT2) epithelial cell / AT2-lineage cell.	CL:0002063	NA	NA	NA
+Mesothelial cells	CL:0000077	NA	CL:1000491	CL:0009029
+Airway basal epithelial cell / basal progenitor	CL:0002633	NA	NA	CL:4033048
+Endothelial cell	CL:0000115	NA	CL:0000115	CL:0000115
+Ciliated airway epithelial cell / multiciliated epithelial cell	CL:0000067	NA	NA	CL:4033055
+Macrophage	CL:0000235	NA	CL:0000235	CL:0000235
+B lymphocytes / B cells	CL:0000236	NA	NA	CL:0000822
+Myeloid lineage — monocyte/macrophage (mononuclear phagocyte)	CL:0000235	NA	NA	CL:0000235
+Cytotoxic αβ T lymphocyte / type-1 effector T cell	CL:0000910	NA	NA	NA
+epithelial cell	CL:0000066	CL:0000066	CL:0000066	CL:0000066
+endothelial cell	CL:0000115	CL:0000115	CL:0000115	CL:0000115
+mesenchymal cell	CL:0008019	CL:0008019	CL:0008019	CL:0008019
+macrophage	CL:0000235	CL:0000235	CL:0000235	CL:0000235
+activated mature B cell	CL:0000785	NA	CL:0000785	CL:0000785
+Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell	CL:0000910	NA	NA	NA
+pulmonary alveolar type 2 cell	CL:0002063	CL:0002063	CL:0002063	CL:0002063
+Basal epithelial cell (airway) with potential squamous differentiation	CL:0002329	NA	NA	NA
+Pulmonary vascular endothelial cell (likely capillary endothelial subtype)	CL:0000115	NA	NA	NA
+fibroblast	CL:0000057	CL:0000057	CL:0000057	CL:0000057
+alveolar macrophage	CL:0000583	CL:0000583	CL:0000583	CL:0000583
+CD16-positive, CD56-dim natural killer cell, human	CL:0000939	CL:0000939	CL:0000939	CL:0000939
+B lymphocyte / B cell	CL:0000236	NA	NA	CL:0000822
+T cell (T lymphocyte)	CL:0000084	NA	CL:0000051	CL:0000794
+Proximal tubular epithelial cell (PT / PTEC)	CL:0002306	NA	NA	NA
+Myeloid lineage: mononuclear phagocyte — monocyte/macrophage	CL:0000235	NA	NA	CL:0000235
+myeloid cell	CL:0000763	CL:0000763	CL:0000763	CL:0000763
+Proximal Tubule Epithelial Cell (PTEC), likely S3 segment	CL:0002306	NA	NA	NA
+CD14-positive, CD16-negative classical monocyte	CL:0001054	CL:0002057	CL:0002057	CL:0002057
+Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)	CL:0008024	NA	NA	NA
+Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.	CL:0000763	NA	NA	NA
+Endothelial cells	CL:0000115	NA	CL:0002139	CL:0000115
+Pancreatic islet endocrine cell	CL:0008024	NA	NA	CL:0002351
+Macrophage (myeloid lineage / mononuclear phagocyte)	CL:0000235	NA	NA	CL:0000235
+Pancreatic ductal epithelial cells	CL:0002079	NA	NA	CL:0002079
+Pancreatic ductal epithelial cell	CL:0002079	NA	NA	CL:0002079
+Pancreatic acinar / exocrine epithelial cell	CL:0002064	NA	NA	CL:1001599
+neural_glial cell	CL:0000125	NA	NA	CL:0011028
+cell of skeletal muscle	CL:0000188	CL:0000188	CL:0000188	CL:0000188
+memory B cell	CL:0000787	CL:0000787	CL:0000787	CL:0000787
+pancreatic A cell	CL:0000171	CL:0000171	CL:0000171	CL:0000171
+pancreatic acinar cell	CL:0002064	CL:0002064	CL:0002064	CL:0002064
+TREM2+ lipid-associated macrophage	CL:4047053	NA	NA	CL:4033086
+Pancreatic ductal epithelial cell (with potential reactive/regenerative state)	CL:0002079	NA	NA	NA
+Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells	CL:0002410	NA	NA	NA
+Monocyte	CL:0000576	NA	CL:0000576	CL:0000576
+Natural Killer (NK) cells	CL:0000623	NA	CL:0000545	CL:4047101
+CD4+ T cell, with a memory/activated phenotype	CL:0000624	NA	NA	CL:0000787
+CD8+ T lymphocyte / cytotoxic T cell	CL:0000910	NA	NA	CL:0000794
+T lymphocyte (T cell)	CL:0000084	NA	CL:0020033	CL:0000794
+Hematopoietic stem/progenitor cell (HSPC)	CL:0008001	NA	NA	NA
+T lymphocyte / T cell	CL:0000084	NA	CL:0020033	CL:0000794
+CD8+ T cell	CL:0000625	NA	CL:4052021	CL:0020034
+Mature naïve B cell	CL:0000785	NA	NA	CL:0000788
+stem cell memory CD4-positive, alpha-beta T cell	CL:0000904	NA	CL:0020033	CL:0020033
+cytotoxic T cell	CL:0000910	CL:0000910	CL:0000910	CL:0000910
+Naive/Quiescent T cell (CD4+ T cell)	CL:0000898	NA	NA	NA
+Naive/Mature CD4+ T cell (central memory-like)	CL:0000895	NA	NA	NA

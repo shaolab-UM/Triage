@@ -1,0 +1,109 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_10",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "progenitor cell",
+    "final_cell_ontology_id": "CL:0011026",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Cycling neural progenitor cells (NPCs)",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identified the dominant cell-cycle/mitotic program from top DEGs (MKI67, CENPF, TOP2A, CCNB1, AURKB, PLK1).",
+        "Recognized that the signature represents a proliferation state rather than a differentiated lineage."
+      ],
+      "weaknesses": [
+        "Added unsupported 'neural progenitor' specificity based on tissue context (human cortex organoid) rather than ORIGINAL cluster markers.",
+        "No NPC-specific markers (e.g., PAX6, SOX2) present in the DEG list."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "progenitor cell",
+      "cell_ontology_id": "CL:0011026",
+      "strengths": [
+        "Captured the cycling/proliferative state of the cluster.",
+        "Provided a mapped, ontology-valid identifier (CL:0011026)."
+      ],
+      "weaknesses": [
+        "'Progenitor cell' implies differentiation potential/lineage commitment that is not directly supported; all top DEGs are generic cell-cycle genes.",
+        "No progenitor-specific markers in the ORIGINAL evidence."
+      ],
+      "reviewer_cl_id": "CL:0011026"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "cycling B cell",
+      "cell_ontology_id": "CL:4033068",
+      "strengths": [
+        "Identified the cycling component of the signature.",
+        "Attempted to connect the cycling state to a specific cell type."
+      ],
+      "weaknesses": [
+        "B-cell identity is entirely unsupported: no B-lineage markers (CD19, MS4A1, CD79A/B) in the DEG list.",
+        "The enrichment terms are generic cell-cycle terms and cannot distinguish B cells from other cycling cells."
+      ],
+      "reviewer_cl_id": "CL:4033068"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "All 50 top DEGs are canonical cell-cycle/mitotic genes (MKI67, CENPF, TOP2A, CCNB1, CCNB2, CDK1, AURKB, PLK1, CDC20, UBE2C).",
+      "Enrichment terms are uniformly cell-cycle/mitotic: mitotic nuclear division, chromosome segregation, M Phase, Cell Cycle Checkpoints, hsa04110, hsa04114.",
+      "Absence of any lineage-specific markers in the DEG list supports a state-level 'cycling cell' identity."
+    ],
+    "conflicting": [
+      "CASSIA 'neural progenitor' label lacks direct marker support and relies on tissue context.",
+      "In-house 'progenitor cell' label adds unsupported differentiation-potential component.",
+      "Enrichment 'cycling B cell' label lacks B-lineage marker support (no CD19/MS4A1/CD79A/B)."
+    ],
+    "enrichment_or_literature": [
+      "GO/Reactome/KEGG terms: nuclear division, chromosome segregation, mitotic cell cycle phase transition, spindle, condensed chromosome, hsa04110 (Cell cycle), hsa04114 (Oocyte meiosis)."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": [
+      "mitotic nuclear division",
+      "chromosome segregation",
+      "M Phase",
+      "Cell Cycle Checkpoints",
+      "hsa04110",
+      "hsa04114",
+      "spindle"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": true,
+    "release_state": "Manual review",
+    "chief_qc_status": "failed",
+    "chief_qc_round": 2
+  },
+  "evaluation": {
+    "published_reference_annotation": "Cycling progenitor (aRG)",
+    "reference_cl_term": "Cycling progenitor (aRG)",
+    "reference_cl_id": "CL:0011020",
+    "cl_similarity": 55.30499435776579
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_10_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

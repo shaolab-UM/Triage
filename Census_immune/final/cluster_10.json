@@ -1,0 +1,101 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_10",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "naive T cell",
+    "final_cell_ontology_id": "CL:0000898",
+    "confidence_primary": 0.71
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Directly supported by T cell lineage DEGs: CD6, IL7R, LEF1, TCF7, SATB1, RHOH.",
+        "Enrichment terms such as regulation of T cell activation and T cell differentiation are consistent."
+      ],
+      "weaknesses": [
+        "Stays at the broad T cell level and does not capture the supported naive-state refinement."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Broad T cell identity supported by the same DEG/enrichment evidence.",
+        "Top-2 prediction 'naive T cell' (CL:0000898) matches the best-supported descendant, with naive/quiescence-associated markers IL7R, LEF1, TCF7, SATB1, TOB1."
+      ],
+      "weaknesses": [
+        "Top-1 remains generic T cell; naive-state evidence is indirect because CCR7/SELL are not among the top DEGs."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Naive/Quiescent CD4+ T cell (progenitor-like)",
+      "cell_ontology_id": "CL:0000895",
+      "strengths": [
+        "Correctly highlights the naive/quiescence component through IL7R, TCF7, LEF1, SATB1, TOB1."
+      ],
+      "weaknesses": [
+        "CD4-positive branch (CL:0000895) is not supported by direct CD4/CD8 marker evidence; CD4 vs CD8 cannot be distinguished.",
+        "State qualifiers 'quiescent' and 'progenitor-like' conflate biological state with cell type identity."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "T cell lineage supported by DEGs: CD6, IL7R, LEF1, TCF7, SATB1, RHOH.",
+      "Naive-state refinement supported by naive/quiescence-associated genes IL7R, LEF1, TCF7, SATB1, TOB1, ID3.",
+      "Enrichment terms 'regulation of T cell activation', 'T cell differentiation', and 'regulation of T cell differentiation in thymus' support the T lineage.",
+      "PMID 35297204 cited in support of the naive T cell identity."
+    ],
+    "conflicting": [
+      "No CD4/CD8A/CD8B markers are present to support the CD4-positive versus CD8-positive branch choice.",
+      "CCR7/SELL are not in the top DEG list, so naive-state support is indirect but combined with IL7R/LEF1/TCF7/SATB1/TOB1 is sufficient."
+    ],
+    "enrichment_or_literature": [
+      "Pathway enrichment: regulation of T cell activation, T cell differentiation, gamma-delta T cell differentiation.",
+      "Reactome TCF/LEF WNT signaling via TCF7/LEF1 is consistent with a naive/quiescent T cell state."
+    ],
+    "cited_pmids": [
+      "35297204"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "naive T cell",
+    "reference_cl_term": "naive T cell",
+    "reference_cl_id": "CL:0000898",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_10_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

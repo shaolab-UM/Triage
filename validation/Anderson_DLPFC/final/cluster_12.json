@@ -1,0 +1,98 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_12",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "lamp5 GABAergic cortical interneuron",
+    "final_cell_ontology_id": "CL:4023011",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "GABAergic interneuron",
+      "cell_ontology_id": "CL:0011005",
+      "strengths": [
+        "Correctly identifies GABAergic inhibitory lineage via GAD2 and coherent LAMP5/NXPH2/KIT/SV2C signature.",
+        "Correctly notes absence of PVALB/SST/VIP canonical markers."
+      ],
+      "weaknesses": [
+        "Stops at broader GABAergic interneuron level despite direct LAMP5/ADARB2/TACR1 markers supporting a more specific lamp5 subtype."
+      ],
+      "reviewer_cl_id": "CL:0011005"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "GABAergic neuron",
+      "cell_ontology_id": "CL:0000617",
+      "strengths": [
+        "Correct broad GABAergic identity; top2 candidate correctly includes lamp5 GABAergic cortical interneuron."
+      ],
+      "weaknesses": [
+        "Top1 is an ancestor of the supported lamp5 subtype; final specificity is lower than original markers allow."
+      ],
+      "reviewer_cl_id": "CL:0000617"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "lamp5 GABAergic cortical interneuron",
+      "cell_ontology_id": "CL:4023011",
+      "strengths": [
+        "Most specific ontology-valid subtype with direct marker support (LAMP5, GAD2, ADARB2, TACR1, MDGA1, HAPLN1, NXPH2).",
+        "Aligns with DLPFC origin and coherent interneuron enrichment (GABA-ergic synapse, GABA synthesis)."
+      ],
+      "weaknesses": [
+        "Raw label includes unsupported 'VIP/NPY' speculation because VIP/NPY are not observed in the marker list."
+      ],
+      "reviewer_cl_id": "CL:4023011"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "GAD2 with GABA-ergic synapse/GABA synthesis enrichment establishes GABAergic identity.",
+      "LAMP5, KIT, SV2C, NXPH2, ADARB2, TOX2, SPHKAP, ANO1, HCRTR2, TACR1 directly support the lamp5 GABAergic cortical interneuron subtype.",
+      "PMID 39499736 supports cortical interneuron marker interpretation."
+    ],
+    "conflicting": [
+      "No dominant conflicting lineage; weak basement-membrane/transport genes (COL4A4, SLC35F4, SLC27A6) are minor and do not outweigh the interneuron program."
+    ],
+    "enrichment_or_literature": [
+      "GABA-ergic synapse; GABA synthesis, release, reuptake and degradation; Transmission across Chemical Synapses; Neuronal System."
+    ],
+    "cited_pmids": [
+      "39499736"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "GABAergic neuron",
+    "reference_cl_term": "GABAergic neuron",
+    "reference_cl_id": "CL:0000617",
+    "cl_similarity": 69.30533484148253
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_12_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

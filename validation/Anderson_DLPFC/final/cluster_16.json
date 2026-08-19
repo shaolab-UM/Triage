@@ -1,0 +1,111 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_16",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "brain pericyte",
+    "final_cell_ontology_id": "CL:2000043",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Vascular mural / perivascular cell (pericyte-like)",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies pericyte/mural anchor using TBX18, NOTCH3, PDGFRB, RGS5, P2RY14",
+        "Recognizes the absence of contractile VSMC markers ACTA2, MYH11, TAGLN, CNN1",
+        "Acknowledges the VLMC/perivascular fibroblast-like ECM component without losing the mural identity"
+      ],
+      "weaknesses": [
+        "Top1 label is unmapped/broad rather than a single ontology class",
+        "Includes VSMC and VLMC as candidate types even though VSMC is not supported by contractile markers",
+        "Pericyte-VLMC state phrasing suggests mixture without selecting a single primary identity"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "mural cell",
+      "cell_ontology_id": "CL:0008034",
+      "strengths": [
+        "Provides an exact valid ontology ID for the mural lineage",
+        "Consistent with canonical mural markers NOTCH3, PDGFRB, RGS5",
+        "Top-k includes the more specific pericyte and brain pericyte labels"
+      ],
+      "weaknesses": [
+        "Top1 mural cell is an ancestor of the supported pericyte identity",
+        "Does not explicitly address the VLMC/perivascular fibroblast-like ECM signal",
+        "Candidate scores place pericyte/brain pericyte above mural cell, so the top1 label is less specific than the evidence supports"
+      ],
+      "reviewer_cl_id": "CL:0008034"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Vascular smooth muscle cell / Pericyte",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Uses RGS5, NOTCH3, PDGFRB, and TBX18 to support a mural/pericyte identity",
+        "Recognizes the DCN/FN1 fibroblast-like ambiguity",
+        "Acknowledges the lack of contractile VSMC markers"
+      ],
+      "weaknesses": [
+        "Composite top1 label is not a single ontology-valid cell type",
+        "VSMC component is non-hierarchical and unsupported by the original markers",
+        "VLMC candidate is a non-hierarchical alternative rather than a supported primary"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Canonical pericyte/mural markers TBX18, NOTCH3, PDGFRB, RGS5, P2RY14, GJC1, ATP1A2 support pericyte identity (PMID 23675535; PMID 38685679).",
+      "Hierarchical refinement from mural cell (CL:0008034) to pericyte (CL:0000669) is supported by RGS5/PDGFRB/NOTCH3/P2RY14 and does not require VSMC contractile markers.",
+      "ECM/basement-membrane program genes COL4A3, COL4A4, NID1, LAMA2, LAMA4, and FN1 are consistent with pericyte vascular support biology (PMID 31506348)."
+    ],
+    "conflicting": [
+      "No ACTA2, MYH11, TAGLN, or CNN1 expression, so vascular associated smooth muscle cell (CL:0000359) is not a supported non-hierarchical branch.",
+      "VLMC/perivascular fibroblast-like genes EBF1, ITIH5, CFH, LEF1, DCN, and FBLN1 introduce an ECM/fibroblast-like secondary signal but do not overturn the dominant pericyte/mural anchor."
+    ],
+    "enrichment_or_literature": [
+      "Literature retrieval for the cluster returned pericyte/mural-supporting PMIDs (23675535, 34552146, 38685679).",
+      "The observed ECM/collagen/laminin gene pattern is consistent with pericyte vascular support function."
+    ],
+    "cited_pmids": [
+      "23675535",
+      "38685679",
+      "31506348",
+      "34552146"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "pericyte",
+    "reference_cl_term": "pericyte",
+    "reference_cl_id": "CL:0000669",
+    "cl_similarity": 81.27435727955891
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_16_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_3",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "hematopoietic precursor cell",
+    "final_cell_ontology_id": "CL:0008001",
+    "confidence_primary": 0.87
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Hematopoietic stem/progenitor cells (HSPCs) — CD34+ primitive hematopoietic stem/progenitor cell cluster",
+      "cell_ontology_id": "CL:0000037",
+      "strengths": [
+        "Correctly identifies CD34+ HSPC/HSC identity using CD34, PROM1, GATA2, HOXA9, HOXA10, MYB, PBX1, ALDH1A1",
+        "Interprets basophil/mast and megakaryocyte genes as multilineage priming rather than commitment",
+        "Proposes CL:0000037, consistent with the dominant marker program"
+      ],
+      "weaknesses": [
+        "Top1 free-text label has no exact CL mapping; rank2 composite label over-specifies LT-HSC/MPP/pre-BMP",
+        "LT-HSC emphasis is weakened by proliferation-associated genes CDK6, TYMS, NPDC1"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "hematopoietic precursor cell",
+      "cell_ontology_id": "CL:0008001",
+      "strengths": [
+        "Ontology-valid ancestor consistent with HSPC identity",
+        "Deterministic CL mapping"
+      ],
+      "weaknesses": [
+        "Under-specific; misses the supported stem-cell identity",
+        "Does not capture CD34/AVP/CRHBP stemness signal"
+      ],
+      "reviewer_cl_id": "CL:0008001"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Hematopoietic Stem/Progenitor Cell (HSPC) / Early Myeloid Progenitor",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Recognizes HSPC core using CD34, PROM1, CRHBP, SPINK2, PRSS57",
+        "Correctly notes absence of mature lineage markers"
+      ],
+      "weaknesses": [
+        "Top1 unmapped; candidates include non-hierarchical lineage-restricted/oligopotent progenitors without direct branch-specific evidence",
+        "Early myeloid/committed-progenitor components are not supported by the primitive HSC marker program"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CD34, AVP, CRHBP, GATA2, HOXA9, HOXA10, MYB, PBX1, ALDH1A1, SPINK2, PRSS57 support HSC identity over generic hematopoietic precursor cell",
+      "CD34 and GATA2 plus absence of mature lineage markers (CD3D, CD19, MS4A1, NKG7, CD14, LYZ) support the CD34+ HSPC branch",
+      "PMID 36658547 allowed as supporting literature context for CD34+ HSPC identity"
+    ],
+    "conflicting": [
+      "Proliferation/MPP-associated genes CDK6, TYMS, NPDC1 and basophil/mast/megakaryocyte priming genes complicate an LT-HSC-specific call but do not overturn HSC identity",
+      "Enrichment candidates CL:0002031/CL:0002032 are non-hierarchical to HSC and lack direct branch-specific support"
+    ],
+    "enrichment_or_literature": [
+      "Allowed literature (PMID 36658547) supports CD34+ HSPC interpretation",
+      "Reactome/GO terms such as Hemostasis, GPCR signalling, and Transcriptional regulation of granulopoiesis are consistent with an HSPC state but not lineage-specific"
+    ],
+    "cited_pmids": [
+      "36658547"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "bone marrow hematopoietic cell",
+    "reference_cl_term": "bone marrow hematopoietic cell",
+    "reference_cl_id": "CL:1001610",
+    "cl_similarity": 32.5033114537478
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_3_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

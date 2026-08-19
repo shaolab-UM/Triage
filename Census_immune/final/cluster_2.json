@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_2",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "naive T cell",
+    "final_cell_ontology_id": "CL:0000898",
+    "confidence_primary": 0.9
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "CD8+ naïve T cells",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies CD8+ T-cell identity from CD8A/CD8B and CD3G/TRBC2/LCK/LAT/CD5",
+        "Correctly captures the naive state via CCR7, SELL, IL7R, LEF1, CD27, LRRN3, CHI3L2, LDLRAP1",
+        "Excludes NK, effector/cytotoxic, and B-cell identities based on marker absence"
+      ],
+      "weaknesses": [
+        "Label was not stably mapped to a Cell Ontology ID; candidate CL set includes irrelevant B-cell and Tc1 entries",
+        "Top-2 string mixes memory/stem-cell-memory alternatives, reducing precision"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "T-cell lineage is unambiguous from CD3G, TRBC2, LCK, LAT, CD5",
+        "Top-k includes more specific descendants (CL:0000898, CL:0000900) consistent with marker evidence"
+      ],
+      "weaknesses": [
+        "Top1 is under-specific and omits the CD8+ and naive components directly supported by CD8A/CD8B and CCR7/SELL/IL7R/LEF1"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "naive thymus-derived CD8-positive, alpha-beta T cell",
+      "cell_ontology_id": "CL:0000900",
+      "strengths": [
+        "Most specific ontology-valid label supported by CD8A/CD8B and the naive program CCR7, SELL, IL7R, LEF1, CD27",
+        "Mapped exactly to CL:0000900 and correctly excludes effector, cytotoxic, NK, and exhaustion programs",
+        "Consistent with TCR signaling and T cell differentiation enrichment terms"
+      ],
+      "weaknesses": [
+        "The thymus-derived component is inferred from the canonical ontology term rather than directly assayed, but no conflicting evidence is present"
+      ],
+      "reviewer_cl_id": "CL:0000900"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "T-cell identity: CD3G, TRBC2, LCK, LAT, CD5",
+      "CD8 lineage: CD8A, CD8B",
+      "Naive state: CCR7, SELL, IL7R, LEF1, CD27, LRRN3, CHI3L2, LDLRAP1, NELL2, AQP3",
+      "Alpha-beta TCR context: TRBC2 and TCR signaling pathway enrichment",
+      "PMID 34226281 is consistent with the naive CD8+ T-cell marker interpretation"
+    ],
+    "conflicting": [
+      "CASSIA mapping artifacts propose B-cell/Tc1 CLIDs (CL:0001041, CL:0000917) that are not supported by cluster markers",
+      "MYC/HLA-B signal is minor and does not override the dominant naive CD8 program"
+    ],
+    "enrichment_or_literature": [
+      "T cell receptor signaling pathway",
+      "T cell differentiation",
+      "regulation of T cell activation",
+      "Relevant literature PMID 34226281"
+    ],
+    "cited_pmids": [
+      "34226281"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "CD8-positive, alpha-beta T cell",
+    "reference_cl_term": "CD8-positive, alpha-beta T cell",
+    "reference_cl_id": "CL:0000625",
+    "cl_similarity": 61.2347535240815
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_2_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

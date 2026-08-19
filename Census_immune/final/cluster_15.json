@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_15",
+  "cluster_state": "mixed",
+  "final_decision": {
+    "primary_cell_type": "B cell",
+    "final_cell_ontology_id": "CL:0000236",
+    "confidence_primary": 0.6
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "B-lymphoid lineage cells",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Correctly identifies the B-lymphoid lineage using PAX5, EBF1, CD79B, BACH2, SPIB, TCF4, CD72 and SYK.",
+        "Recognizes the coexistence of a pre-B/early B-cell program and a plasmablast/plasma-cell program rather than forcing a single subtype."
+      ],
+      "weaknesses": [
+        "Stays deliberately broad at B cell/lymphoid lineage and does not exploit the supported hierarchical refinement to precursor B cell.",
+        "Interprets the evidence partly as possible doublets without resolving the dominant precursor B-cell identity."
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Top1 B cell branch is supported by extensive B-lineage markers (PAX5, EBF1, CD79B, BACH2, SPIB, TCF4).",
+        "Top2 candidate precursor B cell is directly supported by MME, VPREB1, VPREB3, IGLL1, IGLL5, TCL1A and CD9.",
+        "Provides the ontology-valid descendant refinement to CL:0000817."
+      ],
+      "weaknesses": [
+        "The top1 label does not explicitly flag the plasma/plasmablast secondary program in the final identity."
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "plasma cell",
+      "cell_ontology_id": "CL:0000786",
+      "strengths": [
+        "Correctly detects genuine plasma/plasmablast markers in the cluster: MZB1, IGLC1, IRF4 and CD38."
+      ],
+      "weaknesses": [
+        "Plasma cell as the primary identity is contradicted by PAX5, EBF1, BACH2, SPIB, VPREB1, IGLL1, TCL1A and MME, which are not expected in committed plasma cells.",
+        "Selectively uses plasma markers while ignoring the stronger precursor B-cell program in the same marker list."
+      ],
+      "reviewer_cl_id": "CL:0000786"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "B-lineage identity supported by PAX5, EBF1, CD79B, BACH2, SPIB, TCF4, CD72, SYK, HLA-DRA.",
+      "Precursor B-cell refinement supported by MME, VPREB1, VPREB3, IGLL1, IGLL5, TCL1A, CD9.",
+      "Secondary plasma/plasmablast program observed via IRF4, IGLC1, MZB1, CD38.",
+      "Enrichment for immunoglobulin complex and KEGG hsa04640 is consistent with B-lineage biology."
+    ],
+    "conflicting": [
+      "Committed plasma cell identity conflicts with PAX5, EBF1, BACH2, SPIB, VPREB1, IGLL1, TCL1A and MME expression.",
+      "Pure precursor B-cell identity conflicts with MZB1, IGLC1, IRF4 and CD38 plasma markers in the same cluster."
+    ],
+    "enrichment_or_literature": [
+      "Enrichment terms 'immunoglobulin complex' and KEGG hsa04640 support B-lineage identity.",
+      "Retrieved literature (PMID 37407551) is consistent with B-lineage interpretation."
+    ],
+    "cited_pmids": [
+      "37407551"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": true,
+    "release_state": "Manual review",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "precursor B cell",
+    "reference_cl_term": "precursor B cell",
+    "reference_cl_id": "CL:0000817",
+    "cl_similarity": 79.212464786448
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_15_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

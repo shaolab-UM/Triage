@@ -1,0 +1,112 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_11",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "alpha-beta T cell",
+    "final_cell_ontology_id": "CL:0000789",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "T lymphocyte (αβ T cell)",
+      "cell_ontology_id": "CL:0000789",
+      "strengths": [
+        "Direct positive support from TRAC, TRBC1, TRBC2, CD3D, CD3E, CD3G, LCK, LAT, BCL11B, CD2, and CD7 for the alpha-beta T cell lineage.",
+        "Enrichment terms such as 'alpha-beta T cell activation' and 'T cell receptor signaling pathway' are concordant with the observed marker set.",
+        "Correctly avoids over-calling CD8 or CD4 subsets when CD4/CD8 are not present in the DEG list."
+      ],
+      "weaknesses": [
+        "The finer CD4-naive/central-memory subtype in the top-k is inferential, since CD4 itself is not observed.",
+        "Minor activation/interferon genes such as IFITM1, JUNB, DNAJB1, and HLA-C are acknowledged but not deeply integrated into the state label."
+      ],
+      "reviewer_cl_id": "CL:0000789"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Broad T cell lineage is strongly supported by CD3D/CD3E/CD3G and TRAC/TRBC1/TRBC2 expression.",
+        "Consistent with the original enrichment evidence for T cell differentiation and TCR signaling."
+      ],
+      "weaknesses": [
+        "Ancestral label is less specific than the alpha-beta T cell evidence supports.",
+        "Does not capitalize on direct positive evidence for the alpha-beta TCR component (TRAC, TRBC1, TRBC2)."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "stem cell memory CD8-positive, alpha-beta T cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes the T cell lineage and cites CD3D/CD3E/CD3G/TRAC/TRBC1/TRBC2.",
+        "Points to CD27, SELL, LTB, and KLF2 as consistent with a recirculating/memory-like T cell state."
+      ],
+      "weaknesses": [
+        "CD8 positivity is not supported by original cluster markers: no CD8A or CD8B is present.",
+        "The stem cell memory/effector memory designation is over-specified and relies on unlisted markers such as CD8A and GZMB.",
+        "The mapping to a memory CD8 T cell ontology class failed, and the enrichment terms are general T cell programs, not branch-specific CD8/memory evidence."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "TRAC, TRBC1, TRBC2, CD3D, CD3E, CD3G, LCK, LAT, BCL11B, CD2, and CD7 directly support an alpha-beta T cell identity.",
+      "Enrichment terms 'T cell receptor signaling pathway', 'alpha-beta T cell activation', and 'TCR signaling' support T cell lineage and alpha-beta TCR engagement.",
+      "PMID 33932031 is consistent with T-lineage/TCR-based annotation of this population."
+    ],
+    "conflicting": [
+      "No CD8A/CD8B or CD4/FOXP3 are present in the cluster DEG list, so CD8+ or CD4+ effector/memory subset claims are not supported.",
+      "IFITM1, JUNB, DNAJB1, and HLA-C reflect an activation/stress response but do not contradict the dominant alpha-beta T cell lineage."
+    ],
+    "enrichment_or_literature": [
+      "T cell receptor signaling pathway",
+      "alpha-beta T cell activation",
+      "T cell differentiation",
+      "TCR signaling",
+      "PMID 33932031"
+    ],
+    "cited_pmids": [
+      "33932031"
+    ],
+    "cited_enrichment_terms": [
+      "T cell receptor signaling pathway",
+      "alpha-beta T cell activation",
+      "TCR signaling"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "naive thymus-derived CD4-positive, alpha-beta T cell",
+    "reference_cl_term": "naive thymus-derived CD4-positive, alpha-beta T cell",
+    "reference_cl_id": "CL:0000895",
+    "cl_similarity": 60.1407724153449
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_11_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "oligodendrocyte",
+    "final_cell_ontology_id": "CL:0000128",
+    "confidence_primary": 0.93
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "oligodendrocyte",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Correctly identifies oligodendrocyte lineage from canonical myelin genes (Plp1, Mog, Mag, Mobp, Cnp, Mal, Cldn11)",
+        "Recognizes homogeneous oligodendrocyte population without other neural lineage contamination"
+      ],
+      "weaknesses": [
+        "Top2 subtype string (MOLs/NFOLs/DOLs) is unmapped and includes unsupported NFOL/DOL components",
+        "Top-ranked marker Ppp1r16b is not discussed"
+      ],
+      "reviewer_cl_id": "CL:0000128"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "oligodendrocyte",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Top1 oligodendrocyte is fully supported by myelination markers",
+        "Rank2 mature myelinating oligodendrocyte (CL:4072003) provides the supported hierarchical refinement adopted in the final decision"
+      ],
+      "weaknesses": [
+        "Rank2 candidate score is NA; subtype confidence not quantified"
+      ],
+      "reviewer_cl_id": "CL:0000128"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "oligodendrocyte",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Correct assignment based on canonical myelin markers and myelin-related pathway terms",
+        "Reasonable integration of GO/Pathway evidence for oligodendrocyte identity"
+      ],
+      "weaknesses": [
+        "No subtype granularity; does not differentiate mature myelinating oligodendrocyte from general oligodendrocyte",
+        "Heavy reliance on generic pathway enrichments"
+      ],
+      "reviewer_cl_id": "CL:0000128"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Cluster markers include canonical myelin genes Plp1, Mog, Mag, Mobp, Cnp, Mal, Cldn11, Omg, reinforcing oligodendrocyte identity.",
+      "Enrichment terms 'myelination', 'central nervous system myelination', 'axon ensheathment in central nervous system' and 'myelin sheath' directly support the myelinating component of mature myelinating oligodendrocyte (CL:4072003).",
+      "PMID 41618467 supports oligodendrocyte/myelination biology as allowed citation."
+    ],
+    "conflicting": [
+      "No conflicting lineage markers (absence of neuronal, astrocytic, microglial, or endothelial markers).",
+      "Low-score candidate alternatives (endothelial, OPC, astrocyte) lack supporting DEG evidence."
+    ],
+    "enrichment_or_literature": [
+      "GO/Pathway: ensheathment of neurons; axon ensheathment; myelination; oligodendrocyte differentiation; oligodendrocyte development; central nervous system myelination; myelin sheath; mmu04540; mmu05160; mmu04514; mmu00910; mmu04964",
+      "PMID 41618467"
+    ],
+    "cited_pmids": [
+      "41618467"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "oligodendrocyte",
+    "reference_cl_term": "oligodendrocyte",
+    "reference_cl_id": "CL:0000128",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

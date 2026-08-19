@@ -1,0 +1,101 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_9",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "choroid plexus epithelial cell",
+    "final_cell_ontology_id": "CL:0000706",
+    "confidence_primary": 0.88
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "choroid plexus epithelial cell",
+      "cell_ontology_id": "CL:0000706",
+      "strengths": [
+        "Correctly prioritizes choroid plexus epithelial identity using TTR, CA2, CLU, APOE",
+        "Context-aware interpretation for cortical organoid origin"
+      ],
+      "weaknesses": [
+        "Rank 2 included RPE/astrocyte and possible_mixed neuronal, reflecting minor non-specific signals",
+        "No supporting PMID evidence"
+      ],
+      "reviewer_cl_id": "CL:0000706"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "transport-specialized epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Captures the epithelial lineage and transport-related program consistent with KRT18, TTR, APOE and transport enrichment",
+        "Ontologically compatible as an ancestor of choroid plexus epithelial cell"
+      ],
+      "weaknesses": [
+        "Label is generic and lacks choroid plexus specificity",
+        "Misses the definitive choroid plexus evidence from TTR, CLU, CA2 and cholesterol/sterol/lipid transport"
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "choroid plexus epithelial cell",
+      "cell_ontology_id": "CL:0000706",
+      "strengths": [
+        "Uses TTR and CLU as definitive choroid plexus markers",
+        "Links APOE/NPC2 and lipid/cholesterol transport to choroid plexus function"
+      ],
+      "weaknesses": [
+        "Relies on enrichment with confounders such as Hepatocyte/Mesenchymal terms",
+        "No supporting PMID evidence"
+      ],
+      "reviewer_cl_id": "CL:0000706"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "TTR, CLU, CA2, APOE, NPC2, PLTP and KRT18 are top DEGs supporting choroid plexus epithelial identity",
+      "Cholesterol/sterol/lipid transport and secretory granule lumen enrichment support the CSF-secretory choroid plexus phenotype",
+      "CASSIA and enrichment converge on CL:0000706; in-house epithelial cell (CL:0000066) is an ontology-consistent ancestor but less specific"
+    ],
+    "conflicting": [
+      "In-house label (epithelial cell) lacks choroid plexus specificity and is an ancestor rather than a competing identity",
+      "Minor RPE-like/pigment terms (SERPINF1, GPNMB, melanosome/pigment granule, Visual phototransduction) are outweighed by choroid plexus markers"
+    ],
+    "enrichment_or_literature": [
+      "Cholesterol transport, sterol transport, lipid transport, HDL remodeling, Plasma lipoprotein assembly/remodeling/clearance, Retinoid metabolism and transport"
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Choroid",
+    "reference_cl_term": "Choroid",
+    "reference_cl_id": "CL:0000706",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_9_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

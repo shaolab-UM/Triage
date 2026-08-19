@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_13",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "fibroblast",
+    "final_cell_ontology_id": "CL:0000057",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Fibroblast / Vascular Leptomeningeal Cell (VLMC)",
+      "cell_ontology_id": "CL:0000057",
+      "strengths": [
+        "Top DEGs include multiple fibroblast/perivascular fibroblast markers (POSTN, FAP, ITGA11, OLFML2B, MAMDC2, LAMA4).",
+        "Agrees with enrichment reviewer on CL:0000057 majority branch."
+      ],
+      "weaknesses": [
+        "VLMC and activated/disease-associated fibroblast components are not separately validated by ontology/specific markers.",
+        "Label is a combined/non-canonical string mapped with low confidence."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "deep-layer glutamatergic neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Some top DEGs are neuron-associated (NTNG2, BDNF, NR4A2, OPRK1, GPR63)."
+      ],
+      "weaknesses": [
+        "No canonical pan-neuronal markers (SNAP25, SYT1) or excitatory/deep-layer markers (SLC17A7, TBR1, BCL11B) in the DEG list.",
+        "Uses the same marker list dominated by fibroblast genes to support a non-hierarchical neuron branch without branch-specific positive evidence."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Fibroblast / Fibroblast-like cell (perivascular fibroblast)",
+      "cell_ontology_id": "CL:0000057",
+      "strengths": [
+        "Correctly prioritizes fibroblast markers (POSTN, FAP, ITGA11, OLFML2B, MAMDC2, LAMA4) over broad pathway terms.",
+        "Rule-of-exclusion argument is consistent with absence of neuronal marker genes."
+      ],
+      "weaknesses": [
+        "'Perivascular fibroblast' specificity is not independently supported beyond the same fibroblast markers.",
+        "Reliance on absence of markers is a weaker positive evidence channel."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs POSTN, FAP, ITGA11, OLFML2B, MAMDC2, LAMA4, FBLN5, NPNT are direct positive markers of fibroblast/perivascular fibroblast identity.",
+      "Two independent reviewers (CASSIA, enrichment) converge on CL:0000057, consistent with the majority branch anchor.",
+      "PMID 31888477 was retrieved from the cluster evidence set and is consistent with DLPFC fibroblast/perivascular fibroblast annotations."
+    ],
+    "conflicting": [
+      "DEG list also contains neuron-associated genes (NTNG2, BDNF, NR4A2, OPRK1), but without pan-neuronal SNAP25/SYT1/SLC17A7.",
+      "In-house 'deep-layer glutamatergic neuron' label lacks TBR1/BCL11B/deep-layer excitatory markers and is not supported by branch-specific original evidence."
+    ],
+    "enrichment_or_literature": [
+      "Reactome terms (GPCR downstream signalling, netrin-1 signalling, kainate receptor presynaptic function) are broad and do not distinguish neuron vs fibroblast lineage.",
+      "Allowed literature set includes PMIDs 31888477, 32341500, 40876929, 27596625, 32498016, 36660181, 39733733, 36893272; no conflict with fibroblast identity."
+    ],
+    "cited_pmids": [
+      "31888477"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "glutamatergic neuron",
+    "reference_cl_term": "glutamatergic neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 3.656069495746852
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_13_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

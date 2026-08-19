@@ -1,0 +1,112 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_15",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "retinal progenitor cell",
+    "final_cell_ontology_id": "CL:0002672",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "retinal progenitor cell",
+      "cell_ontology_id": "CL:0002672",
+      "strengths": [
+        "Correctly prioritizes eye-field/retinal progenitor TFs RAX, SIX6, HMX1, SIX3, NR2F1",
+        "Supported by retinal markers CRABP1, ALDH1A3, RORB, CALB1 and eye-development enrichment terms",
+        "Accounts for organoid context and down-weights broad/non-retinal genes appropriately"
+      ],
+      "weaknesses": [
+        "Contains a few markers such as COL2A1 and LRP2 that may reflect broader ocular/ambient tissue programs",
+        "Minor ambiguity in subranking beyond the main retinal progenitor identity"
+      ],
+      "reviewer_cl_id": "CL:0002672"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Recognizes the progenitor/neural character of the cluster",
+        "Includes retinal progenitor cell as the rank-2 candidate"
+      ],
+      "weaknesses": [
+        "Top1 neural progenitor cell is too generic and lacks eye-specific support",
+        "Ontology context treats CL:0011020 and CL:0002672 as non-hierarchical, so broad NPC cannot subsume retinal identity",
+        "Eye-field markers RAX, SIX6, HMX1, SIX3, NR2F1 and camera-type eye development enrichment are not explained by neural progenitor cell label"
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "retinal progenitor cell",
+      "cell_ontology_id": "CL:0002672",
+      "strengths": [
+        "Directly uses SIX6, RAX, HMX1, SIX3, NR2F1 and retinal markers CRABP1, ALDH1A3, RORB, CALB1",
+        "Consistent with eye development and camera-type eye development enrichment"
+      ],
+      "weaknesses": [
+        "Relies on the already provided marker list/enrichment summaries rather than independent DEG statistics",
+        "Some enriched pathways are generic and only weakly discriminative"
+      ],
+      "reviewer_cl_id": "CL:0002672"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs include eye-field/retinal progenitor TFs RAX, SIX6, HMX1, SIX3, NR2F1",
+      "Retinal markers CRABP1, ALDH1A3, RORB, CALB1, FGF19 are present in the cluster DEG list",
+      "Enrichment includes eye development, camera-type eye development, and visual system development",
+      "Progenitor-associated markers SFRP2, FZD5, MSI2, HES5 support a retinal neuroepithelial/progenitor state"
+    ],
+    "conflicting": [
+      "In-house top1 neural progenitor cell lacks eye-specific branch support; CL:0011020 and CL:0002672 are non-hierarchical in frozen ontology context",
+      "COL2A1, LRP2, and ATP1A2 could reflect broader ocular/ambient signals, but do not override the dominant retinal progenitor identity"
+    ],
+    "enrichment_or_literature": [
+      "eye development",
+      "camera-type eye development",
+      "visual system development",
+      "RA biosynthesis pathway"
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": [
+      "eye development",
+      "camera-type eye development",
+      "visual system development",
+      "RA biosynthesis pathway"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Retinal progenitor cell (RPC)",
+    "reference_cl_term": "Retinal progenitor cell (RPC)",
+    "reference_cl_id": "CL:0002672",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_15_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

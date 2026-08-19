@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_16",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "pro-B cell",
+    "final_cell_ontology_id": "CL:0000826",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "B-cell lineage, early B-cell precursor / immature B-lymphoid progenitor",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Correctly captures B-lymphoid precursor identity; marker reasoning includes DNTT, VPREB1, VPREB3, IGLL1, EBF1, MME, CD24.",
+        "Recognizes the proliferation module (MKI67, TOP2A, CCNB2, CDK1, AURKB) as a proliferating precursor state."
+      ],
+      "weaknesses": [
+        "Frozen mapping to CL:0000236 (B cell) is broader than the supported pro-B/precursor branch.",
+        "Top marker LCN6 and noncanonical genes are not resolved."
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Identifies the correct B-lymphoid lineage."
+      ],
+      "weaknesses": [
+        "Top1 label is under-specific: the precursor markers (DNTT, VPREB1/3, IGLL1, MME, EBF1) favor the pro-B branch over mature B cell.",
+        "Does not separate the supported proliferating precursor state in its top1 label."
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "pro-B cell",
+      "cell_ontology_id": "CL:0000826",
+      "strengths": [
+        "Directly selects the most specific supported branch (pro-B cell) using DNTT, VPREB1, VPREB3, IGLL1, EBF1, MME.",
+        "Correctly treats the cell-cycle enrichment as a proliferative state rather than a lineage switch."
+      ],
+      "weaknesses": [
+        "Relies on generic proliferation/meiosis terms for state interpretation; no additional lineage-specific terms."
+      ],
+      "reviewer_cl_id": "CL:0000826"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "DNTT, VPREB1, VPREB3, IGLL1, EBF1, MME, CD24 are direct positive markers of B-cell precursor/pro-B identity and favor the pro-B branch over generic B cell.",
+      "Proliferation module (MKI67, TOP2A, CCNB2, CDK1, AURKB, PCNA, RRM2, TK1) supports the proliferating pro-B state.",
+      "PMID 36658547 was retrieved in the cluster's RAG evidence and is consistent with B-cell precursor annotation."
+    ],
+    "conflicting": [
+      "MZB1 indicates a low-level plasma-cell/plasmablast-like signal, not a dominant lineage.",
+      "LCN6, CYGB, AKAP12, ARPP21 are noncanonical genes and are not lineage-defining.",
+      "Enrichment is dominated by generic cell-cycle terms and does not discriminate B cell vs pro-B cell on its own."
+    ],
+    "enrichment_or_literature": [
+      "Cell-cycle/mitotic enrichment (M phase, chromosome segregation, mitotic cell cycle) supports a highly proliferative precursor state.",
+      "Hematopoietic lineage pathway enrichment is broadly consistent with a B-lymphoid precursor.",
+      "Retrieved RAG literature (e.g., PMID 36658547) supports early B-cell precursor/leukemic blast context."
+    ],
+    "cited_pmids": [
+      "36658547"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "pro-B cell",
+    "reference_cl_term": "pro-B cell",
+    "reference_cl_id": "CL:0000826",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_16_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

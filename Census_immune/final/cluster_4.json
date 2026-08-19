@@ -1,0 +1,109 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "dendritic cell",
+    "final_cell_ontology_id": "CL:0000451",
+    "confidence_primary": 0.87
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Dendritic cell (DC)",
+      "cell_ontology_id": "CL:0000451",
+      "strengths": [
+        "Correctly identifies the dendritic cell lineage from MHC class II and antigen-presentation markers.",
+        "Explicitly recognizes CD1C/FCER1A/CLEC10A as a cDC2/CD1c+ DC combination.",
+        "Reasonably excludes monocyte, cDC1, pDC, basophil, and lymphocyte alternatives."
+      ],
+      "weaknesses": [
+        "Top1 label is generic dendritic cell; the more specific cDC2/CD1c+ call is relegated to an unmapped second-rank label.",
+        "RNASE2 is mentioned only as a minor caveat without a clear eosinophil exclusion."
+      ],
+      "reviewer_cl_id": "CL:0000451"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "dendritic cell",
+      "cell_ontology_id": "CL:0000451",
+      "strengths": [
+        "Top1 dendritic cell is directly supported by HLA-DQA1/HLA-DRB1, CD1C, CLEC10A, and CD86.",
+        "Includes CD1c-positive myeloid dendritic cell (CL:0002399) as a top-k candidate, matching the final refined call."
+      ],
+      "weaknesses": [
+        "Top1 remains generic dendritic cell despite strong cDC2/CD1c+ evidence.",
+        "The exact subtype call is rank 2 with a lower candidate score (0.6 vs 0.95)."
+      ],
+      "reviewer_cl_id": "CL:0000451"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Conventional Dendritic Cell Type 2 (cDC2)",
+      "cell_ontology_id": "CL:0000990",
+      "strengths": [
+        "Top1 captures the cDC2 specificity supported by FCER1A, CLEC10A, CD1C, CD33, and CD86.",
+        "Correctly rejects T/NK identity based on absence of CD3D/CD8A/FGFBP2/FCGR3A.",
+        "MHC class II and antigen-processing enrichment terms reinforce professional APC identity."
+      ],
+      "weaknesses": [
+        "The cDC2 label is mapped to CL:0000990 (conventional dendritic cell), losing the CD1c-positive specificity represented by CL:0002399.",
+        "Top-k includes an unsupported connective tissue cell candidate."
+      ],
+      "reviewer_cl_id": "CL:0000990"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs FCER1A, CLEC10A, CD1C, HLA-DQA1, HLA-DRB1, HLA-DRA, CD33, and CD86 directly support a conventional myeloid dendritic cell / cDC2 identity.",
+      "CD1C is directly positive, supporting hierarchical refinement from dendritic cell (CL:0000451) to CD1c-positive myeloid dendritic cell (CL:0002399).",
+      "Absence of pDC markers (LILRA4, CLEC4C, IRF7) and cDC1 markers (CLEC9A, XCR1) supports the conventional DC branch.",
+      "PMID 37407551 and 34680286 in the original evidence support cDC2/CD1c+ DC interpretation."
+    ],
+    "conflicting": [
+      "RNASE2 is an eosinophil-associated transcript, but no other eosinophil markers (CLC, CPA3, MS4A2) are present, so it is not lineage-defining.",
+      "No CD14, LYZ, S100A8/9, FCN1, or VCAN is observed, so a monocyte or DC3-dominant interpretation is not favored."
+    ],
+    "enrichment_or_literature": [
+      "MHC class II protein complex assembly",
+      "Antigen processing and presentation of exogenous peptide antigen via MHC class II",
+      "Positive regulation of T cell activation"
+    ],
+    "cited_pmids": [
+      "37407551",
+      "34680286"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "conventional dendritic cell",
+    "reference_cl_term": "conventional dendritic cell",
+    "reference_cl_id": "CL:0000990",
+    "cl_similarity": 96.1801166247758
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

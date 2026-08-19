@@ -1,0 +1,101 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_6",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neural progenitor cell",
+    "final_cell_ontology_id": "CL:0011020",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Cycling Neural Progenitor Cells (NPCs), specifically of dorsal telencephalic lineage.",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly prioritizes the dominant proliferative/DNA-replication program (PCLAF, MCM genes, PCNA, TYMS, RRM2)",
+        "Correctly recognizes neural progenitor markers SOX2, SOX3, FABP7, PTN and adds GLI3 dorsal telencephalic context"
+      ],
+      "weaknesses": [
+        "Label is unmapped and cannot be assigned a frozen ontology ID",
+        "Adds oRG/dorsal telencephalic specificity beyond what the frozen ontology context can validate; proliferation genes alone are not lineage-specific"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neural cell",
+      "cell_ontology_id": "CL:0002319",
+      "strengths": [
+        "Broad neural lineage is consistent with the presence of SOX2/SOX3 and absence of mature non-neural markers",
+        "Provides a valid mapped ontology ID"
+      ],
+      "weaknesses": [
+        "Too broad: does not capture the neural progenitor/radial glia markers (FABP7, PTN, ID4, TTYH1, SFRP1) in its top1 label",
+        "The frozen ontology treats neural cell and neural progenitor cell as non-hierarchical, so the more specific NPC label is strongly favored"
+      ],
+      "reviewer_cl_id": "CL:0002319"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Exact ontology mapping to CL:0011020",
+        "Directly supported by SOX2, SOX3, FABP7, PTN plus absence of mature neuronal/oligodendrocyte/microglial markers",
+        "Appropriate specificity for the original DEG evidence"
+      ],
+      "weaknesses": [
+        "Does not encode the prominent cycling/S-phase state in the label, but this is a transient cell state rather than a distinct lineage"
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Neural progenitor identity supported by SOX2, SOX3, FABP7, PTN, ID4, TTYH1, SFRP1 in the original cluster markers.",
+      "Cycling/S-phase state supported by PCLAF, PCNA, MCM3/MCM4/MCM7, TYMS, RRM2, GINS2, CDT1, ORC6, CENPK, NUSAP1.",
+      "GLI3, ID4, FABP7 provide a dorsal telencephalic/radial glia-like context consistent with, but not required for, the neural progenitor cell assignment.",
+      "Absence of mature lineage markers (e.g., SYT1, RBFOX3, MBP, PLP1, AIF1, CX3CR1) in the top DEGs is consistent with a neural progenitor rather than differentiated state."
+    ],
+    "conflicting": [
+      "Frozen ontology context treats neural cell (CL:0002319) and neural progenitor cell (CL:0011020) as non-hierarchical; progenitor-specific markers resolve this branch in favor of neural progenitor cell.",
+      "CASSIA's dorsal radial glia/oRG-specific label is unmapped and adds components not fully supported by the frozen ontology."
+    ],
+    "enrichment_or_literature": [
+      "Original bioinformatics enrichment of DNA replication and G1/S/S-phase pathways is consistent with the cycling state; no PMID evidence was provided."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Radial glia-2 (bRG-2)",
+    "reference_cl_term": "Radial glia-2 (bRG-2)",
+    "reference_cl_id": "CL:0000681",
+    "cl_similarity": 1.8646131599454627
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_6_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

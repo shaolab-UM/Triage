@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_7",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neuron",
+    "final_cell_ontology_id": "CL:0000540",
+    "confidence_primary": 0.86
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Glutamatergic excitatory neuron of the deep cortical layers (layer 6b / subplate-remnant neuron)",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Directly supported by TBR1, DACH1, POU6F2, MEIS3 for glutamatergic cortical neuron identity",
+        "RXFP1, IL12RB2, OPRM1, THEMIS, SEMA3A, COL24A1, ADAMTS3, CDH6 specifically support layer 6b / subplate-remnant identity",
+        "Balanced reasoning distinguishes L6b from L6 CT and L5/6 pyramidal alternatives"
+      ],
+      "weaknesses": [
+        "Raw label is more specific than the available ontology term; mapping to CL:0000679 broadens the L6b/subplate identity to glutamatergic neuron",
+        "Subtype confidence relies partly on literature-based interpretation of marker combinations"
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Correctly captures the broad neuronal lineage supported by neuronal markers such as TBR1, NRG1, SEMA3A, CTNNA2",
+        "Avoids overcommitting to an unsupported subtype when using only the generic neuron call"
+      ],
+      "weaknesses": [
+        "Under-specific; ignores strong L6b/subplate markers RXFP1, IL12RB2, OPRM1, THEMIS",
+        "Rank2 L6 corticothalamic label (CL:4023042) lacks branch-specific support and is not favored over L6b by the original DEGs"
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": null,
+      "cell_ontology_id": null,
+      "strengths": [
+        "Terms such as 'Protein-protein interactions at synapses' and 'Regulation of cortical dendrite branching' are consistent with a neuronal identity"
+      ],
+      "weaknesses": [
+        "No cell-type prediction was returned",
+        "Collagen/O-glycosylation and metabolism terms are not lineage-specific and cannot refine to a glutamatergic neuron subtype"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "TBR1, DACH1, POU6F2, MEIS3, NRG1 in the DEG list directly support glutamatergic cortical neuron identity",
+      "RXFP1, IL12RB2, OPRM1, THEMIS, SEMA3A, COL24A1, ADAMTS3, CDH6 support the layer 6b / subplate-remnant deep-layer glutamatergic subtype",
+      "PMID 23435839 and PMID 33328525 are consistent with the L6b/deep-layer excitatory neuron interpretation in cortical taxonomy"
+    ],
+    "conflicting": [
+      "In-house rank2 L6 corticothalamic label (CL:4023042) is not supported by branch-specific markers such as FOXP2/TLE4; observed RXFP1/IL12RB2/OPRM1 favor L6b over L6 CT",
+      "Enrichment terms alone are too general to distinguish glutamatergic neuron subtypes"
+    ],
+    "enrichment_or_literature": [
+      "Regulation of cortical dendrite branching and Protein-protein interactions at synapses are consistent with neuronal identity",
+      "Collagen biosynthesis/formation terms reflect ECM-associated L6b markers (COL24A1, ADAMTS3) and do not indicate stromal contamination"
+    ],
+    "cited_pmids": [
+      "23435839",
+      "33328525"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "glutamatergic neuron",
+    "reference_cl_term": "glutamatergic neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 61.07680713895864
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_7_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

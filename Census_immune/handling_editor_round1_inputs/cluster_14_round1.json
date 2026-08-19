@@ -1,0 +1,857 @@
+{
+  "query_id": "cluster_14_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["36658547", "36544104", "41633771", "34910688", "36233633", "34899743", "36276113", "37006239", "32213192", "40885186", "37350967", "20483239", "27838757", "32911797", "33015128", "35839778", "32295833", "41261523", "38556552", "22558382", "36522221", "35269741", "33362784", "26783745", "41283471"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["36658547", "36544104", "41633771", "34910688", "36233633", "34899743", "36276113", "37006239", "32213192", "40885186", "37350967", "20483239", "27838757", "32911797", "33015128", "35839778", "32295833", "41261523", "38556552", "22558382", "36522221", "35269741", "33362784", "26783745", "41283471"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+        "clid": "CL:0000451",
+        "canonical_label": "dendritic cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "dendritic cell",
+        "clid": "CL:0000451",
+        "canonical_label": "dendritic cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "plasmacytoid dendritic cell",
+        "clid": "CL:0000784",
+        "canonical_label": "plasmacytoid dendritic cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "plasmacytoid dendritic cell",
+        "clid": "CL:0000784",
+        "canonical_label": "plasmacytoid dendritic cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": "CL:0000451",
+      "label": "dendritic cell",
+      "votes": 2,
+      "n_reviewers": 3,
+      "fraction": 0.6667
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000451",
+        "label_a": "dendritic cell",
+        "clid_b": "CL:0000784",
+        "label_b": "plasmacytoid dendritic cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000451",
+        "lca_label": "dendritic cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 1
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+      "topk_cell_types": [
+        "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+        "Classical plasmacytoid dendritic cell (pDC), AXL+SIGLEC6+ dendritic cell (AS-DC) / transitional DC, Conventional dendritic cell type 2 (cDC2)",
+        "dendritic cell",
+        "dendritic cell of appendix",
+        "dendritic cell, human",
+        "dendritic epidermal T cell",
+        "conventional dendritic cell"
+      ],
+      "cell_ontology_id": null,
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+        "canonical_label": null,
+        "mapping_status": "review",
+        "mapping_decision": "verifier_review",
+        "mapping_reason": "A/B consistent; spec=broadened | verifier: Label specifies plasmacytoid dendritic cell (pDC), but no pDC-specific term is in the candidate list; the proposed broad dendritic cell term is a valid parent, but the mapping should be flagged for missing subtype.",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "broadened",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0000451",
+          "CL:0009034",
+          "CL:0001056",
+          "CL:0000916",
+          "CL:0000990"
+        ],
+        "candidate_labels": [
+          "dendritic cell",
+          "dendritic cell of appendix",
+          "dendritic cell, human",
+          "dendritic epidermal T cell",
+          "conventional dendritic cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000451",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "reasoning_short": "The annotation is highly accurate and captures the core identity of the cluster very well. The marker list is strongly and unambiguously enriched for canonical human plasmacytoid dendritic cell (pDC) genes: the top-ranked markers include SCT, LILRA4, SHD, CLEC4C, IL3RA, PTCRA, GAS6, SERPINF1, PLD4, IRF7, TCF4, GZMB, IRF8, and LILRB4. These are not just generic immune markers; several are highly specific pDC markers, especially CLEC4C (BDCA-2) and LILRA4 (ILT7). The annotation also handles potential confusions well. It correctly recognizes that genes such as JCHAIN, MZB1, DERL3, and NAPSB can be expressed by pDCs due to their “plasmacytoid” transcriptional program, and it avoids misclassifying the cluster as plasma cells by noting the absence of SDC1, TNFRSF17, XBP1, and immunoglobulin genes. It similarly rules out cDC1, cDC2, and basophils using appropriate negative markers. There is good balance in marker interpretation. The final annotation integrates lineage transcription factors (TCF4, IRF7, IRF8, BCL11A), surface receptors (CLEC4C, LILRA4, IL3RA, FCER1A), functional molecules (GZMB, SLC15A4, DNASE1L3), and known pDC-specific genes (SCT, SHD, PTCRA). This shows an understanding of the broader pDC biology rather than over-reliance on a single marker. The ranked order of markers is also consistent with the conclusion: the most highly ranked genes are pDC-defining, which strengthens confidence. Minor limitations include the inclusion of some less-discussed genes in the list (e.g., TPM2, TNNI2, MAP1A, RUNX2) that are not explicitly addressed, but these are lower-ranked and do not conflict with the overwhelming pDC signal. The proposed alternate sub cell types are appropriate and clearly ranked, with the correct final call. Overall, this is a scientifically accurate, well-reasoned, and comprehensive annotation.",
+      "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+      "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+      "evidence_markers_method": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+        "predicted_sub": "Classical plasmacytoid dendritic cell (pDC), AXL+SIGLEC6+ dendritic cell (AS-DC) / transitional DC, Conventional dendritic cell type 2 (cDC2)",
+        "possible_mixed": null,
+        "score": 95
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "dendritic cell",
+      "topk_cell_types": [
+        "dendritic cell",
+        "plasmacytoid dendritic cell"
+      ],
+      "cell_ontology_id": "CL:0000451",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "dendritic cell",
+        "canonical_label": "dendritic cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000451",
+        "candidate_cl_ids": [
+          "CL:0000451"
+        ],
+        "candidate_labels": [
+          "dendritic cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000451",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "reasoning_short": "In-house top1=dendritic cell; top markers=SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+      "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+      "evidence_markers_method": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1",
+      "raw_inputs": {
+        "main_pred": "dendritic cell",
+        "subtype1_pred": "plasmacytoid dendritic cell",
+        "subtype2_core_pred": "plasmacytoid dendritic cell",
+        "candidate_score_main": 0.9,
+        "candidate_score_sub1": 0.925,
+        "candidate_score_sub2": 0.925
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "dendritic cell",
+      "topk_cell_types": [
+        "dendritic cell",
+        "plasmacytoid dendritic cell"
+      ],
+      "cell_ontology_id": "CL:0000451",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "dendritic cell",
+        "canonical_label": "dendritic cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000451",
+        "candidate_cl_ids": [
+          "CL:0000451"
+        ],
+        "candidate_labels": [
+          "dendritic cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000451",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "reasoning_short": "In-house top1=dendritic cell; top markers=SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+      "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+      "evidence_markers_method": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "plasmacytoid dendritic cell",
+      "topk_cell_types": [
+        "plasmacytoid dendritic cell"
+      ],
+      "cell_ontology_id": "CL:0000784",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker list is dominated by canonical pDC markers: LILRA4 (ILT7), CLEC4C (BDCA-2), IL3RA (CD123), SLC15A4, IRF7, TCF4, GZMB, IRF8, and PTCRA. The presence of TCF4 (E2-2) and IRF7 strongly indicates pDC identity and function. While there are some markers shared with B cells (JCHAIN, MZB1, DERL3) and other dendritic cells (FCER1A, LGMN), the co-expression of LILRA4, CLEC4C, and IL3RA is specific to pDCs. The absence of CD3D/CD3E (T cells) and FCGR3A/FGFBP2 (NK cells) rules out those alternatives. The enriched pathways are non-specific and likely reflect technical artifacts (p.adjust values are negative and pvalues > 0.5 for most terms), so they are not informative for identity. Regulatory drivers are TCF4 and IRF7, which are master regulators of pDC development and interferon response.",
+      "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+      "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+      "evidence_markers_method": "LILRA4; CLEC4C; IL3RA; SLC15A4; IRF7; TCF4; IRF8; GZMB; PTCRA; SERPINF1; GAS6; PLD4; DERL3; JCHAIN; MZB1",
+      "evidence_terms_method": null,
+      "predicted_label": "plasmacytoid dendritic cell",
+      "cl_id": "CL:0000784",
+      "rationale": "The marker list is dominated by canonical pDC markers: LILRA4 (ILT7), CLEC4C (BDCA-2), IL3RA (CD123), SLC15A4, IRF7, TCF4, GZMB, IRF8, and PTCRA. The presence of TCF4 (E2-2) and IRF7 strongly indicates pDC identity and function. While there are some markers shared with B cells (JCHAIN, MZB1, DERL3) and other dendritic cells (FCER1A, LGMN), the co-expression of LILRA4, CLEC4C, and IL3RA is specific to pDCs. The absence of CD3D/CD3E (T cells) and FCGR3A/FGFBP2 (NK cells) rules out those alternatives. The enriched pathways are non-specific and likely reflect technical artifacts (p.adjust values are negative and pvalues > 0.5 for most terms), so they are not informative for identity. Regulatory drivers are TCF4 and IRF7, which are master regulators of pDC development and interferon response.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "plasmacytoid dendritic cell",
+        "canonical_label": "plasmacytoid dendritic cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000784",
+        "candidate_cl_ids": [
+          "CL:0000784"
+        ],
+        "candidate_labels": [
+          "plasmacytoid dendritic cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000784",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "plasmacytoid dendritic cell",
+      "topk_cell_types": [
+        "plasmacytoid dendritic cell"
+      ],
+      "cell_ontology_id": "CL:0000784",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker list is dominated by canonical pDC markers: LILRA4 (ILT7), CLEC4C (BDCA-2), IL3RA (CD123), SLC15A4, IRF7, TCF4, GZMB, IRF8, and PTCRA. The presence of TCF4 (E2-2) and IRF7 strongly indicates pDC identity and function. While there are some markers shared with B cells (JCHAIN, MZB1, DERL3) and other dendritic cells (FCER1A, LGMN), the co-expression of LILRA4, CLEC4C, and IL3RA is specific to pDCs. The absence of CD3D/CD3E (T cells) and FCGR3A/FGFBP2 (NK cells) rules out those alternatives. The enriched pathways are non-specific and likely reflect technical artifacts (p.adjust values are negative and pvalues > 0.5 for most terms), so they are not informative for identity. Regulatory drivers are TCF4 and IRF7, which are master regulators of pDC development and interferon response.",
+      "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+      "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+      "evidence_markers_method": "LILRA4; CLEC4C; IL3RA; SLC15A4; IRF7; TCF4; IRF8; GZMB; PTCRA; SERPINF1; GAS6; PLD4; DERL3; JCHAIN; MZB1",
+      "evidence_terms_method": null,
+      "predicted_label": "plasmacytoid dendritic cell",
+      "cl_id": "CL:0000784",
+      "rationale": "The marker list is dominated by canonical pDC markers: LILRA4 (ILT7), CLEC4C (BDCA-2), IL3RA (CD123), SLC15A4, IRF7, TCF4, GZMB, IRF8, and PTCRA. The presence of TCF4 (E2-2) and IRF7 strongly indicates pDC identity and function. While there are some markers shared with B cells (JCHAIN, MZB1, DERL3) and other dendritic cells (FCER1A, LGMN), the co-expression of LILRA4, CLEC4C, and IL3RA is specific to pDCs. The absence of CD3D/CD3E (T cells) and FCGR3A/FGFBP2 (NK cells) rules out those alternatives. The enriched pathways are non-specific and likely reflect technical artifacts (p.adjust values are negative and pvalues > 0.5 for most terms), so they are not informative for identity. Regulatory drivers are TCF4 and IRF7, which are master regulators of pDC development and interferon response.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "plasmacytoid dendritic cell",
+        "canonical_label": "plasmacytoid dendritic cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000784",
+        "candidate_cl_ids": [
+          "CL:0000784"
+        ],
+        "candidate_labels": [
+          "plasmacytoid dendritic cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000784",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "Classical plasmacytoid dendritic cell (pDC), AXL+SIGLEC6+ dendritic cell (AS-DC) / transitional DC, Conventional dendritic cell type 2 (cDC2)",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "dendritic cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 0.9,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "plasmacytoid dendritic cell",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.9,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "plasmacytoid dendritic cell",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": 0.925,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+        "clid": "CL:0000451",
+        "mapping_source": "top1_step08_cl_link:parenthetical_core",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "Classical plasmacytoid dendritic cell (pDC), AXL+SIGLEC6+ dendritic cell (AS-DC) / transitional DC, Conventional dendritic cell type 2 (cDC2)",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "dendritic cell",
+        "clid": "CL:0000451",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.9,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "plasmacytoid dendritic cell",
+        "clid": "CL:0000784",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": 0.925,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "plasmacytoid dendritic cell",
+        "clid": "CL:0000784",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.925,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+      "Classical plasmacytoid dendritic cell (pDC), AXL+SIGLEC6+ dendritic cell (AS-DC) / transitional DC, Conventional dendritic cell type 2 (cDC2)",
+      "plasmacytoid dendritic cell",
+      "dendritic cell",
+      "dendritic cell of appendix",
+      "dendritic cell, human",
+      "dendritic epidermal T cell",
+      "conventional dendritic cell"
+    ],
+    "allowed_backoff_candidates": [
+      "dendritic cell",
+      "mononuclear phagocyte",
+      "professional antigen presenting cell",
+      "phagocyte (sensu Vertebrata)",
+      "mononuclear leukocyte",
+      "leukocyte",
+      "mature gamma-delta T cell",
+      "gamma-delta T cell",
+      "mature T cell"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+          "canonical_label": null,
+          "mapping_status": "review",
+          "mapping_decision": "verifier_review",
+          "mapping_reason": "A/B consistent; spec=broadened | verifier: Label specifies plasmacytoid dendritic cell (pDC), but no pDC-specific term is in the candidate list; the proposed broad dendritic cell term is a valid parent, but the mapping should be flagged for missing subtype.",
+          "mapping_method": "evidence_llm_abstain",
+          "specificity_relation": "broadened",
+          "editor_input_type": "candidate_set",
+          "single_cl_ready": false,
+          "adjudication_ready": true,
+          "evaluation_ready": false,
+          "cell_ontology_id": null,
+          "candidate_cl_ids": [
+            "CL:0000451",
+            "CL:0009034",
+            "CL:0001056",
+            "CL:0000916",
+            "CL:0000990"
+          ],
+          "candidate_labels": [
+            "dendritic cell",
+            "dendritic cell of appendix",
+            "dendritic cell, human",
+            "dendritic epidermal T cell",
+            "conventional dendritic cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000451",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+          "Classical plasmacytoid dendritic cell (pDC), AXL+SIGLEC6+ dendritic cell (AS-DC) / transitional DC, Conventional dendritic cell type 2 (cDC2)"
+        ],
+        "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+        "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+        "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+        "evidence_markers_method": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+        "reasoning_short": "The annotation is highly accurate and captures the core identity of the cluster very well. The marker list is strongly and unambiguously enriched for canonical human plasmacytoid dendritic cell (pDC) genes: the top-ranked markers include SCT, LILRA4, SHD, CLEC4C, IL3RA, PTCRA, GAS6, SERPINF1, PLD4, IRF7, TCF4, GZMB, IRF8, and LILRB4. These are not just generic immune markers; several are highly specific pDC markers, especially CLEC4C (BDCA-2) and LILRA4 (ILT7). The annotation also handles potential confusions well. It correctly recognizes that genes such as JCHAIN, MZB1, DERL3, and NAPSB can be expressed by pDCs due to their “plasmacytoid” transcriptional program, and it avoids misclassifying the cluster as plasma cells by noting the absence of SDC1, TNFRSF17, XBP1, and immunoglobulin genes. It similarly rules out cDC1, cDC2, and basophils using appropriate negative markers. There is good balance in marker interpretation. The final annotation integrates lineage transcription factors (TCF4, IRF7, IRF8, BCL11A), surface receptors (CLEC4C, LILRA4, IL3RA, FCER1A), functional molecules (GZMB, SLC15A4, DNASE1L3), and known pDC-specific genes (SCT, SHD, PTCRA). This shows an understanding of the broader pDC biology rather than over-reliance on a single marker. The ranked order of markers is also consistent with the conclusion: the most highly ranked genes are pDC-defining, which strengthens confidence. Minor limitations include the inclusion of some less-discussed genes in the list (e.g., TPM2, TNNI2, MAP1A, RUNX2) that are not explicitly addressed, but these are lower-ranked and do not conflict with the overwhelming pDC signal. The proposed alternate sub cell types are appropriate and clearly ranked, with the correct final call. Overall, this is a scientifically accurate, well-reasoned, and comprehensive annotation."
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "dendritic cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "dendritic cell",
+          "canonical_label": "dendritic cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000451",
+          "candidate_cl_ids": [
+            "CL:0000451"
+          ],
+          "candidate_labels": [
+            "dendritic cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000451",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "plasmacytoid dendritic cell",
+          "dendritic cell"
+        ],
+        "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+        "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+        "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+        "evidence_markers_method": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1",
+        "reasoning_short": "In-house top1=dendritic cell; top markers=SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "plasmacytoid dendritic cell",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "plasmacytoid dendritic cell",
+          "canonical_label": "plasmacytoid dendritic cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000784",
+          "candidate_cl_ids": [
+            "CL:0000784"
+          ],
+          "candidate_labels": [
+            "plasmacytoid dendritic cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000784",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "plasmacytoid dendritic cell"
+        ],
+        "evidence_markers_std": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+        "evidence_terms_std": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+        "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239",
+        "evidence_markers_method": "LILRA4; CLEC4C; IL3RA; SLC15A4; IRF7; TCF4; IRF8; GZMB; PTCRA; SERPINF1; GAS6; PLD4; DERL3; JCHAIN; MZB1",
+        "evidence_terms_method": null,
+        "reasoning_short": "The marker list is dominated by canonical pDC markers: LILRA4 (ILT7), CLEC4C (BDCA-2), IL3RA (CD123), SLC15A4, IRF7, TCF4, GZMB, IRF8, and PTCRA. The presence of TCF4 (E2-2) and IRF7 strongly indicates pDC identity and function. While there are some markers shared with B cells (JCHAIN, MZB1, DERL3) and other dendritic cells (FCER1A, LGMN), the co-expression of LILRA4, CLEC4C, and IL3RA is specific to pDCs. The absence of CD3D/CD3E (T cells) and FCGR3A/FGFBP2 (NK cells) rules out those alternatives. The enriched pathways are non-specific and likely reflect technical artifacts (p.adjust values are negative and pvalues > 0.5 for most terms), so they are not informative for identity. Regulatory drivers are TCF4 and IRF7, which are master regulators of pDC development and interferon response."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "enrichment_terms": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+      "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_14, population: blood.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "SCT",
+              "LILRA4",
+              "SHD",
+              "CLEC4C",
+              "PROC",
+              "LRRC26",
+              "PTPRS",
+              "SMPD3",
+              "TPM2",
+              "MAP1A",
+              "IL3RA",
+              "PTCRA",
+              "DNASE1L3",
+              "GAS6",
+              "SERPINF1",
+              "PLD4",
+              "DERL3",
+              "TNFRSF21",
+              "PPP1R14B",
+              "MYBL2",
+              "IRF7",
+              "LILRB4",
+              "CFAP119",
+              "IRF4",
+              "UGCG",
+              "RUNX2",
+              "CCDC50",
+              "APP",
+              "TCF4",
+              "LGMN",
+              "ITM2C",
+              "TNNI2",
+              "JCHAIN",
+              "FCER1A",
+              "GRAMD1B",
+              "C12orf75",
+              "CSF2RB",
+              "SLC15A4",
+              "TGFBI",
+              "GZMB",
+              "IRF8",
+              "NAPSB",
+              "MZB1",
+              "GAPT",
+              "VEGFB",
+              "TSPAN13",
+              "CXCR3",
+              "BCL11A",
+              "ALOX5AP",
+              "PTMS"
+            ]
+          }
+        },
+        "scope_profile": "immune_enriched",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "epithelial_polarity_transport": [
+              "Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus",
+              "Gamma-carboxylation, transport, and amino-terminal cleavage of proteins"
+            ],
+            "immune_activation": [
+              "innate immune response-activating signaling pathway",
+              "interferon-alpha production",
+              "regulation of interferon-alpha production",
+              "leukocyte mediated immunity",
+              "activation of innate immune response",
+              "leukocyte apoptotic process",
+              "positive regulation of innate immune response",
+              "adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains",
+              "immune receptor activity",
+              "Immune System",
+              "Innate Immune System"
+            ]
+          },
+          "programs_from_markers": {
+            "transport_program_markers": "SLC15A4"
+          },
+          "support_level": {
+            "epithelial": "none",
+            "transport": "weak",
+            "secretory": "none"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 99,
+            "in_scope_count": 99,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "immune": 36,
+              "unknown": 78
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [
+              "regulation of toll-like receptor 9 signaling pathway",
+              "regulation of pattern recognition receptor signaling pathway",
+              "toll-like receptor 9 signaling pathway",
+              "pattern recognition receptor signaling pathway",
+              "innate immune response-activating signaling pathway",
+              "interferon-alpha production",
+              "regulation of interferon-alpha production",
+              "leukocyte mediated immunity",
+              "activation of innate immune response",
+              "regulation of toll-like receptor signaling pathway",
+              "lymphocyte mediated immunity",
+              "leukocyte apoptotic process",
+              "positive regulation of innate immune response",
+              "adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains",
+              "memory"
+            ],
+            "cellular_components": [],
+            "molecular_functions": "immune receptor activity",
+            "kegg_pathways": [],
+            "reactome_pathways": [
+              "Immune System",
+              "Toll-like Receptor Cascades",
+              "Innate Immune System",
+              "Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus",
+              "Removal of aminoterminal propeptides from gamma-carboxylated proteins",
+              "Gamma-carboxylation of protein precursors",
+              "Gamma-carboxylation, transport, and amino-terminal cleavage of proteins",
+              "Post-translational protein phosphorylation",
+              "Toll Like Receptor 7/8 (TLR7/8) Cascade",
+              "Toll Like Receptor 9 (TLR9) Cascade"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: APP, LILRA4, FCER1A, RUNX2, TCF4",
+            "disease_associations_do": [],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "36658547",
+                "36544104",
+                "41633771",
+                "34910688",
+                "36233633",
+                "34899743",
+                "36276113",
+                "37006239",
+                "32213192",
+                "40885186",
+                "37350967",
+                "20483239",
+                "27838757",
+                "32911797",
+                "33015128",
+                "35839778",
+                "32295833",
+                "41261523",
+                "38556552",
+                "22558382",
+                "36522221",
+                "35269741",
+                "33362784",
+                "26783745",
+                "41283471"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "plasmacytoid dendritic cell",
+              "dendritic cell",
+              "plasma cell",
+              "plasmacytoid dendritic cell, human",
+              "perivascular macrophage",
+              "B cell",
+              "monocyte",
+              "common dendritic progenitor",
+              "myeloid dendritic cell"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000784",
+              "CL:0000451",
+              "CL:0000786",
+              "CL:0001058",
+              "CL:0000881",
+              "CL:0000236",
+              "CL:0000576",
+              "CL:0001029",
+              "CL:0000782"
+            ],
+            "Final_Score": [
+              0.925,
+              0.9,
+              0.525,
+              0.525,
+              0.3,
+              0.25,
+              0.25,
+              0.25,
+              0.225
+            ],
+            "Top_Evidence_Genes": [
+              "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1",
+              "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, DNASE1L3, GAS6, SERPINF1, PLD4",
+              "SCT, LILRA4, CLEC4C, LRRC26, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, MYBL2",
+              "SCT, LILRA4, CLEC4C, LRRC26, PTPRS, IL3RA, SERPINF1, PLD4, DERL3, PPP1R14B, IRF7, LILRB4, IRF4, UGCG, RUNX2",
+              "SCT, DNASE1L3, GAS6, SERPINF1, MYBL2, TCF4, LGMN, ITM2C, FCER1A, C12orf75, TGFBI, GZMB",
+              "LILRA4, DNASE1L3, SERPINF1, PLD4, DERL3, TNFRSF21, MYBL2, IRF7, IRF4, CCDC50, TCF4, LGMN, ITM2C, JCHAIN, C12orf75",
+              "LILRA4, IL3RA, PLD4, IRF7, LILRB4, TCF4, LGMN, TNNI2, CSF2RB, TGFBI",
+              "IL3RA, PLD4, PPP1R14B, IRF7, UGCG, CCDC50, TCF4, JCHAIN, FCER1A, C12orf75",
+              "SCT, LILRA4, CLEC4C, IL3RA, GAS6, SERPINF1, IRF4, LGMN, FCER1A"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 27,
+        "n_degs_available": 50,
+        "top_evidence_genes_count": 36
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "SCT, LILRA4, SHD, CLEC4C, PROC, LRRC26, PTPRS, SMPD3, TPM2, MAP1A, IL3RA, PTCRA, DNASE1L3, GAS6, SERPINF1, PLD4, DERL3, TNFRSF21, PPP1R14B, MYBL2, IRF7, LILRB4, CFAP119, IRF4, UGCG, RUNX2, CCDC50, APP, TCF4, LGMN, ITM2C, TNNI2, JCHAIN, FCER1A, GRAMD1B, C12orf75, CSF2RB, SLC15A4, TGFBI, GZMB, IRF8, NAPSB, MZB1, GAPT, VEGFB, TSPAN13, CXCR3, BCL11A, ALOX5AP, PTMS",
+      "enrichment_terms": "regulation of toll-like receptor 9 signaling pathway; regulation of pattern recognition receptor signaling pathway; toll-like receptor 9 signaling pathway; pattern recognition receptor signaling pathway; innate immune response-activating signaling pathway; interferon-alpha production; regulation of interferon-alpha production; leukocyte mediated immunity; activation of innate immune response; regulation of toll-like receptor signaling pathway; lymphocyte mediated immunity; leukocyte apoptotic process; positive regulation of innate immune response; adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains; memory; Immune System; Toll-like Receptor Cascades; Innate Immune System; Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus; Removal of aminoterminal propeptides from gamma-carboxylated proteins; Gamma-carboxylation of protein precursors; Gamma-carboxylation, transport, and amino-terminal cleavage of proteins; Post-translational protein phosphorylation; Toll Like Receptor 7/8 (TLR7/8) Cascade; Toll Like Receptor 9 (TLR9) Cascade",
+      "pmids_top": "36658547, 36544104, 41633771, 34910688, 36233633, 34899743, 36276113, 37006239"
+    }
+  },
+  "cluster_id": "cluster_14"
+}

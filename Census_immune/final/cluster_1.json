@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "classical monocyte",
+    "final_cell_ontology_id": "CL:0000860",
+    "confidence_primary": 0.93
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "monocyte",
+      "cell_ontology_id": "CL:0000576",
+      "strengths": [
+        "Correctly identifies monocyte lineage from S100A12, CD14, S100A8, S100A9, FCN1, LYZ, and CSF3R.",
+        "Explicitly reasons that the most likely subtype is classical CD14+ CD16- monocyte, distinguishing from DC, neutrophil, and non-classical monocyte programs."
+      ],
+      "weaknesses": [
+        "Top1 label remains at the monocyte ancestor level rather than the supported classical monocyte descendant.",
+        "Subtype refinement appears only in the top2/free-text layer and relies partly on absence of markers in a top-DEG list."
+      ],
+      "reviewer_cl_id": "CL:0000576"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "monocyte",
+      "cell_ontology_id": "CL:0000576",
+      "strengths": [
+        "Matches the dominant monocyte lineage with high confidence.",
+        "Rank2 candidate 'classical monocyte' anticipates the supported subtype refinement."
+      ],
+      "weaknesses": [
+        "Primary label is less specific than the evidence supports.",
+        "Limited independent biological reasoning beyond the marker list."
+      ],
+      "reviewer_cl_id": "CL:0000576"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "classical monocyte",
+      "cell_ontology_id": "CL:0000860",
+      "strengths": [
+        "Directly predicts the ontology-valid descendant with positive marker support: CD14, S100A12, S100A8, S100A9, FCN1, CDA, RBP7.",
+        "Correctly notes the absence of non-classical markers such as FCGR3A and MS4A7 among the top DEGs."
+      ],
+      "weaknesses": [
+        "Some conclusions rely on absence from a top-marker list rather than measured expression values.",
+        "Broad neutrophil-related enrichment terms are shared with other myeloid cells and are not subtype-specific."
+      ],
+      "reviewer_cl_id": "CL:0000860"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs are dominated by classical monocyte markers CD14, S100A12, S100A8, S100A9, FCN1, CDA, RBP7, SERPINA1, RETN, VCAN, and G0S2 (PMID 27569562).",
+      "Non-classical monocyte markers FCGR3A, MS4A7, CDKN1C, and LITAF are absent from the listed top DEGs, favoring classical CD14+ CD16- identity."
+    ],
+    "conflicting": [
+      "No genuine non-hierarchical branch conflict",
+      "CASSIA and in-house 'monocyte' are ancestors of the better-supported 'classical monocyte'.",
+      "Neutrophil degranulation and chemotaxis enrichment terms are expected in classical monocytes and do not contradict the primary identity."
+    ],
+    "enrichment_or_literature": [
+      "Monocyte classical-subtype signature supported by PMID 27569562",
+      "enrichment for phagocytosis, innate immune response, and respiratory burst is consistent with classical monocyte biology."
+    ],
+    "cited_pmids": [
+      "27569562"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "CD14-positive monocyte",
+    "reference_cl_term": "CD14-positive monocyte",
+    "reference_cl_id": "CL:0001054",
+    "cl_similarity": 78.3778251389102
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_11",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "glutamatergic neuron",
+    "final_cell_ontology_id": "CL:0000679",
+    "confidence_primary": 0.9
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Excitatory (glutamatergic) neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Correctly identifies glutamatergic/excitatory neuronal identity",
+        "Top-2 label and explicit reasoning identify L6b/subplate excitatory neurons",
+        "Correctly weighs NPFFR2, SEMA3E, SEMA3D, HCRTR2, DPP4, FOXP2, GRM4 as L6b/deep-layer markers"
+      ],
+      "weaknesses": [
+        "Top-1 raw label is not layer-specific",
+        "Automated mapping was flagged ambiguous for the raw label",
+        "Candidate set contains unrelated classes, although these were not used in the final reasoning"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Neuronal identity is strongly supported by the marker list and enrichment terms",
+        "Top-2 candidate correctly proposes L6b glutamatergic cortical neuron"
+      ],
+      "weaknesses": [
+        "Top-1 label is too broad and omits the directly supported glutamatergic and L6b/cortical components",
+        "Less informative than the available subtype resolution"
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "glutamatergic neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Correctly identifies glutamatergic/excitatory lineage",
+        "Uses absence of GABAergic and glial markers to exclude alternative lineages",
+        "Deep-layer excitatory markers SEMA3E, SEMA3D, DCHS2, ADAMTSL1 are recognized"
+      ],
+      "weaknesses": [
+        "Stops at glutamatergic neuron and does not refine to L6b/cortical subtype",
+        "Does not leverage NPFFR2/DPP4/HCRTR2 L6b specificity"
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "DEGs NPFFR2, SEMA3E, SEMA3D, HCRTR2, DPP4, TRPM3, ASIC2, GRM4, FOXP2, CDH6, ITGA8 directly support the added L6b/cortical/glutamatergic components of CL:4023038",
+      "Absence of GAD1/GAD2/SST/PVALB and OLIG1/GFAP supports excitatory neuronal rather than GABAergic or glial identity",
+      "Pipeline-provided PMIDs 35474380, 38957312, 41388235, 32061372, 40876929, 32508047, 40640508, 39769001 accompany the L6b/deep-layer excitatory neuron interpretation"
+    ],
+    "conflicting": [
+      "GRM4 is present but SLC17A-family vesicular glutamate transporter markers are not listed; glutamatergic assignment therefore rests on the deep-layer excitatory marker constellation and Ex6 enrichment rather than a direct VGLUT marker",
+      "ITGA8 and CDH6 are flagged in the epithelial program channel, but in DLPFC L6b context they are established cortical layer markers and do not indicate contamination"
+    ],
+    "enrichment_or_literature": [
+      "Enrichment terms include innervation, axon extension involved in axon guidance, neuron projection guidance, Semaphorin interactions, Axon guidance, and Nervous system development",
+      "Enrichment rationale cites Lake et al.Science.Ex6 excitatory neuron identity",
+      "Pipeline literature is consistent with human cortical deep-layer excitatory neuron identity"
+    ],
+    "cited_pmids": [
+      "35474380",
+      "38957312",
+      "41388235",
+      "32061372",
+      "40876929",
+      "32508047",
+      "40640508",
+      "39769001"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "glutamatergic neuron",
+    "reference_cl_term": "glutamatergic neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_11_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

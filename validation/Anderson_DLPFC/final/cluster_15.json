@@ -1,0 +1,102 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_15",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "pvalb GABAergic cortical interneuron",
+    "final_cell_ontology_id": "CL:4023018",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "GABAergic cortical interneuron (inhibitory neuron), specifically a PVALB+ interneuron",
+      "cell_ontology_id": "CL:0011005",
+      "strengths": [
+        "Correctly identified GABAergic/MGE-derived interneuron identity via PVALB and LHX6.",
+        "Recognized chandelier-specific transcriptomic markers (CA8, ANO1, NPNT, CNTN5, THSD7A, ALK, TAFA4) and interpreted ECM/collagen genes as chandelier signature."
+      ],
+      "weaknesses": [
+        "Mapped to the broader GABAergic interneuron class (CL:0011005) rather than the directly supported chandelier pvalb subtype.",
+        "Ranked PVALB+ basket cell as an alternative, although the chandelier markers favor the chandelier branch."
+      ],
+      "reviewer_cl_id": "CL:0011005"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "GABAergic neuron",
+      "cell_ontology_id": "CL:0000617",
+      "strengths": [
+        "Core GABAergic identity is supported by observed PVALB/LHX6 expression.",
+        "Subrank candidates included more specific pvalb GABAergic cortical interneuron and chandelier pvalb GABAergic cortical interneuron."
+      ],
+      "weaknesses": [
+        "Top1 is an overly broad ancestor and does not reflect the PVALB/chandelier specificity supported by the marker list.",
+        "No method-specific reasoning was provided to prioritize subtype markers over the general GABAergic label."
+      ],
+      "reviewer_cl_id": "CL:0000617"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": null,
+      "cell_ontology_id": null,
+      "strengths": [],
+      "weaknesses": [
+        "Reviewer returned __unavailable__; no cell-type hypothesis or enrichment-derived label was provided."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "PVALB and LHX6 are observed DEGs establishing a GABAergic / MGE-derived interneuron lineage.",
+      "CA8, ANO1, NPNT, CNTN5, THSD7A, ALK and TAFA4 are observed DEGs supporting refinement to chandelier pvalb GABAergic cortical interneuron (CL:4023036).",
+      "No out-of-scope contamination channel was identified; ECM/collagen genes (COL15A1, ADAMTS5, SMOC2) are consistent with the chandelier transcriptomic signature."
+    ],
+    "conflicting": [
+      "In-house top1 GABAergic neuron is not conflicting but is too unspecific.",
+      "CASSIA rank2 lists PVALB+ basket cell as an alternative; however CA8/ANO1/NPNT favor the chandelier branch."
+    ],
+    "enrichment_or_literature": [
+      "Literature-supported chandelier-cell markers (CA8, ANO1, NPNT, CNTN5, THSD7A, ALK, TAFA4) support the subtype refinement (PMIDs 32411596, 37745522, 39444736, 40268967, 31083689)."
+    ],
+    "cited_pmids": [
+      "32411596",
+      "37745522",
+      "39444736",
+      "40268967",
+      "31083689"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "GABAergic neuron",
+    "reference_cl_term": "GABAergic neuron",
+    "reference_cl_id": "CL:0000617",
+    "cl_similarity": 63.47742193580448
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_15_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,7 @@
+endpoint	comparison	difference_percentage_points	95_ci	mcnemar_p	holm_adjusted_p
+exact	CL-Linker vs OLS top-result search	23.71	+13.4 to +34.0	3.39532271027565e-05	3.39532271027565e-05
+exact	CL-Linker vs OLS exact lookup	30.93	+21.6 to +40.2	1.53668224811554e-08	3.07336449623108e-08
+exact	CL-Linker vs Exact/synonym lookup	36.08	+26.8 to +45.4	5.82076609134674e-11	1.74622982740402e-10
+exact_or_direct_parent	CL-Linker vs OLS top-result search	21.65	+11.3 to +32.0	0.000192195177078248	0.000192195177078248
+exact_or_direct_parent	CL-Linker vs OLS exact lookup	30.93	+21.6 to +40.2	1.53668224811554e-08	3.07336449623108e-08
+exact_or_direct_parent	CL-Linker vs Exact/synonym lookup	36.08	+26.8 to +45.4	5.82076609134674e-11	1.74622982740402e-10

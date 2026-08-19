@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_2",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "L2/3 intratelencephalic projecting glutamatergic neuron",
+    "final_cell_ontology_id": "CL:4030059",
+    "confidence_primary": 0.88
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Glutamatergic / excitatory neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Correctly identifies the glutamatergic, non-GABAergic lineage rather than only the generic neuronal parent.",
+        "Top-2 subtype description explicitly highlights L2/3 IT PTPRQ excitatory neurons, matching the observed marker panel.",
+        "Marker interpretation correctly discounts HOPX/LAMB1/COL5A2/COL24A1 as non-lineage-defining signals."
+      ],
+      "weaknesses": [
+        "Top-1 label remains at glutamatergic neuron granularity and does not encode the strongly supported L2/3 IT refinement.",
+        "No single CL ID was confidently mapped from the raw label."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Rank-2 candidate CL:4030059 (L2/3 intratelencephalic projecting glutamatergic neuron) is the best-supported finalized identity.",
+        "The neuron-level call is a correct ontology ancestor and therefore not a lineage error."
+      ],
+      "weaknesses": [
+        "Top-1 label is too generic and omits the positive glutamatergic and layer/subtype evidence.",
+        "The most informative supported identity is present only at rank 2, not as the primary prediction."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": null,
+      "cell_ontology_id": null,
+      "strengths": [
+        "Enrichment output is consistent with neuronal identity via synapse and axon-guidance terms."
+      ],
+      "weaknesses": [
+        "No independent cell-type prediction was returned, so it cannot be evaluated as a competing annotation."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs include CUX2, CBLN2, PTPRQ, ROS1, MCHR2, CNGB1, GRB14, GLRA3, ONECUT2, TCERG1L, ADAMTS3/16, a recognized L2/3 IT glutamatergic neuron panel (PMID 38034497, 38264721).",
+      "CL:4030059 is an ontology-valid descendant of glutamatergic neuron (CL:0000679) and neuron (CL:0000540), and every added layer/intratelencephalic component is supported by observed markers.",
+      "Original enrichment is dominated by neuronal signaling terms (neuron-to-neuron synapse, Schaffer collateral-CA1 synapse, axon guidance, nervous system development), consistent with the marker-based identity."
+    ],
+    "conflicting": [
+      "In-house top-1 CL:0000540 is correct but under-resolved, failing to capture the positive glutamatergic/layer evidence.",
+      "LAMB1, COL5A2, and COL24A1 could superficially suggest stromal/ECM contamination, but they are outweighed by the coherent neuronal marker panel and do not define the cluster."
+    ],
+    "enrichment_or_literature": [
+      "Original enrichment returned synapse, axon-guidance, and nervous-system-development terms, supporting the neuronal identity.",
+      "PMID 38034497 and 38264721 support human cortical glutamatergic neuron taxonomy and L2/3 IT subtype markers."
+    ],
+    "cited_pmids": [
+      "38034497",
+      "38264721",
+      "33719335",
+      "28494005",
+      "40493617"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "glutamatergic neuron",
+    "reference_cl_term": "glutamatergic neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 66.16097751143558
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_2_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

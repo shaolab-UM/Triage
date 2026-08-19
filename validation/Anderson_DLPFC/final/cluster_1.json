@@ -1,0 +1,102 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "oligodendrocyte",
+    "final_cell_ontology_id": "CL:0000128",
+    "confidence_primary": 0.95
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Oligodendrocyte lineage",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Identifies the correct oligodendrocyte lineage and maps to CL:0000128 as a candidate.",
+        "Top DEGs include canonical oligodendrocyte/myelination genes: MOBP, MOG, PLP1, CLDN11, OPALIN, MAG, UGT8, FA2H, ERMN, MYRF, ASPA, CNDP1."
+      ],
+      "weaknesses": [
+        "Label is broad ('lineage') rather than a precise cell type.",
+        "Mapping is low-confidence and the candidate set spans OPC, newly formed, and mature oligodendrocyte states without resolving a specific subtype."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neural_glial cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly places the cluster within the neural/glial compartment.",
+        "Recognizes myelin-associated genes (MOBP, MOG, PLP1, CLDN11, OPALIN, MYRF) as relevant."
+      ],
+      "weaknesses": [
+        "Label is too broad and ambiguous; mapping returned no CLID.",
+        "Candidate set includes non-oligodendrocyte alternatives such as myelinating Schwann cell and neural progenitor cell, which are not supported by the original cluster evidence."
+      ],
+      "reviewer_cl_id": null
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "oligodendrocyte",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Provides an exact, deterministic ontology mapping to CL:0000128.",
+        "Marker enrichment is highly significant and driven by classic oligodendrocyte genes: MAG, MOBP, MOG, PLP1, CLDN11, OPALIN, UGT8, FA2H, ERMN, CNDP1, ASPA, MYRF."
+      ],
+      "weaknesses": [
+        "Relies primarily on marker-set enrichment and does not resolve mature versus precursor oligodendrocyte subtype within the lineage."
+      ],
+      "reviewer_cl_id": "CL:0000128"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs are dominated by canonical oligodendrocyte/myelination genes: MOBP, MOG, PLP1, CLDN11, OPALIN, MAG, UGT8, FA2H, ERMN, MYRF, ASPA, CNDP1, SH3TC2, LRP2, SLCO1A2, ENPP2, ABCA8, CERCAM.",
+      "Enrichment includes oligodendrocyte differentiation, ensheathment of neurons, and axon ensheathment; these directly support the oligodendrocyte identity (PMID 34299682).",
+      "CASSIA and enrichment both converge on CL:0000128, and the in-scope DEG list contains no competing neural or glial lineage program of comparable strength."
+    ],
+    "conflicting": [
+      "The in-house label 'neural_glial cell' is not specific enough and is not mapped to a CLID.",
+      "CD22, a B-cell-associated transcript, appears among top DEGs but lacks a coherent B-cell program and is treated as minor ambient signal."
+    ],
+    "enrichment_or_literature": [
+      "Enrichment terms: oligodendrocyte differentiation; ensheathment of neurons; axon ensheathment.",
+      "Retrieved literature (e.g., PMID 34299682) is consistent with an oligodendrocyte identity in human brain."
+    ],
+    "cited_pmids": [
+      "34299682"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "oligodendrocyte",
+    "reference_cl_term": "oligodendrocyte",
+    "reference_cl_id": "CL:0000128",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,17 @@
+cluster_id	published_reference_annotation	reference_cl_term	reference_cl_id
+cluster_1	CD14-positive monocyte	CD14-positive monocyte	CL:0001054
+cluster_10	naive T cell	naive T cell	CL:0000898
+cluster_11	naive thymus-derived CD4-positive, alpha-beta T cell	naive thymus-derived CD4-positive, alpha-beta T cell	CL:0000895
+cluster_12	natural killer cell	natural killer cell	CL:0000623
+cluster_13	plasma cell	plasma cell	CL:0000786
+cluster_14	plasmacytoid dendritic cell	plasmacytoid dendritic cell	CL:0000784
+cluster_15	precursor B cell	precursor B cell	CL:0000817
+cluster_16	pro-B cell	pro-B cell	CL:0000826
+cluster_2	CD8-positive, alpha-beta T cell	CD8-positive, alpha-beta T cell	CL:0000625
+cluster_3	bone marrow hematopoietic cell	bone marrow hematopoietic cell	CL:1001610
+cluster_4	conventional dendritic cell	conventional dendritic cell	CL:0000990
+cluster_5	cytotoxic T cell	cytotoxic T cell	CL:0000910
+cluster_6	erythroid lineage cell	erythroid lineage cell	CL:0000764
+cluster_7	megakaryocyte	megakaryocyte	CL:0000556
+cluster_8	mesenchymal stem cell of the bone marrow	mesenchymal stem cell of the bone marrow	CL:0002540
+cluster_9	naive B cell	naive B cell	CL:0000788

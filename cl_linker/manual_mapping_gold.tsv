@@ -1,0 +1,151 @@
+dataset	cluster_id	reviewer	raw_label	gt_status	gt_cl_id	gt_component_cl_ids	notes
+Census_immune	cluster_1	cassia	Monocyte (myeloid lineage)	single_identity	CL:0000576	NA	NA
+Census_immune	cluster_10	cassia	T lymphocytes / T cells	single_identity	CL:0000084	NA	NA
+Census_immune	cluster_11	cassia	T lymphocyte (αβ T cell)	single_identity	CL:0000084	NA	NA
+Census_immune	cluster_12	cassia	Natural killer (NK) cell	single_identity	CL:0000623	NA	NA
+Census_immune	cluster_13	cassia	Plasma cells / plasmablasts	single_identity	CL:0000786	NA	NA
+Census_immune	cluster_14	cassia	Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)	single_identity	CL:0000784		NA
+Census_immune	cluster_15	cassia	B-lymphoid lineage cells	single_identity	CL:0000236	NA	NA
+Census_immune	cluster_16	cassia	B-cell lineage, early B-cell precursor / immature B-lymphoid progenitor	single_identity	CL:0000817	NA	NA
+Census_immune	cluster_2	cassia	CD8+ naïve T cells	single_identity	CL:0000900	NA	NA
+Census_immune	cluster_3	cassia	Hematopoietic stem/progenitor cells (HSPCs) — CD34+ primitive hematopoietic stem/progenitor cell cluster	single_identity	CL:0008001	NA	NA
+Census_immune	cluster_4	cassia	Dendritic cell (DC)	single_identity	CL:0000451	NA	NA
+Census_immune	cluster_5	cassia	γδ T cell	single_identity	CL:0000798	NA	NA
+Census_immune	cluster_6	cassia	Erythroid lineage cell	single_identity	CL:0000764	NA	NA
+Census_immune	cluster_7	cassia	Platelets (megakaryocyte/platelet lineage; circulating blood platelets)	single_identity	CL:0000233	NA	NA
+Census_immune	cluster_8	cassia	Mesenchymal stromal cell (MSC) / fibroblast-like non-hematopoietic cell	single_identity	CL:0000134	NA	NA
+Census_immune	cluster_9	cassia	B cell / B lymphocyte	single_identity	CL:0000236	NA	NA
+Census_immune	cluster_1	in_house	monocyte	single_identity	CL:0000576	NA	NA
+Census_immune	cluster_10	in_house	T cell	single_identity	CL:0000084	NA	NA
+Census_immune	cluster_11	in_house	T cell	single_identity	CL:0000084	NA	NA
+Census_immune	cluster_12	in_house	natural killer cell	single_identity	CL:0000623	NA	NA
+Census_immune	cluster_13	in_house	lymphocyte of B lineage	single_identity	CL:0000236	NA	NA
+Census_immune	cluster_14	in_house	dendritic cell	single_identity	CL:0000451	NA	NA
+Census_immune	cluster_15	in_house	B cell	single_identity	CL:0000236	NA	NA
+Census_immune	cluster_16	in_house	B cell	single_identity	CL:0000236	NA	NA
+Census_immune	cluster_2	in_house	T cell	single_identity	CL:0000084	NA	NA
+Census_immune	cluster_3	in_house	hematopoietic precursor cell	single_identity	CL:0008001	NA	NA
+Census_immune	cluster_4	in_house	dendritic cell	single_identity	CL:0000451	NA	NA
+Census_immune	cluster_5	in_house	T cell	single_identity	CL:0000084	NA	NA
+Census_immune	cluster_6	in_house	erythroid lineage cell	single_identity	CL:0000764	NA	NA
+Census_immune	cluster_7	in_house	megakaryocyte	single_identity	CL:0000556	NA	NA
+Census_immune	cluster_8	in_house	immune cell	single_identity	CL:0000988	NA	NA
+Census_immune	cluster_9	in_house	B cell	single_identity	CL:0000236	NA	NA
+Census_immune	cluster_1	enrichment	classical monocyte	single_identity	CL:0000860	NA	NA
+Census_immune	cluster_10	enrichment	Naive/Quiescent CD4+ T cell (progenitor-like)	single_identity	CL:0000895	NA	NA
+Census_immune	cluster_11	enrichment	stem cell memory CD8-positive, alpha-beta T cell	single_identity	CL:0000907	NA	NA
+Census_immune	cluster_12	enrichment	natural killer cell	single_identity	CL:0000623	NA	NA
+Census_immune	cluster_13	enrichment	plasma cell	single_identity	CL:0000786	NA	NA
+Census_immune	cluster_14	enrichment	plasmacytoid dendritic cell	single_identity	CL:0000784	NA	NA
+Census_immune	cluster_15	enrichment	Plasma cell / differentiated B cell (likely plasmablast or plasma cell)	single_identity	CL:0000786	NA	NA
+Census_immune	cluster_16	enrichment	pro-B cell	single_identity	CL:0000826	NA	NA
+Census_immune	cluster_2	enrichment	naive thymus-derived CD8-positive, alpha-beta T cell	single_identity	CL:0000900	NA	NA
+Census_immune	cluster_3	enrichment	Hematopoietic Stem/Progenitor Cell (HSPC) / Early Myeloid Progenitor	single_identity	CL:0008001	NA	NA
+Census_immune	cluster_4	enrichment	Conventional Dendritic Cell Type 2 (cDC2)	single_identity	CL:0000990	NA	NA
+Census_immune	cluster_5	enrichment	Cytotoxic memory/effector CD8+ T cell (with NK-like features)	single_identity	CL:0000910	NA	NA
+Census_immune	cluster_6	enrichment	Erythroid precursor (orthochromatic erythroblast)	single_identity	CL:0000552		NA
+Census_immune	cluster_7	enrichment	Platelet / Megakaryocyte	mixed_identity	NA	CL:0000233|CL:0000556	NA
+Census_immune	cluster_8	enrichment	mesenchymal stem cell	single_identity	CL:0000134	NA	NA
+Census_immune	cluster_9	enrichment	naive/mature B cell	single_identity	CL:0000788	NA	NA
+Sikkema_lung	cluster_1	cassia	T lymphocyte (αβ T cell)	single_identity	CL:0000084	NA	NA
+Sikkema_lung	cluster_10	cassia	Lung epithelial cell, specifically alveolar type 2 (AT2) epithelial cell / AT2-lineage cell.	single_identity	CL:0002063	NA	NA
+Sikkema_lung	cluster_11	cassia	Mesothelial cells	single_identity	CL:0000077	NA	NA
+Sikkema_lung	cluster_2	cassia	Airway basal epithelial cell / basal progenitor	single_identity	CL:0002633	NA	NA
+Sikkema_lung	cluster_3	cassia	Endothelial cell	single_identity	CL:0000115	NA	NA
+Sikkema_lung	cluster_4	cassia	Ciliated airway epithelial cell / multiciliated epithelial cell	single_identity	CL:0000067	NA	NA
+Sikkema_lung	cluster_5	cassia	Fibroblast / mesenchymal / stromal cell with possible mixed-lineage contamination	mixed_signal	CL:0000057	NA	NA
+Sikkema_lung	cluster_6	cassia	Macrophage	single_identity	CL:0000235	NA	NA
+Sikkema_lung	cluster_7	cassia	B lymphocytes / B cells	single_identity	CL:0000236	NA	NA
+Sikkema_lung	cluster_8	cassia	Myeloid lineage — monocyte/macrophage (mononuclear phagocyte)	single_identity	CL:0000235	NA	NA
+Sikkema_lung	cluster_9	cassia	Cytotoxic αβ T lymphocyte / type-1 effector T cell	single_identity	CL:0000910	NA	NA
+Sikkema_lung	cluster_1	in_house	T cell	single_identity	CL:0000084	NA	NA
+Sikkema_lung	cluster_10	in_house	epithelial cell	single_identity	CL:0000066	NA	NA
+Sikkema_lung	cluster_11	in_house	epithelial cell	single_identity	CL:0000066	NA	NA
+Sikkema_lung	cluster_2	in_house	epithelial cell	single_identity	CL:0000066	NA	NA
+Sikkema_lung	cluster_3	in_house	endothelial cell	single_identity	CL:0000115	NA	NA
+Sikkema_lung	cluster_4	in_house	epithelial cell	single_identity	CL:0000066	NA	NA
+Sikkema_lung	cluster_5	in_house	mesenchymal cell	single_identity	CL:0008019	NA	NA
+Sikkema_lung	cluster_6	in_house	macrophage	single_identity	CL:0000235	NA	NA
+Sikkema_lung	cluster_7	in_house	activated mature B cell	single_identity	CL:0000785	NA	NA
+Sikkema_lung	cluster_8	in_house	monocyte	single_identity	CL:0000576	NA	NA
+Sikkema_lung	cluster_9	in_house	T cell	single_identity	CL:0000084	NA	NA
+Sikkema_lung	cluster_1	enrichment	Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell	single_identity	CL:0000910	NA	NA
+Sikkema_lung	cluster_10	enrichment	pulmonary alveolar type 2 cell	single_identity	CL:0002063	NA	NA
+Sikkema_lung	cluster_11	enrichment	Unknown/Ambiguous - likely epithelial with possible myeloid contamination	ambiguous	NA	NA	NA
+Sikkema_lung	cluster_2	enrichment	Basal epithelial cell (airway) with potential squamous differentiation	single_identity	CL:0002329	NA	NA
+Sikkema_lung	cluster_3	enrichment	Pulmonary vascular endothelial cell (likely capillary endothelial subtype)	single_identity	CL:0000115	NA	NA
+Sikkema_lung	cluster_4	enrichment	Unknown/Ambiguous - likely microvascular endothelial or epithelial progenitor-like with metabolic stress	ambiguous	NA	NA	NA
+Sikkema_lung	cluster_5	enrichment	fibroblast	single_identity	CL:0000057	NA	NA
+Sikkema_lung	cluster_6	enrichment	alveolar macrophage	single_identity	CL:0000583	NA	NA
+Sikkema_lung	cluster_7	enrichment	Medullary thymic epithelial cell / Not a typical lung immune cell; B-cell-like transcriptional signature with epithelial stress and viral response	mixed_signal	CL:0002365	NA	NA
+Sikkema_lung	cluster_8	enrichment	Monocyte-derived macrophage	ambiguous			NA
+Sikkema_lung	cluster_9	enrichment	CD16-positive, CD56-dim natural killer cell, human	single_identity	CL:0000939	NA	NA
+TS_kidney	cluster_1	cassia	B lymphocyte / B cell	single_identity	CL:0000236	NA	NA
+TS_kidney	cluster_2	cassia	T cell (T lymphocyte)	single_identity	CL:0000084	NA	NA
+TS_kidney	cluster_3	cassia	Proximal tubular epithelial cell (PT / PTEC)	single_identity	CL:0002306		NA
+TS_kidney	cluster_4	cassia	Myeloid lineage: mononuclear phagocyte — monocyte/macrophage	single_identity	CL:0000235	NA	NA
+TS_kidney	cluster_1	in_house	B cell	single_identity	CL:0000236	NA	NA
+TS_kidney	cluster_2	in_house	T cell	single_identity	CL:0000084	NA	NA
+TS_kidney	cluster_3	in_house	epithelial cell	single_identity	CL:0000066	NA	NA
+TS_kidney	cluster_4	in_house	myeloid cell	single_identity	CL:0000763	NA	NA
+TS_kidney	cluster_1	enrichment	B cell	single_identity	CL:0000236	NA	NA
+TS_kidney	cluster_2	enrichment	T cell	single_identity	CL:0000084	NA	NA
+TS_kidney	cluster_3	enrichment	Proximal Tubule Epithelial Cell (PTEC), likely S3 segment	single_identity	CL:0002306		NA
+TS_kidney	cluster_4	enrichment	CD14-positive, CD16-negative classical monocyte	single_identity	CL:0001054	NA	NA
+TS_pancreas	cluster_1	cassia	B lymphocytes / B cells	single_identity	CL:0000236	NA	NA
+TS_pancreas	cluster_10	cassia	Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)	single_identity	CL:0008024	NA	NA
+TS_pancreas	cluster_2	cassia	Immune cell — cytotoxic lymphocyte / NK-lineage cell	mixed_signal	CL:0000910	NA	NA
+TS_pancreas	cluster_3	cassia	Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.	single_identity	CL:0000763	NA	NA
+TS_pancreas	cluster_4	cassia	Endothelial cells	single_identity	CL:0000115	NA	NA
+TS_pancreas	cluster_5	cassia	Pancreatic islet endocrine cell	single_identity	CL:0008024	NA	NA
+TS_pancreas	cluster_6	cassia	Macrophage (myeloid lineage / mononuclear phagocyte)	single_identity	CL:0000235	NA	NA
+TS_pancreas	cluster_7	cassia	Pancreatic ductal epithelial cells	single_identity	CL:0002079	NA	NA
+TS_pancreas	cluster_8	cassia	Pancreatic ductal epithelial cell	single_identity	CL:0002079	NA	NA
+TS_pancreas	cluster_9	cassia	Pancreatic acinar / exocrine epithelial cell	single_identity	CL:0002064	NA	NA
+TS_pancreas	cluster_1	in_house	B cell	single_identity	CL:0000236	NA	NA
+TS_pancreas	cluster_10	in_house	neural_glial cell	single_identity	CL:0000125		NA
+TS_pancreas	cluster_2	in_house	T cell	single_identity	CL:0000084	NA	NA
+TS_pancreas	cluster_3	in_house	myeloid cell	single_identity	CL:0000763	NA	NA
+TS_pancreas	cluster_4	in_house	endothelial cell	single_identity	CL:0000115	NA	NA
+TS_pancreas	cluster_5	in_house	neural_glial cell	single_identity	CL:0000125		NA
+TS_pancreas	cluster_6	in_house	myeloid cell	single_identity	CL:0000763	NA	NA
+TS_pancreas	cluster_7	in_house	epithelial cell	single_identity	CL:0000066	NA	NA
+TS_pancreas	cluster_8	in_house	epithelial cell	single_identity	CL:0000066	NA	NA
+TS_pancreas	cluster_9	in_house	cell of skeletal muscle	single_identity	CL:0000188	NA	NA
+TS_pancreas	cluster_1	enrichment	memory B cell	single_identity	CL:0000787	NA	NA
+TS_pancreas	cluster_10	enrichment	pancreatic A cell	single_identity	CL:0000171	NA	NA
+TS_pancreas	cluster_2	enrichment	natural killer cell	single_identity	CL:0000623	NA	NA
+TS_pancreas	cluster_3	enrichment	Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated	mixed_identity	NA	CL:0000235|CL:0000775	NA
+TS_pancreas	cluster_4	enrichment	Endothelial cell (vascular/lymphatic) with potential pericyte contamination	mixed_signal	CL:0000115	NA	NA
+TS_pancreas	cluster_5	enrichment	pancreatic acinar cell	single_identity	CL:0002064	NA	NA
+TS_pancreas	cluster_6	enrichment	TREM2+ lipid-associated macrophage	single_identity	CL:4047053	NA	NA
+TS_pancreas	cluster_7	enrichment	Hepatocyte-like / Acinar-like (likely exocrine pancreas cell, possibly acinar or ductal with hepatocyte metaplasia markers)	mixed_identity	NA	CL:0000182|CL:0002064	NA
+TS_pancreas	cluster_8	enrichment	Pancreatic ductal epithelial cell (with potential reactive/regenerative state)	single_identity	CL:0002079	NA	NA
+TS_pancreas	cluster_9	enrichment	Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells	single_identity	CL:0002410		NA
+Zheng_blood	cluster_1	cassia	B lymphocytes / B cells	single_identity	CL:0000236	NA	NA
+Zheng_blood	cluster_2	cassia	Monocyte	single_identity	CL:0000576	NA	NA
+Zheng_blood	cluster_3	cassia	Natural Killer (NK) cells	single_identity	CL:0000623	NA	NA
+Zheng_blood	cluster_4	cassia	CD4+ T cell, with a memory/activated phenotype	single_identity	CL:0000624	NA	NA
+Zheng_blood	cluster_5	cassia	CD8+ T lymphocyte / cytotoxic T cell	single_identity	CL:0000910	NA	NA
+Zheng_blood	cluster_6	cassia	T lymphocyte (T cell)	single_identity	CL:0000084	NA	NA
+Zheng_blood	cluster_7	cassia	Hematopoietic stem/progenitor cell (HSPC)	single_identity	CL:0008001	NA	NA
+Zheng_blood	cluster_8	cassia	T lymphocyte / T cell	single_identity	CL:0000084	NA	NA
+Zheng_blood	cluster_9	cassia	CD8+ T cell	single_identity	CL:0000625	NA	NA
+Zheng_blood	cluster_1	in_house	B cell	single_identity	CL:0000236	NA	NA
+Zheng_blood	cluster_2	in_house	monocyte	single_identity	CL:0000576	NA	NA
+Zheng_blood	cluster_3	in_house	natural killer cell	single_identity	CL:0000623	NA	NA
+Zheng_blood	cluster_4	in_house	T cell	single_identity	CL:0000084	NA	NA
+Zheng_blood	cluster_5	in_house	T cell	single_identity	CL:0000084	NA	NA
+Zheng_blood	cluster_6	in_house	T cell	single_identity	CL:0000084	NA	NA
+Zheng_blood	cluster_7	in_house	hematopoietic precursor cell	single_identity	CL:0008001	NA	NA
+Zheng_blood	cluster_8	in_house	T cell	single_identity	CL:0000084	NA	NA
+Zheng_blood	cluster_9	in_house	T cell	single_identity	CL:0000084	NA	NA
+Zheng_blood	cluster_1	enrichment	Mature naïve B cell	single_identity	CL:0000785	NA	NA
+Zheng_blood	cluster_2	enrichment	classical monocyte	single_identity	CL:0000860	NA	NA
+Zheng_blood	cluster_3	enrichment	natural killer cell	single_identity	CL:0000623	NA	NA
+Zheng_blood	cluster_4	enrichment	stem cell memory CD4-positive, alpha-beta T cell	single_identity	CL:0000904		NA
+Zheng_blood	cluster_5	enrichment	cytotoxic T cell	single_identity	CL:0000910	NA	NA
+Zheng_blood	cluster_6	enrichment	Naive/Quiescent T cell (CD4+ T cell)	single_identity	CL:0000898	NA	NA
+Zheng_blood	cluster_7	enrichment	Hematopoietic Stem/Progenitor Cell (HSPC) / Early Myeloid Progenitor	single_identity	CL:0008001	NA	NA
+Zheng_blood	cluster_8	enrichment	Naive/Mature CD4+ T cell (central memory-like)	single_identity	CL:0000895	NA	NA
+Zheng_blood	cluster_9	enrichment	stem cell memory CD8-positive, alpha-beta T cell	single_identity	CL:0000907	NA	NA

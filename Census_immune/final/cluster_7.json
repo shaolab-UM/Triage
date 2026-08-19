@@ -1,0 +1,109 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_7",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "platelet",
+    "final_cell_ontology_id": "CL:0000233",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "platelet",
+      "cell_ontology_id": "CL:0000233",
+      "strengths": [
+        "Correctly maps the cluster to circulating platelet identity using canonical platelet/megakaryocyte markers (PPBP, PF4, CLEC1B, GP9, GP1BB, ITGA2B, ITGB3, TREML1, TUBB1).",
+        "Aligns with platelet-specific enrichment terms such as platelet activation, platelet degranulation, platelet aggregation, and hemostasis."
+      ],
+      "weaknesses": [
+        "Top-ranked marker TMEM40 is not a canonical platelet marker and is not explicitly discussed.",
+        "Possible rare megakaryocyte contamination is mentioned but not directly evidenced or resolved."
+      ],
+      "reviewer_cl_id": "CL:0000233"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "megakaryocyte",
+      "cell_ontology_id": "CL:0000556",
+      "strengths": [
+        "Correctly recognizes the megakaryocyte/platelet lineage and uses markers that are shared between megakaryocytes and platelets.",
+        "Includes platelet as a close secondary prediction, indicating lineage awareness."
+      ],
+      "weaknesses": [
+        "No branch-specific positive evidence supports megakaryocyte over platelet; the ontology treats platelet and megakaryocyte as non-hierarchical branches.",
+        "Platelet activation/degranulation/aggregation enrichment and blood context favor the platelet branch, while no unique megakaryocyte-specific marker is present."
+      ],
+      "reviewer_cl_id": "CL:0000556"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Platelet / Megakaryocyte",
+      "cell_ontology_id": "CL:0000233",
+      "strengths": [
+        "Uses canonical markers PPBP, PF4, PF4V1, CLEC1B, GP9, GP1BB, ITGA2B, ITGB3, TUBB1, and TREML1 to identify the megakaryocyte/platelet lineage.",
+        "Correctly notes absence of T-cell and NK-cell markers."
+      ],
+      "weaknesses": [
+        "Compound label 'Platelet / Megakaryocyte' does not resolve the required branch choice.",
+        "Mapping quality is low-confidence and the candidate set includes irrelevant types such as plasmatocyte; enrichment statistics were flagged as biologically implausible."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Canonical platelet/megakaryocyte markers PPBP, PF4, PF4V1, CLEC1B, GP9, GP1BB, ITGA2B, ITGB3, TREML1, and TUBB1 are directly observed as cluster DEGs.",
+      "Enrichment terms platelet activation, platelet degranulation, platelet aggregation, blood coagulation, and hemostasis provide branch-positive evidence for platelet identity.",
+      "PMID 36658547 is consistent with platelet/megakaryocyte lineage interpretation."
+    ],
+    "conflicting": [
+      "The in-house megakaryocyte label (CL:0000556) is not supported by branch-specific markers",
+      "most markers are shared with platelets, and platelet-specific functional enrichment favors the platelet branch."
+    ],
+    "enrichment_or_literature": [
+      "platelet activation",
+      "platelet degranulation",
+      "platelet aggregation",
+      "blood coagulation",
+      "hemostasis",
+      "platelet alpha granule",
+      "PMID 36658547"
+    ],
+    "cited_pmids": [
+      "36658547"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "megakaryocyte",
+    "reference_cl_term": "megakaryocyte",
+    "reference_cl_id": "CL:0000556",
+    "cl_similarity": 34.6111529484831
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_7_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

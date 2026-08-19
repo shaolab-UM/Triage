@@ -1,0 +1,120 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_14",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "plasmacytoid dendritic cell",
+    "final_cell_ontology_id": "CL:0000784",
+    "confidence_primary": 0.93
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Dendritic cell (DC), specifically plasmacytoid dendritic cell (pDC)",
+      "cell_ontology_id": "CL:0000451",
+      "strengths": [
+        "Correctly identifies the pDC lineage using canonical pDC markers CLEC4C, LILRA4, IL3RA, TCF4, IRF7",
+        "Acknowledges that JCHAIN/MZB1/DERL3/NAPSB reflect the plasmacytoid program rather than plasma-cell identity",
+        "Rules out cDC1/cDC2/basophils with appropriate negative markers"
+      ],
+      "weaknesses": [
+        "Mapped to broad CL:0000451 (dendritic cell) instead of the direct pDC term CL:0000784 despite the label explicitly specifying pDC",
+        "No dedicated CLID for pDC in its own mapping; verifier_review needed"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "dendritic cell",
+      "cell_ontology_id": "CL:0000451",
+      "strengths": [
+        "Consistent with the dendritic cell lineage; top-2 includes plasmacytoid dendritic cell with high score",
+        "Deterministic mapping to a valid ontology term"
+      ],
+      "weaknesses": [
+        "Top1 stops at the ancestral term CL:0000451 rather than the most specific supported descendant CL:0000784",
+        "Under-annotates specificity despite the same marker set supporting pDC"
+      ],
+      "reviewer_cl_id": "CL:0000451"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "plasmacytoid dendritic cell",
+      "cell_ontology_id": "CL:0000784",
+      "strengths": [
+        "Direct, ontology-exact CL:0000784 match",
+        "Correctly prioritizes specific pDC markers LILRA4, CLEC4C, IL3RA, SLC15A4, IRF7, TCF4, GZMB, PTCRA",
+        "Explains shared B-cell markers (JCHAIN, MZB1, DERL3) without misclassifying as plasma cell"
+      ],
+      "weaknesses": [
+        "Relies on a marker-panel subset rather than full DEG ranking",
+        "Enrichment terms alone were non-informative, but this does not affect the final call given strong marker support"
+      ],
+      "reviewer_cl_id": "CL:0000784"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Positive DEGs include canonical pDC markers CLEC4C (BDCA-2), LILRA4 (ILT7), IL3RA (CD123), GZMB, PTCRA, SERPINF1, GAS6, SLC15A4, DNASE1L3, SCT, SHD",
+      "pDC lineage transcription factors TCF4 and IRF7 are present in the original DEG list, with IRF8, BCL11A, and IRF4 as supporting regulators",
+      "Enrichment terms include interferon-alpha production, TLR7/8 and TLR9 cascades, consistent with pDC function",
+      "JCHAIN, MZB1, DERL3, NAPSB are explained by the plasmacytoid transcriptional program and do not indicate plasma-cell contamination in the absence of SDC1/TNFRSF17/XBP1/immunoglobulin evidence"
+    ],
+    "conflicting": [
+      "Shared markers with B cells/plasma cells (JCHAIN, MZB1, DERL3, NAPSB) are present but are consistent with known pDC biology",
+      "FCER1A and LGMN could suggest cDC2 but are outweighed by the pDC-specific combination LILRA4+CLEC4C+IL3RA+TCF4+IRF7"
+    ],
+    "enrichment_or_literature": [
+      "Interferon-alpha production and regulation of interferon-alpha production",
+      "Toll Like Receptor 7/8 (TLR7/8) Cascade",
+      "Toll Like Receptor 9 (TLR9) Cascade",
+      "PMID 36658547, 36544104, 34910688, 36233633, 34899743, 36276113, 37006239 support pDC identity and marker interpretation"
+    ],
+    "cited_pmids": [
+      "36658547",
+      "36544104",
+      "41633771",
+      "34910688",
+      "36233633",
+      "34899743",
+      "36276113",
+      "37006239"
+    ],
+    "cited_enrichment_terms": [
+      "interferon-alpha production",
+      "Toll Like Receptor 7/8 (TLR7/8) Cascade",
+      "Toll Like Receptor 9 (TLR9) Cascade"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "plasmacytoid dendritic cell",
+    "reference_cl_term": "plasmacytoid dendritic cell",
+    "reference_cl_id": "CL:0000784",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_14_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

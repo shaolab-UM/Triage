@@ -1,0 +1,97 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_8",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neural progenitor cell",
+    "final_cell_ontology_id": "CL:0011020",
+    "confidence_primary": 0.72
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "proliferating neural progenitor cells",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes the dominant cell-cycle/mitotic signature from markers such as Mki67, Ccnb1, Cdk1, Top2a, Aurkb, and Bub1.",
+        "Correctly notes the absence of mature lineage-specific markers."
+      ],
+      "weaknesses": [
+        "Adds unsupported neural-progenitor specificity; no neural progenitor markers (e.g., Sox2, Pax6, Eomes, Dcx, Nes) are present among the original DEGs."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "cycling cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Directly supported by the observed proliferation/cell-cycle markers.",
+        "Avoids unsupported lineage specificity in the absence of lineage-defining DEGs."
+      ],
+      "weaknesses": [
+        "The label is a cell state rather than a resolved lineage and does not map to a unique Cell Ontology identifier."
+      ],
+      "reviewer_cl_id": null
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Identifies the proliferative state and maps cleanly to CL:0011020.",
+        "Correctly notes absence of immune and mature-neuron markers."
+      ],
+      "weaknesses": [
+        "Neural-lineage specificity is inferred from tissue context and gene-name associations rather than directly observed neural progenitor markers; Hmmr and Pimreg are proliferation regulators, not lineage-specific evidence."
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "DEG list is dominated by cell-cycle/mitotic genes (Mki67, Ccnb1, Cdk1, Top2a, Aurkb, Bub1, Kif11, Ccna2, Birc5), directly supporting a cycling/proliferating cell identity.",
+      "Original enrichment terms for mitotic nuclear division, chromosome segregation, and mitotic spindle checkpoint are consistent with a cycling cell state (PMID 21440680)."
+    ],
+    "conflicting": [
+      "No neural progenitor-specific markers such as Sox2, Pax6, Eomes, Dcx, or Nes are observed among the DEGs, so neural-progenitor specificity is unsupported.",
+      "Hmmr and Pimreg are proliferation-associated genes and do not by themselves establish a neural lineage."
+    ],
+    "enrichment_or_literature": [
+      "Original enrichment consistently reports cell-cycle terms (mitotic nuclear division, chromosome segregation, KEGG cell cycle), supporting a cycling cell but not a specific neural lineage."
+    ],
+    "cited_pmids": [
+      "21440680"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": true,
+    "release_state": "Manual review",
+    "chief_qc_status": "failed",
+    "chief_qc_round": 2
+  },
+  "evaluation": {
+    "published_reference_annotation": "neuron",
+    "reference_cl_term": "neuron",
+    "reference_cl_id": "CL:0000540",
+    "cl_similarity": 2.9207064536749168
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_8_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

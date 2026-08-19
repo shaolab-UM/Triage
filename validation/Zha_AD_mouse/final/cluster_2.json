@@ -1,0 +1,112 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_2",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "oligodendrocyte",
+    "final_cell_ontology_id": "CL:0000128",
+    "confidence_primary": 0.95
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "oligodendrocyte",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Identified canonical oligodendrocyte/myelin markers (Mog, Mobp, Mal, Opalin, Ermn, Olig1, Aspa, Gpr37, Ptgds)",
+        "Correctly excluded other lineages (Pdgfra, Gfap, Cx3cr1) and interpreted stress genes (Cryab, Apod, Gstp1) as a disease-associated state",
+        "Enrichment terms strongly support oligodendrocyte differentiation and CNS myelination"
+      ],
+      "weaknesses": [
+        "Subtype list included 'Newly formed oligodendrocytes' without direct support from the mature myelin gene signature",
+        "Top-k contained irrelevant entries (e.g., oenocyte) and partially unmapped subtype labels"
+      ],
+      "reviewer_cl_id": "CL:0000128"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "oligodendrocyte",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Exact deterministic mapping to CL:0000128",
+        "Supported by strong oligodendrocyte markers (Mog, Opalin, Ermn, Cmtm5, Aspa, Olig1)"
+      ],
+      "weaknesses": [
+        "No subtype refinement despite mature myelinating signature",
+        "Relies on a modest step1 score (0.45)"
+      ],
+      "reviewer_cl_id": "CL:0000128"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "oligodendrocyte",
+      "cell_ontology_id": "CL:0000128",
+      "strengths": [
+        "Used definitive oligodendrocyte/myelin markers (Olig1, Opalin, Mog, Mal, Mobp, Aspa, Ermn)",
+        "Enrichment for myelin sheath, myelination, CNS myelination and lipid metabolism consistent with oligodendrocyte function",
+        "Correctly noted absence of neuronal (Snap25, Syt1), astrocyte (Gfap, Aqp4), microglial (C1qa, Tmem119) and T cell (Cd3d, Cd3e) markers"
+      ],
+      "weaknesses": [
+        "No confidence score provided",
+        "Mentioned KEGG terms (mmu00120, mmu00061, mmu00511) not directly present in the allowed evidence terms; Plp1 inferred via lipid pathways rather than observed"
+      ],
+      "reviewer_cl_id": "CL:0000128"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "DEG markers Mog, Mobp, Mal, Opalin, Ermn, Cmtm5, Aspa, Olig1, Gpr37, Ptgds",
+      "Enrichment terms: myelination, central nervous system myelination, axon ensheathment in central nervous system, myelin sheath, oligodendrocyte differentiation",
+      "Supporting PMIDs: 39327610, 40350140, 34065606"
+    ],
+    "conflicting": [
+      "None; no alternative lineage markers (e.g., Pdgfra, Gfap, Cx3cr1, Snap25) were observed"
+    ],
+    "enrichment_or_literature": [
+      "ensheathment of neurons; axon ensheathment; oligodendrocyte differentiation; myelination; central nervous system myelination; myelin sheath; stress-activated MAPK cascade; response to oxidative stress"
+    ],
+    "cited_pmids": [
+      "39327610",
+      "40350140",
+      "34065606"
+    ],
+    "cited_enrichment_terms": [
+      "myelination",
+      "central nervous system myelination",
+      "axon ensheathment in central nervous system",
+      "myelin sheath",
+      "oligodendrocyte differentiation"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "oligodendrocyte",
+    "reference_cl_term": "oligodendrocyte",
+    "reference_cl_id": "CL:0000128",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_2_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

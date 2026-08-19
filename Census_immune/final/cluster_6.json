@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_6",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "erythroid lineage cell",
+    "final_cell_ontology_id": "CL:0000764",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Erythroid lineage cell",
+      "cell_ontology_id": "CL:0000764",
+      "strengths": [
+        "Correctly identifies dominant erythroid lineage from globins, heme synthesis and erythroid membrane markers",
+        "Notes absence of T/B/NK/myeloid markers"
+      ],
+      "weaknesses": [
+        "Stops at broad ancestor and does not refine to the supported erythroid precursor state",
+        "Overly quick dismissal of EPCAM/KRT13 contamination"
+      ],
+      "reviewer_cl_id": "CL:0000764"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "erythroid lineage cell",
+      "cell_ontology_id": "CL:0000764",
+      "strengths": [
+        "Exact CL:0000764 mapping and correct erythroid lineage call"
+      ],
+      "weaknesses": [
+        "Second choice erythrocyte (CL:0000232) is not supported by TFR2/GATA1/KLF1/ALAS2 precursor markers",
+        "No hierarchical refinement to the better-supported descendant CL:0000038"
+      ],
+      "reviewer_cl_id": "CL:0000764"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Erythroid precursor (orthochromatic erythroblast)",
+      "cell_ontology_id": "CL:0000038",
+      "strengths": [
+        "Provides the most specific ontology-valid descendant supported by original markers (TFR2, GATA1, KLF1, ALAS2, PBK, hemoglobin markers)",
+        "Correctly excludes mature erythrocyte and non-erythroid branches"
+      ],
+      "weaknesses": [
+        "Exact orthochromatic erythroblast stage is not precisely mapped (parent-only CL:0000038)",
+        "Includes erythrophore distractor in top-k"
+      ],
+      "reviewer_cl_id": "CL:0000038"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "GYPA, GYPB, GYPE, HBB, HBD, HBA1, HBA2, AHSP, ALAS2, EPB42, SPTA1, CA1, CA2 confirm erythroid lineage",
+      "TFR2, GATA1, KLF1, ALAS2, PBK directly support an erythroid precursor/progenitor state rather than mature erythrocyte",
+      "Enrichment for hemoglobin complex, gas transport and erythrocyte differentiation supports erythroid identity",
+      "PMID 36658547 as erythroid reference"
+    ],
+    "conflicting": [
+      "EPCAM and KRT13 indicate epithelial ambient contamination",
+      "C4A/C4B and APOC1 are non-erythroid ambient/complement signals",
+      "Mature erythrocyte label is contradicted by transcription factor and heme-synthesis gene expression (GATA1, KLF1, ALAS2)"
+    ],
+    "enrichment_or_literature": [
+      "hemoglobin complex",
+      "gas transport",
+      "erythrocyte differentiation",
+      "PMID 36658547"
+    ],
+    "cited_pmids": [
+      "36658547"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "erythroid lineage cell",
+    "reference_cl_term": "erythroid lineage cell",
+    "reference_cl_id": "CL:0000764",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_6_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

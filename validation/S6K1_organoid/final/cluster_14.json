@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_14",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "retinal pigment epithelial cell",
+    "final_cell_ontology_id": "CL:0002586",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "retinal pigment epithelial cell",
+      "cell_ontology_id": "CL:0002586",
+      "strengths": [
+        "Correctly identifies a pigmented epithelial identity from PMEL/DCT/TYRP1/MITF/RAB38 plus KRT8/KRT18",
+        "Recognizes RPE-associated markers SERPINF1, RBP1, HSD17B2, GJA1, TMEM98",
+        "Appropriately treats ECM/fibroblast-like genes as non-overriding in the context of RPE"
+      ],
+      "weaknesses": [
+        "Some proposed EMT/substate refinements are less directly anchored in the ORIGINAL DEG list",
+        "Tissue-context reasoning is used beyond the original marker evidence to argue against melanocyte"
+      ],
+      "reviewer_cl_id": "CL:0002586"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "melanocyte",
+      "cell_ontology_id": "CL:0000148",
+      "strengths": [
+        "Recognizes the dominant melanogenic/pigment program (PMEL, DCT, TYRP1, MITF, RAB38)"
+      ],
+      "weaknesses": [
+        "Ignores strong epithelial markers KRT8/KRT18 and RPE-associated markers SERPINF1/RBP1/HSD17B2",
+        "Provides no melanocyte-specific branch evidence to override the CL:0002586 majority"
+      ],
+      "reviewer_cl_id": "CL:0000148"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "retinal pigment epithelial cell",
+      "cell_ontology_id": "CL:0002586",
+      "strengths": [
+        "Pigmentation, melanosome organization and MITF-M pathway enrichment are consistent with pigment cell identity",
+        "Converges with the non-hierarchical majority CLID CL:0002586"
+      ],
+      "weaknesses": [
+        "Relies substantially on shared pigment markers that also fit melanocyte",
+        "Less explicit about the epithelial/RPE-distinguishing evidence (KRT8/KRT18, RBP1, SERPINF1)"
+      ],
+      "reviewer_cl_id": "CL:0002586"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs PMEL, DCT, TYRP1, MITF, RAB38, GPR143, GPNMB establish a pigmented cell identity",
+      "Epithelial DEGs KRT8 and KRT18 support pigment epithelium over melanocyte",
+      "RPE-associated DEGs SERPINF1, RBP1, HSD17B2, GJA1, TMEM98 support CL:0002586",
+      "Original enrichment for pigmentation, melanosome organization and MITF-M-dependent gene expression is consistent with RPE"
+    ],
+    "conflicting": [
+      "Melanocyte candidate is not supported by branch-specific ORIGINAL evidence; shared pigmentation markers cannot distinguish melanocyte from RPE and do not override the CL:0002586 majority",
+      "SPARC, CTGF, ELN may resemble fibroblast/ECM signal but are compatible with RPE secretory/EMT phenotype and do not justify a mixed/contaminated cluster label"
+    ],
+    "enrichment_or_literature": [
+      "Original enrichment terms observed: pigmentation, melanosome organization, melanin biosynthetic process, MITF-M-dependent pigmentation pathways",
+      "No original PMIDs retrieved (NO_PMID_EVIDENCE_AVAILABLE)"
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Retinal pigment epithelium (RPE)",
+    "reference_cl_term": "Retinal pigment epithelium (RPE)",
+    "reference_cl_id": "CL:0002586",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_14_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_5",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "glutamatergic neuron",
+    "final_cell_ontology_id": "CL:0000679",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Glutamatergic excitatory neuron (cortical)",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Correctly identifies glutamatergic neuron lineage; markers include RORB, TLL1, FOXP2, PCP4",
+        "Consistent with in-house CL:0000679 anchoring"
+      ],
+      "weaknesses": [
+        "'Cortical' modifier lacks an exact frozen CLID; mapping is parent-only",
+        "Top-k layer-specific IT/NP labels are unmapped and not decisively resolved by markers"
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "cortical glutamatergic neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Cleaner label matched to CL:0000679",
+        "Uses same positive neuronal markers (RORB, TLL1, FOXP2, PCP4)"
+      ],
+      "weaknesses": [
+        "No more specific CLID than CL:0000679 provided; 'cortical' remains a free-text modifier"
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": null,
+      "cell_ontology_id": null,
+      "strengths": [
+        "Provided Reactome terms (HS-GAG, collagen, ECM) but no cell-type prediction"
+      ],
+      "weaknesses": [
+        "No top1 cell type available; enrichment terms are not specific to glutamatergic neurons and cannot adjudicate identity"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Positive DEGs RORB, TLL1, FOXP2, PCP4, HPCA, STX1A, NRG1, EPHA3 support cortical glutamatergic neuron identity (PMID 36908806)",
+      "Both supported reviewers anchor to CL:0000679 glutamatergic neuron; the cortical modifier is supported by DLPFC origin and cortical-layer-enriched markers RORB/TLL1/FOXP2"
+    ],
+    "conflicting": [
+      "Reactome enrichment for collagen biosynthesis, HS-GAG metabolism, and ECM degradation is not canonical for glutamatergic neurons and is not used for lineage assignment",
+      "CASSIA layer-specific IT/NP top-k labels are not decisively supported; shared RORB/FOXP2 expression is insufficient to select a sublayer"
+    ],
+    "enrichment_or_literature": [
+      "Reactome terms: HS-GAG biosynthesis, collagen formation, ECM degradation, melanin biosynthesis; considered non-lineage-specific",
+      "PMID 36908806 supports cortical excitatory neuron marker interpretation"
+    ],
+    "cited_pmids": [
+      "36908806"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "glutamatergic neuron",
+    "reference_cl_term": "glutamatergic neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_5_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

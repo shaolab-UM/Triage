@@ -1,0 +1,98 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_6",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "GABAergic neuron",
+    "final_cell_ontology_id": "CL:0000617",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "VIP GABAergic cortical interneuron",
+      "cell_ontology_id": "CL:4023016",
+      "strengths": [
+        "Most specific supported identity: VIP, CALB2, NR2F2, ADARB2, PPP1R1C, CXCL14, SLC22A3, RGS8, THSD7B, KMO, CHRNA7 directly mark VIP cortical GABAergic interneurons.",
+        "Negative evidence correctly excludes excitatory neurons (SLC17A7/CAMK2A/RORB) and SST/PVALB/LAMP5 interneuron populations."
+      ],
+      "weaknesses": [
+        "Some rank-2 subtype speculation (CCK-like, RELN layer 1-2) goes beyond the observed markers (e.g., CCK itself is absent)."
+      ],
+      "reviewer_cl_id": "CL:4023016"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "GABAergic neuron",
+      "cell_ontology_id": "CL:0000617",
+      "strengths": [
+        "Correct broad GABAergic lineage supported by VIP/CALB2/NR2F2/ADARB2 and GABA-ergic synapse enrichment."
+      ],
+      "weaknesses": [
+        "Under-specific; the same evidence supports the more specific VIP GABAergic cortical interneuron (CL:4023016), which was already its rank-2 candidate."
+      ],
+      "reviewer_cl_id": "CL:0000617"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "GABAergic neuron",
+      "cell_ontology_id": "CL:0000617",
+      "strengths": [
+        "Correctly identifies inhibitory neuron identity from VIP, CALB2, NR2F2, RELN and absence of excitatory/glial markers."
+      ],
+      "weaknesses": [
+        "Enrichment terms (e.g., GABA-ergic synapse, GABA synthesis) are shared by all GABAergic neurons and do not provide VIP-branch specificity."
+      ],
+      "reviewer_cl_id": "CL:0000617"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "VIP, CALB2, NR2F2, ADARB2, PPP1R1C, CXCL14, SLC22A3, RGS8, THSD7B, KMO, CHRNA7 directly support VIP GABAergic cortical interneuron identity (CL:4023016).",
+      "GABA-ergic synapse and GABA synthesis enrichment plus absence of SLC17A7/SLC17A6 excitatory markers support GABAergic lineage.",
+      "PMID 31452791 provides literature support for the VIP cortical interneuron identity."
+    ],
+    "conflicting": [
+      "No canonical excitatory (SLC17A7/SLC17A6) or SST/PVALB/LAMP5 interneuron markers were observed among top DEGs, so no alternative branch has positive support."
+    ],
+    "enrichment_or_literature": [
+      "GABA-ergic synapse; GABA synthesis; GABA synthesis, release, reuptake and degradation; Neuronal System",
+      "PMID 31452791"
+    ],
+    "cited_pmids": [
+      "31452791"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "GABAergic neuron",
+    "reference_cl_term": "GABAergic neuron",
+    "reference_cl_id": "CL:0000617",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_6_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

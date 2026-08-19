@@ -1,0 +1,102 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_13",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "retinal ganglion cell",
+    "final_cell_ontology_id": "CL:0000740",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Retinal Ganglion Cell (RGC)",
+      "cell_ontology_id": "CL:0000740",
+      "strengths": [
+        "Top DEG ATOH7 is a master regulator of retinal ganglion cell genesis.",
+        "Co-expression of POU4F2, ISL1, SNCG and NEFM supports differentiated RGC identity.",
+        "Retinal/eye development enrichment context is consistent with an RGC lineage."
+      ],
+      "weaknesses": [
+        "PTF1A and SLC18A2 amacrine-like markers are acknowledged in the marker list but not formally resolved.",
+        "Possible minor amacrine/transitional component could be under-represented by a strict RGC label."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "retinal neuron",
+      "cell_ontology_id": "CL:0009004",
+      "strengths": [
+        "Correctly identifies the retinal neuronal lineage using ATOH7, RAX, PAX6, ONECUT1/2.",
+        "Broad label is safer if a minor non-RGC retinal neuron component is present."
+      ],
+      "weaknesses": [
+        "Underspecified: fails to resolve RGC despite direct support from ATOH7, POU4F2, ISL1, SNCG, NEFM.",
+        "Mapped CL:0009004 is a broad retinal cell label and is non-hierarchical relative to CL:0000740 in the frozen ontology."
+      ],
+      "reviewer_cl_id": "CL:0009004"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "precursor cell",
+      "cell_ontology_id": "CL:0011115",
+      "strengths": [
+        "Recognizes the retinal neurodevelopmental transcription-factor program (ATOH7, RAX, ONECUT1/2, PAX6)."
+      ],
+      "weaknesses": [
+        "No positive progenitor/cycling markers are present among the top DEGs.",
+        "Differentiated neuronal markers NEFM, SNCG, STMN2 and SYT4 are inconsistent with a generic precursor-cell label.",
+        "Label is too broad and not branch-specific."
+      ],
+      "reviewer_cl_id": "CL:0011115"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "ATOH7 is the top cluster DEG and is a master regulator of retinal ganglion cell specification.",
+      "POU4F2, ISL1, SNCG and NEFM provide direct positive support for the RGC branch.",
+      "Additional retinal transcription factors ONECUT1/2, SIX3, PAX6 and RAX are present in cluster DEGs."
+    ],
+    "conflicting": [
+      "PTF1A, SLC18A2, CHRNA3, RGS16 indicate a possible minor amacrine-cell component.",
+      "No definitive progenitor/cycling marker panel supports the 'precursor cell' enrichment label."
+    ],
+    "enrichment_or_literature": [
+      "No permitted enrichment-term or PMID citations were required; identity is supported by cluster DEG evidence."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Retinal ganglion cell (RGC)",
+    "reference_cl_term": "Retinal ganglion cell (RGC)",
+    "reference_cl_id": "CL:0000740",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_13_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

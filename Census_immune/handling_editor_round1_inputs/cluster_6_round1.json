@@ -1,0 +1,1011 @@
+{
+  "query_id": "cluster_6_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["36658547", "32996603", "38617564", "38581717", "34944787", "41902926", "34899743", "36276113", "34601390", "37898705", "35429619", "38740795", "28441337", "37694151", "39040346", "29298685", "30103699", "36197985", "39495628", "34276782", "32285198", "24802755", "35371032", "33481946", "28853905"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["36658547", "32996603", "38617564", "38581717", "34944787", "41902926", "34899743", "36276113", "34601390", "37898705", "35429619", "38740795", "28441337", "37694151", "39040346", "29298685", "30103699", "36197985", "39495628", "34276782", "32285198", "24802755", "35371032", "33481946", "28853905"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "Erythroid lineage cell",
+        "clid": "CL:0000764",
+        "canonical_label": "erythroid lineage cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "erythroid lineage cell",
+        "clid": "CL:0000764",
+        "canonical_label": "erythroid lineage cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "erythrocyte",
+        "clid": "CL:0000232",
+        "canonical_label": "erythrocyte",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "Erythroid precursor (orthochromatic erythroblast)",
+        "clid": "CL:0000038",
+        "canonical_label": "erythroid progenitor cell",
+        "direct_parents": [],
+        "mapping_status": "parent_only",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "submitted_label": "erythroid progenitor cell",
+        "clid": "CL:0000038",
+        "canonical_label": "erythroid progenitor cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "submitted_label": "erythrophore",
+        "clid": "CL:0000574",
+        "canonical_label": "erythrophore",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": "CL:0000764",
+      "label": "erythroid lineage cell",
+      "votes": 2,
+      "n_reviewers": 3,
+      "fraction": 0.6667
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000764",
+        "label_a": "erythroid lineage cell",
+        "clid_b": "CL:0000232",
+        "label_b": "erythrocyte",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000764",
+        "lca_label": "erythroid lineage cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0000764",
+        "label_a": "erythroid lineage cell",
+        "clid_b": "CL:0000038",
+        "label_b": "erythroid progenitor cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000764",
+        "lca_label": "erythroid lineage cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0000764",
+        "label_a": "erythroid lineage cell",
+        "clid_b": "CL:0000574",
+        "label_b": "erythrophore",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 2,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0000232",
+        "label_a": "erythrocyte",
+        "clid_b": "CL:0000038",
+        "label_b": "erythroid progenitor cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000764",
+        "lca_label": "erythroid lineage cell",
+        "a_distance_to_lca": 1,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0000232",
+        "label_a": "erythrocyte",
+        "clid_b": "CL:0000574",
+        "label_b": "erythrophore",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0000038",
+        "label_a": "erythroid progenitor cell",
+        "clid_b": "CL:0000574",
+        "label_b": "erythrophore",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 1
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "Erythroid lineage cell",
+      "topk_cell_types": [
+        "Erythroid lineage cell",
+        "Late-stage erythroid cells / reticulocytes, Mature red blood cells / erythrocytes, Erythroblasts (polychromatic/orthochromatic erythroblasts)",
+        "erythroid lineage cell"
+      ],
+      "cell_ontology_id": "CL:0000764",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "Erythroid lineage cell",
+        "canonical_label": "erythroid lineage cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "normalized",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000764",
+        "candidate_cl_ids": [
+          "CL:0000764"
+        ],
+        "candidate_labels": [
+          "erythroid lineage cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000764",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "reasoning_short": "The annotation correctly identifies the dominant biological signal as erythroid. The marker list contains a textbook combination of erythroid lineage genes: multiple globins (HBA1, HBA2, HBB, HBD, HBG2, HBQ1, HBM), heme synthesis and hemoglobin stabilization genes (ALAS2, AHSP), erythroid membrane proteins (GYPA, GYPB, GYPE, SLC4A1, EPB42, SPTA1), and erythroid transcription factors (GATA1, KLF1). It also correctly notes the absence of canonical T, B, NK, myeloid, and megakaryocyte markers, which supports the conclusion that this is not a classical immune cell cluster. The annotation is also generally balanced. It does not anchor on a single marker; instead, it integrates hemoglobin synthesis, membrane/cytoskeletal components, blood-group antigens, and transcription factors. This is a strong sign that the annotator captured the overall biological picture rather than overfitting to one gene. The final designation of “late-stage erythroid cells / reticulocytes” is highly plausible for human blood, and the alternative of late erythroblasts is reasonable depending on tissue context. However, there are some weaknesses. The top of the marker list includes CTSE, NMU, EPCAM, KRT13, APOC1, and C4A/C4B. Some of these are not canonical erythroid markers, and EPCAM/KRT13 in particular are strong epithelial markers. The annotation explains these as technical contamination, ambient RNA, or doublets, which is plausible, but it does so somewhat quickly and then states that no mixed cell types are present. Given that marker rank matters and several non-erythroid markers appear high in the list, a more cautious annotation should have explicitly flagged the possibility of doublets or contamination more prominently, and perhaps listed a mixed/contaminated cell type as a candidate. Also, “mature red blood cells / erythrocytes” as a subcell type is somewhat questionable in scRNA-seq, since mature RBCs generally lack nuclei and most RNA; reticulocytes are a better interpretation. Overall, the central annotation is scientifically accurate and captures the dominant cell population well. The main limitation is that it is slightly too confident in dismissing non-erythroid markers and does not sufficiently account for marker ranking or possible contamination/doublet contributions.",
+      "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+      "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+      "evidence_markers_method": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, HBQ1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, MYL4, GATA1, PIR, SMIM10, NECAB1, TFR2, SLC4A1, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "Erythroid lineage cell",
+        "predicted_sub": "Late-stage erythroid cells / reticulocytes, Mature red blood cells / erythrocytes, Erythroblasts (polychromatic/orthochromatic erythroblasts)",
+        "possible_mixed": null,
+        "score": 88
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "erythroid lineage cell",
+      "topk_cell_types": [
+        "erythroid lineage cell",
+        "erythrocyte"
+      ],
+      "cell_ontology_id": "CL:0000764",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "erythroid lineage cell",
+        "canonical_label": "erythroid lineage cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000764",
+        "candidate_cl_ids": [
+          "CL:0000764"
+        ],
+        "candidate_labels": [
+          "erythroid lineage cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000764",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "reasoning_short": "In-house top1=erythroid lineage cell; top markers=CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+      "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+      "evidence_markers_method": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1",
+      "raw_inputs": {
+        "main_pred": "erythroid lineage cell",
+        "subtype1_pred": "erythrocyte",
+        "subtype2_core_pred": "erythrocyte",
+        "candidate_score_main": 0.0453,
+        "candidate_score_sub1": 0.0425,
+        "candidate_score_sub2": 0.0425
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "erythroid lineage cell",
+      "topk_cell_types": [
+        "erythroid lineage cell",
+        "erythrocyte"
+      ],
+      "cell_ontology_id": "CL:0000764",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "erythroid lineage cell",
+        "canonical_label": "erythroid lineage cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000764",
+        "candidate_cl_ids": [
+          "CL:0000764"
+        ],
+        "candidate_labels": [
+          "erythroid lineage cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000764",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "reasoning_short": "In-house top1=erythroid lineage cell; top markers=CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+      "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+      "evidence_markers_method": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "Erythroid precursor (orthochromatic erythroblast)",
+      "topk_cell_types": [
+        "Erythroid precursor (orthochromatic erythroblast)",
+        "erythroid progenitor cell",
+        "erythrophore",
+        "erythroid lineage cell",
+        "erythroid progenitor cell, mammalian",
+        "erythrocyte"
+      ],
+      "cell_ontology_id": "CL:0000038",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The cluster is unequivocally erythroid based on the top markers (GYPA, GYPB, AHSP, HBB, HBD, HBA1, HBA2, ALAS2, KLF1, EPB42, SPTA1, SLC4A1, TFR2, CA1, CA2, GATA1) and the absence of T-cell (CD3D/E), NK (FCGR3A), or myeloid markers. The markers indicate a late-stage erythroid precursor (orthochromatic erythroblast) due to high hemoglobin expression (HBB, HBD, HBA1, HBA2), heme synthesis (ALAS2), and mature erythroid cytoskeletal proteins (SPTA1, EPB42). The presence of GATA1 and KLF1 as upstream TFs confirm erythroid lineage commitment. The enriched pathways (heme metabolism, glycan biosynthesis) are consistent with erythroid maturation.",
+      "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+      "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+      "evidence_markers_method": "GYPA; GYPB; GYPE; AHSP; HBB; HBD; HBA1; HBA2; ALAS2; EPB42; SPTA1; SLC4A1; TFR2; CA1; CA2; KEL; XK; RHCE; RHD; KLF1; GATA1; PKLR; SELENBP1; SMIM1",
+      "evidence_terms_method": null,
+      "predicted_label": "Erythroid precursor (orthochromatic erythroblast)",
+      "cl_id": "CL:0000038",
+      "rationale": "The cluster is unequivocally erythroid based on the top markers (GYPA, GYPB, AHSP, HBB, HBD, HBA1, HBA2, ALAS2, KLF1, EPB42, SPTA1, SLC4A1, TFR2, CA1, CA2, GATA1) and the absence of T-cell (CD3D/E), NK (FCGR3A), or myeloid markers. The markers indicate a late-stage erythroid precursor (orthochromatic erythroblast) due to high hemoglobin expression (HBB, HBD, HBA1, HBA2), heme synthesis (ALAS2), and mature erythroid cytoskeletal proteins (SPTA1, EPB42). The presence of GATA1 and KLF1 as upstream TFs confirm erythroid lineage commitment. The enriched pathways (heme metabolism, glycan biosynthesis) are consistent with erythroid maturation.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Erythroid precursor (orthochromatic erythroblast)",
+        "canonical_label": "erythroid progenitor cell",
+        "mapping_status": "parent_only",
+        "mapping_decision": "ab_parent_child",
+        "mapping_reason": "A_ancestor_of_B",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "broadened",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000038",
+        "candidate_cl_ids": [
+          "CL:0000038",
+          "CL:0000574",
+          "CL:0000764",
+          "CL:0001066",
+          "CL:0000232"
+        ],
+        "candidate_labels": [
+          "erythroid progenitor cell",
+          "erythrophore",
+          "erythroid lineage cell",
+          "erythroid progenitor cell, mammalian",
+          "erythrocyte"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000038",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "Erythroid precursor (orthochromatic erythroblast)",
+      "topk_cell_types": [
+        "Erythroid precursor (orthochromatic erythroblast)",
+        "erythroid progenitor cell",
+        "erythrophore",
+        "erythroid lineage cell",
+        "erythroid progenitor cell, mammalian",
+        "erythrocyte"
+      ],
+      "cell_ontology_id": "CL:0000038",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The cluster is unequivocally erythroid based on the top markers (GYPA, GYPB, AHSP, HBB, HBD, HBA1, HBA2, ALAS2, KLF1, EPB42, SPTA1, SLC4A1, TFR2, CA1, CA2, GATA1) and the absence of T-cell (CD3D/E), NK (FCGR3A), or myeloid markers. The markers indicate a late-stage erythroid precursor (orthochromatic erythroblast) due to high hemoglobin expression (HBB, HBD, HBA1, HBA2), heme synthesis (ALAS2), and mature erythroid cytoskeletal proteins (SPTA1, EPB42). The presence of GATA1 and KLF1 as upstream TFs confirm erythroid lineage commitment. The enriched pathways (heme metabolism, glycan biosynthesis) are consistent with erythroid maturation.",
+      "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+      "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+      "evidence_markers_method": "GYPA; GYPB; GYPE; AHSP; HBB; HBD; HBA1; HBA2; ALAS2; EPB42; SPTA1; SLC4A1; TFR2; CA1; CA2; KEL; XK; RHCE; RHD; KLF1; GATA1; PKLR; SELENBP1; SMIM1",
+      "evidence_terms_method": null,
+      "predicted_label": "Erythroid precursor (orthochromatic erythroblast)",
+      "cl_id": "CL:0000038",
+      "rationale": "The cluster is unequivocally erythroid based on the top markers (GYPA, GYPB, AHSP, HBB, HBD, HBA1, HBA2, ALAS2, KLF1, EPB42, SPTA1, SLC4A1, TFR2, CA1, CA2, GATA1) and the absence of T-cell (CD3D/E), NK (FCGR3A), or myeloid markers. The markers indicate a late-stage erythroid precursor (orthochromatic erythroblast) due to high hemoglobin expression (HBB, HBD, HBA1, HBA2), heme synthesis (ALAS2), and mature erythroid cytoskeletal proteins (SPTA1, EPB42). The presence of GATA1 and KLF1 as upstream TFs confirm erythroid lineage commitment. The enriched pathways (heme metabolism, glycan biosynthesis) are consistent with erythroid maturation.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Erythroid precursor (orthochromatic erythroblast)",
+        "canonical_label": "erythroid progenitor cell",
+        "mapping_status": "parent_only",
+        "mapping_decision": "ab_parent_child",
+        "mapping_reason": "A_ancestor_of_B",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "broadened",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000038",
+        "candidate_cl_ids": [
+          "CL:0000038",
+          "CL:0000574",
+          "CL:0000764",
+          "CL:0001066",
+          "CL:0000232"
+        ],
+        "candidate_labels": [
+          "erythroid progenitor cell",
+          "erythrophore",
+          "erythroid lineage cell",
+          "erythroid progenitor cell, mammalian",
+          "erythrocyte"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000038",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "Erythroid lineage cell",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": 0.0453,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Late-stage erythroid cells / reticulocytes, Mature red blood cells / erythrocytes, Erythroblasts (polychromatic/orthochromatic erythroblasts)",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": 0.0453,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "erythroid lineage cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 0.0453,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "erythrocyte",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.0453,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Erythroid precursor (orthochromatic erythroblast)",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": 0.0313,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "erythroid progenitor cell",
+          "method": "enrich",
+          "rank": 2,
+          "candidate_score": 0.0313,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "erythrophore",
+          "method": "enrich",
+          "rank": 3,
+          "candidate_score": 0.0313,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "Erythroid lineage cell",
+        "clid": "CL:0000764",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.0453,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "Late-stage erythroid cells / reticulocytes, Mature red blood cells / erythrocytes, Erythroblasts (polychromatic/orthochromatic erythroblasts)",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "erythroid lineage cell",
+        "clid": "CL:0000764",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.0453,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "erythrocyte",
+        "clid": "CL:0000232",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": 0.0425,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "Erythroid precursor (orthochromatic erythroblast)",
+        "clid": "CL:0000038",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "parent_only",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "label": "erythroid progenitor cell",
+        "clid": "CL:0000038",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": 0.0313,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "label": "erythrophore",
+        "clid": "CL:0000574",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "Erythroid lineage cell",
+      "Late-stage erythroid cells / reticulocytes, Mature red blood cells / erythrocytes, Erythroblasts (polychromatic/orthochromatic erythroblasts)",
+      "erythroid lineage cell",
+      "erythrocyte",
+      "Erythroid precursor (orthochromatic erythroblast)",
+      "erythroid progenitor cell",
+      "erythrophore",
+      "erythroid progenitor cell, mammalian"
+    ],
+    "allowed_backoff_candidates": [
+      "myeloid cell",
+      "eukaryotic cell",
+      "hematopoietic cell",
+      "blood cell",
+      "oxygen accumulating cell",
+      "erythroid lineage cell",
+      "myeloid lineage restricted progenitor cell",
+      "hematopoietic lineage restricted progenitor cell",
+      "pigment cell",
+      "stuff accumulating cell",
+      "erythroid progenitor cell"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "Erythroid lineage cell",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "Erythroid lineage cell",
+          "canonical_label": "erythroid lineage cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "normalized",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000764",
+          "candidate_cl_ids": [
+            "CL:0000764"
+          ],
+          "candidate_labels": [
+            "erythroid lineage cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000764",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Erythroid lineage cell",
+          "Late-stage erythroid cells / reticulocytes, Mature red blood cells / erythrocytes, Erythroblasts (polychromatic/orthochromatic erythroblasts)"
+        ],
+        "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+        "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+        "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+        "evidence_markers_method": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, HBQ1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, MYL4, GATA1, PIR, SMIM10, NECAB1, TFR2, SLC4A1, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+        "reasoning_short": "The annotation correctly identifies the dominant biological signal as erythroid. The marker list contains a textbook combination of erythroid lineage genes: multiple globins (HBA1, HBA2, HBB, HBD, HBG2, HBQ1, HBM), heme synthesis and hemoglobin stabilization genes (ALAS2, AHSP), erythroid membrane proteins (GYPA, GYPB, GYPE, SLC4A1, EPB42, SPTA1), and erythroid transcription factors (GATA1, KLF1). It also correctly notes the absence of canonical T, B, NK, myeloid, and megakaryocyte markers, which supports the conclusion that this is not a classical immune cell cluster. The annotation is also generally balanced. It does not anchor on a single marker; instead, it integrates hemoglobin synthesis, membrane/cytoskeletal components, blood-group antigens, and transcription factors. This is a strong sign that the annotator captured the overall biological picture rather than overfitting to one gene. The final designation of “late-stage erythroid cells / reticulocytes” is highly plausible for human blood, and the alternative of late erythroblasts is reasonable depending on tissue context. However, there are some weaknesses. The top of the marker list includes CTSE, NMU, EPCAM, KRT13, APOC1, and C4A/C4B. Some of these are not canonical erythroid markers, and EPCAM/KRT13 in particular are strong epithelial markers. The annotation explains these as technical contamination, ambient RNA, or doublets, which is plausible, but it does so somewhat quickly and then states that no mixed cell types are present. Given that marker rank matters and several non-erythroid markers appear high in the list, a more cautious annotation should have explicitly flagged the possibility of doublets or contamination more prominently, and perhaps listed a mixed/contaminated cell type as a candidate. Also, “mature red blood cells / erythrocytes” as a subcell type is somewhat questionable in scRNA-seq, since mature RBCs generally lack nuclei and most RNA; reticulocytes are a better interpretation. Overall, the central annotation is scientifically accurate and captures the dominant cell population well. The main limitation is that it is slightly too confident in dismissing non-erythroid markers and does not sufficiently account for marker ranking or possible contamination/doublet contributions."
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "erythroid lineage cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "erythroid lineage cell",
+          "canonical_label": "erythroid lineage cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000764",
+          "candidate_cl_ids": [
+            "CL:0000764"
+          ],
+          "candidate_labels": [
+            "erythroid lineage cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000764",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "erythroid lineage cell",
+          "erythrocyte"
+        ],
+        "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+        "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+        "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+        "evidence_markers_method": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1",
+        "reasoning_short": "In-house top1=erythroid lineage cell; top markers=CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "Erythroid precursor (orthochromatic erythroblast)",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "Erythroid precursor (orthochromatic erythroblast)",
+          "canonical_label": "erythroid progenitor cell",
+          "mapping_status": "parent_only",
+          "mapping_decision": "ab_parent_child",
+          "mapping_reason": "A_ancestor_of_B",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "broadened",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000038",
+          "candidate_cl_ids": [
+            "CL:0000038",
+            "CL:0000574",
+            "CL:0000764",
+            "CL:0001066",
+            "CL:0000232"
+          ],
+          "candidate_labels": [
+            "erythroid progenitor cell",
+            "erythrophore",
+            "erythroid lineage cell",
+            "erythroid progenitor cell, mammalian",
+            "erythrocyte"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000038",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Erythroid precursor (orthochromatic erythroblast)",
+          "erythroid progenitor cell",
+          "erythrophore",
+          "erythroid lineage cell",
+          "erythroid progenitor cell, mammalian",
+          "erythrocyte"
+        ],
+        "evidence_markers_std": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+        "evidence_terms_std": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+        "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113",
+        "evidence_markers_method": "GYPA; GYPB; GYPE; AHSP; HBB; HBD; HBA1; HBA2; ALAS2; EPB42; SPTA1; SLC4A1; TFR2; CA1; CA2; KEL; XK; RHCE; RHD; KLF1; GATA1; PKLR; SELENBP1; SMIM1",
+        "evidence_terms_method": null,
+        "reasoning_short": "The cluster is unequivocally erythroid based on the top markers (GYPA, GYPB, AHSP, HBB, HBD, HBA1, HBA2, ALAS2, KLF1, EPB42, SPTA1, SLC4A1, TFR2, CA1, CA2, GATA1) and the absence of T-cell (CD3D/E), NK (FCGR3A), or myeloid markers. The markers indicate a late-stage erythroid precursor (orthochromatic erythroblast) due to high hemoglobin expression (HBB, HBD, HBA1, HBA2), heme synthesis (ALAS2), and mature erythroid cytoskeletal proteins (SPTA1, EPB42). The presence of GATA1 and KLF1 as upstream TFs confirm erythroid lineage commitment. The enriched pathways (heme metabolism, glycan biosynthesis) are consistent with erythroid maturation."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "enrichment_terms": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+      "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_6, population: blood.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "CTSE",
+              "GYPA",
+              "AHSP",
+              "NMU",
+              "CA1",
+              "HBM",
+              "GYPB",
+              "SLC25A21",
+              "PKLR",
+              "HBB",
+              "HBD",
+              "EPB42",
+              "FAM178B",
+              "CR1L",
+              "KLF1",
+              "EPCAM",
+              "ALAS2",
+              "SELENBP1",
+              "HBG2",
+              "KCNH2",
+              "KRT13",
+              "HBA2",
+              "TLCD4",
+              "HBA1",
+              "GYPE",
+              "APOC1",
+              "RHCE",
+              "RAB3IL1",
+              "CA2",
+              "SPTA1",
+              "KEL",
+              "CNRIP1",
+              "GATA1",
+              "SMIM10",
+              "NECAB1",
+              "TFR2",
+              "SMIM1",
+              "ACHE",
+              "XK",
+              "PBK",
+              "RHD",
+              "RFESD",
+              "CDC42BPA",
+              "MINPP1",
+              "C4A",
+              "C4B"
+            ]
+          }
+        },
+        "scope_profile": "immune_enriched",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "epithelial_polarity_transport": [
+              "gas transport",
+              "oxygen transport",
+              "carbon dioxide transport",
+              "one-carbon compound transport",
+              "Transport of small molecules"
+            ],
+            "metabolic_program": [
+              "hydrogen peroxide metabolic process",
+              "reactive oxygen species metabolic process"
+            ]
+          },
+          "programs_from_markers": {
+            "epithelial_program_markers": [
+              "EPCAM",
+              "KRT13"
+            ],
+            "transport_program_markers": [
+              "SLC25A21",
+              "RAB3IL1",
+              "SLC4A1"
+            ],
+            "secretory_program_markers": "RAB3IL1"
+          },
+          "support_level": {
+            "epithelial": "moderate",
+            "transport": "strong",
+            "secretory": "weak"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 99,
+            "in_scope_count": 98,
+            "out_of_scope_count": 1,
+            "in_scope_ratio": 0.99,
+            "lineage_counts": {
+              "erythroid_megakaryocytic": 29,
+              "unknown": 84
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [
+              "gas transport",
+              "oxygen transport",
+              "hydrogen peroxide catabolic process",
+              "carbon dioxide transport",
+              "one-carbon compound transport",
+              "hydrogen peroxide metabolic process",
+              "cellular oxidant detoxification",
+              "cellular detoxification",
+              "cellular response to toxic substance",
+              "detoxification",
+              "erythrocyte differentiation",
+              "reactive oxygen species metabolic process",
+              "erythrocyte homeostasis",
+              "response to toxic substance",
+              "myeloid cell homeostasis"
+            ],
+            "cellular_components": [
+              "hemoglobin complex",
+              "haptoglobin-hemoglobin complex",
+              "blood microparticle"
+            ],
+            "molecular_functions": [
+              "haptoglobin binding",
+              "oxygen carrier activity",
+              "oxygen binding"
+            ],
+            "kegg_pathways": [
+              "hsa05144",
+              "hsa05143"
+            ],
+            "reactome_pathways": [
+              "Erythrocytes take up oxygen and release carbon dioxide",
+              "Erythrocytes take up carbon dioxide and release oxygen",
+              "O2/CO2 exchange in erythrocytes",
+              "Transport of small molecules",
+              "Scavenging of heme from plasma",
+              "Hemostasis",
+              "Heme signaling",
+              "Factors involved in megakaryocyte development and platelet production",
+              "Binding and Uptake of Ligands by Scavenger Receptors",
+              "Cytoprotection by HMOX1"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: HBA2, SLC4A1, HBQ1, AHSP, HBA1",
+            "disease_associations_do": [
+              "hemolytic anemia",
+              "congenital hemolytic anemia",
+              "microcytic anemia",
+              "anemia",
+              "normocytic anemia"
+            ],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "36658547",
+                "32996603",
+                "38617564",
+                "38581717",
+                "34944787",
+                "41902926",
+                "34899743",
+                "36276113",
+                "34601390",
+                "37898705",
+                "35429619",
+                "38740795",
+                "28441337",
+                "37694151",
+                "39040346",
+                "29298685",
+                "30103699",
+                "36197985",
+                "39495628",
+                "34276782",
+                "32285198",
+                "24802755",
+                "35371032",
+                "33481946",
+                "28853905"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "erythroblast",
+              "erythroid lineage cell",
+              "erythrocyte",
+              "blood cell",
+              "erythroid progenitor cell",
+              "primitive red blood cell",
+              "megakaryocyte-erythroid progenitor cell",
+              "reticulocyte",
+              "granulocytopoietic cell"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000765",
+              "CL:0000764",
+              "CL:0000232",
+              "CL:0000081",
+              "CL:0000038",
+              "CL:0002355",
+              "CL:0000050",
+              "CL:0000558",
+              "CL:0002191"
+            ],
+            "Final_Score": [
+              0.1063,
+              0.0453,
+              0.0425,
+              0.0336,
+              0.0313,
+              0.0229,
+              0.021,
+              0.0157,
+              0.0154
+            ],
+            "Top_Evidence_Genes": [
+              "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1",
+              "CTSE, GYPA, AHSP, CA1, HBM, GYPB, HBB, HBD, EPB42, FAM178B, KLF1, EPCAM, ALAS2, SELENBP1, HBG2",
+              "GYPA, AHSP, CA1, HBM, GYPB, HBB, HBD, EPB42, FAM178B, KLF1, ALAS2, SELENBP1, HBG2, KCNH2, HBA2",
+              "GYPA, AHSP, HBM, GYPB, HBB, EPB42, FAM178B, KLF1, ALAS2, SELENBP1, HBG2, KCNH2, GYPE, SPTA1, MYL4",
+              "GYPA, AHSP, CA1, HBM, GYPB, PKLR, HBB, HBD, EPB42, FAM178B, KLF1, ALAS2, HBG2, HBA2, HBA1",
+              "CTSE, GYPA, AHSP, HBM, GYPB, FAM178B, KLF1, SELENBP1, HBG2, HBA1, HBQ1, MYL4, SLC4A1",
+              "CA1, HBB, HBD, FAM178B, KLF1, KCNH2, APOC1, SPTA1, KEL, CNRIP1, GATA1, NECAB1, TFR2",
+              "GYPA, AHSP, HBM, GYPB, HBB, EPB42, SELENBP1, HBG2, MYL4, SLC4A1",
+              "GYPA, AHSP, HBM, GYPB, HBB, EPB42, KLF1, SELENBP1, HBG2, MYL4, SLC4A1"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 39,
+        "n_degs_available": 46,
+        "top_evidence_genes_count": 33
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 1,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "CTSE, GYPA, AHSP, NMU, CA1, HBM, GYPB, SLC25A21, PKLR, HBB, HBD, EPB42, FAM178B, CR1L, KLF1, EPCAM, ALAS2, SELENBP1, HBG2, KCNH2, KRT13, HBA2, TLCD4, HBA1, GYPE, APOC1, RHCE, RAB3IL1, CA2, SPTA1, KEL, CNRIP1, GATA1, SMIM10, NECAB1, TFR2, SMIM1, ACHE, XK, PBK, RHD, RFESD, CDC42BPA, MINPP1, C4A, C4B",
+      "enrichment_terms": "gas transport; oxygen transport; hydrogen peroxide catabolic process; carbon dioxide transport; one-carbon compound transport; hydrogen peroxide metabolic process; cellular oxidant detoxification; cellular detoxification; cellular response to toxic substance; detoxification; erythrocyte differentiation; reactive oxygen species metabolic process; erythrocyte homeostasis; response to toxic substance; myeloid cell homeostasis; hemoglobin complex; haptoglobin-hemoglobin complex; blood microparticle; hsa05144; hsa05143; Erythrocytes take up oxygen and release carbon dioxide; Erythrocytes take up carbon dioxide and release oxygen; O2/CO2 exchange in erythrocytes; Transport of small molecules; Scavenging of heme from plasma; Hemostasis; Heme signaling; Factors involved in megakaryocyte development and platelet production; Binding and Uptake of Ligands by Scavenger Receptors; Cytoprotection by HMOX1",
+      "pmids_top": "36658547, 32996603, 38617564, 38581717, 34944787, 41902926, 34899743, 36276113"
+    }
+  },
+  "cluster_id": "cluster_6"
+}

@@ -1,0 +1,109 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "astrocyte",
+    "final_cell_ontology_id": "CL:0000127",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Astrocyte",
+      "cell_ontology_id": "CL:0000127",
+      "strengths": [
+        "Correctly recognizes abundant canonical astrocyte markers: GFAP, AQP4, ALDH1L1, SLC1A2, GJA1, FGFR3",
+        "Identifies DLPFC/astrocyte-enriched markers such as SLC14A1, ETNPPL, SLC39A12, SLCO1C1",
+        "Explicitly checks absence of neuronal, oligodendroglial, OPC, microglial and vascular markers"
+      ],
+      "weaknesses": [
+        "Stops at the generic astrocyte level and does not formalize the supported mature astrocyte refinement",
+        "Mentions neuronal-like markers but does not formally classify them as minor secondary signal"
+      ],
+      "reviewer_cl_id": "CL:0000127"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "astrocyte",
+      "cell_ontology_id": "CL:0000127",
+      "strengths": [
+        "Matches the majority astrocyte branch while also offering mature astrocyte (CL:0002627) as a rank-2 candidate",
+        "Aligned with the adult DLPFC mature astrocyte markers SLC14A1, ETNPPL, SLC39A12, SLC1A2, AQP4, ALDH1L1",
+        "Supports the hierarchical refinement from astrocyte to mature astrocyte"
+      ],
+      "weaknesses": [
+        "Primary label is generic astrocyte; the more specific mature astrocyte candidate has lower rank/score",
+        "Limited reasoning on why mature astrocyte is preferred over the simple astrocyte label"
+      ],
+      "reviewer_cl_id": "CL:0000127"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Radial Glial Cell / Neural Progenitor Cell",
+      "cell_ontology_id": "CL:0000681",
+      "strengths": [
+        "Detects shared glial/developmental markers PAX6, GLI3, GFAP, ID4",
+        "Correctly notes the absence of mature neuronal markers such as RBFOX3, SYT1, SNAP25"
+      ],
+      "weaknesses": [
+        "Uses shared glial/astrocyte markers to infer a non-hierarchical radial glial branch without branch-specific evidence",
+        "Lacks radial-glia-specific markers such as VIM, NES, SOX2, HES5",
+        "Ignores the strong mature astrocyte functional enrichment (glutamate transport, astrocyte projection, astrocytic glutamate-glutamine uptake)"
+      ],
+      "reviewer_cl_id": "CL:0000681"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Mature/adult astrocyte markers: SLC14A1, ETNPPL, SLC39A12, SLCO1C1, ALDH1L1, SLC1A2, AQP4, GJA1, GFAP",
+      "Enrichment evidence: astrocyte projection, glial cell projection, L-glutamate import across plasma membrane, Astrocytic Glutamate-Glutamine Uptake And Metabolism",
+      "PMID 32104705 supports astrocyte identity in this brain context"
+    ],
+    "conflicting": [
+      "Radial glial enrichment call is based on shared markers GFAP, PAX6, GLI3, ID4 and lacks radial-glia-specific support",
+      "Minor neuronal-like markers STON2 and GRIN2C are present but do not override the dominant astrocyte identity"
+    ],
+    "enrichment_or_literature": [
+      "Astrocytic Glutamate-Glutamine Uptake And Metabolism",
+      "astrocyte projection",
+      "L-glutamate import across plasma membrane",
+      "PMID 32104705"
+    ],
+    "cited_pmids": [
+      "32104705"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "astrocyte",
+    "reference_cl_term": "astrocyte",
+    "reference_cl_id": "CL:0000127",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

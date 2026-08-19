@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_5",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "microglial cell",
+    "final_cell_ontology_id": "CL:0000129",
+    "confidence_primary": 0.65
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "microglia",
+      "cell_ontology_id": "CL:0000129",
+      "strengths": [
+        "Uses PLCG2, the top original DEG, as the main lineage anchor for microglial/myeloid identity",
+        "Appropriately uses negative evidence: absence of neuronal/astrocyte/oligodendrocyte markers among top DEGs",
+        "Acknowledges that the large stress-gene component is not cell-type specific"
+      ],
+      "weaknesses": [
+        "No P2RY12, TMEM119, or CX3CR1 was observed to confirm committed homeostatic microglia",
+        "PLCG2 is shared with macrophages/monocytes, so microglia-versus-macrophage exclusivity is not fully resolved",
+        "The microglial call rests largely on a single lineage-informative DEG amid a dominant non-specific stress signature"
+      ],
+      "reviewer_cl_id": "CL:0000129"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "stress-responsive cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes the dominant heat-shock/stress response in the cluster markers",
+        "Correctly warns that stress genes such as HSPA1A, HSPA1B, TXNIP, and GADD45B are not cell-type specific"
+      ],
+      "weaknesses": [
+        "Stress-responsive cell is a cellular state, not a defined cell type in the ontology",
+        "All five mapped candidate CLIDs are unrelated to the observed data (stretch receptor cell, tanycyte, strial intermediate cell, serous secreting cell, stromal cell)",
+        "Provides no lineage-specific positive evidence to replace the PLCG2 microglial/myeloid anchor"
+      ],
+      "reviewer_cl_id": null
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "CD34-positive, CD38-positive common myeloid progenitor OR CD34-positive, CD38-positive common lymphoid progenitor",
+      "cell_ontology_id": "CL:0000995",
+      "strengths": [
+        "Correctly notes that the HSP/stress genes are not cell-type specific",
+        "Correctly notes the absence of mature cortical lineage markers such as NEUROD6, GFAP, and OLIG2"
+      ],
+      "weaknesses": [
+        "No CD34, CD38, or other hematopoietic progenitor markers are present in the original DEG list",
+        "Generic stress/splicing enrichment cannot support a CD34-positive common progenitor branch",
+        "Ignores PLCG2, the only lineage-informative DEG, which favors microglial/myeloid identity over common myeloid/lymphoid progenitor"
+      ],
+      "reviewer_cl_id": "CL:0000995"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "PLCG2 is the top in-scope DEG and is a canonical microglial/myeloid marker, providing direct positive support for microglial identity",
+      "No top DEGs for neurons (e.g., NEUROD6/NEUROD2), astrocytes (e.g., GFAP), or oligodendrocytes (e.g., OLIG2/MBP) support alternative neuroectodermal lineages",
+      "Stress markers (HSPA1A, HSPA1B, HSPA6, DNAJB1, HSPH1, TXNIP, GADD45B, CDKN1A) are present but are non-lineage orthogonal signals and do not negate the PLCG2 lineage anchor"
+    ],
+    "conflicting": [
+      "No P2RY12, TMEM119, or CX3CR1 was observed to confirm homeostatic/committed microglia",
+      "PLCG2 is also expressed in macrophages/monocytes, leaving microglia-versus-macrophage exclusivity partially unresolved",
+      "The dominant heat-shock signature could reflect dissociation-induced artifact rather than a biological activation state"
+    ],
+    "enrichment_or_literature": [
+      "Enrichment is dominated by generic stress/housekeeping terms (cellular response to chemical stress, mRNA splicing, cytoplasmic stress granule, Cajal body) that do not discriminate cell lineage",
+      "No retrieved PMIDs or curated literature were available to add specificity"
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Immature neuron",
+    "reference_cl_term": "Immature neuron",
+    "reference_cl_id": "CL:4042028",
+    "cl_similarity": 18.413221575760492
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_5_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

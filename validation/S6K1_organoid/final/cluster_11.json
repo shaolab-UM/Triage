@@ -1,0 +1,98 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_11",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neural progenitor cell",
+    "final_cell_ontology_id": "CL:0011020",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Correctly identified neural progenitor identity using EOMES/TBR2, proneural TFs (NEUROG1, NEUROG2, ASCL1, NEUROD4), and cell-cycle genes (MKI67, TOP2A, CENPF).",
+        "Context-aware interpretation of forebrain/cortical development using EMX1 and organoid context."
+      ],
+      "weaknesses": [
+        "Top-2 label 'Cycling Intermediate Progenitor Cells (IPCs)' is not mapped to a CLID and is not supported by the frozen ontology context as a distinct descendant."
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Exact ontology mapping to CL:0011020 with high candidate score (0.925).",
+        "Concise, direct labeling fully consistent with original marker evidence."
+      ],
+      "weaknesses": [
+        "Secondary candidate 'progenitor cell' is an ancestor and does not capture the neurogenic specificity already supported by EOMES/NEUROG/ASCL1."
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "neural progenitor cell",
+      "cell_ontology_id": "CL:0011020",
+      "strengths": [
+        "Marker-based reasoning correctly emphasizes combination of neurogenic fate determinants (EOMES, ASCL1, NEUROG2, NEUROD4, HES6) and cell-cycle program (MKI67, TOP2A, CENPF, CDK1, RRM2).",
+        "Interpretation distinguishing cycling progenitors from post-mitotic neurons is well aligned with observed markers."
+      ],
+      "weaknesses": [
+        "Some enrichment terms (e.g., 'Specification of primordial germ cells', 'enteroendocrine cell differentiation') are non-specific/off-target and do not contribute to core identity."
+      ],
+      "reviewer_cl_id": "CL:0011020"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "EOMES/TBR2 is a canonical neurogenic intermediate/neural progenitor marker; observed in top DEGs.",
+      "Proneural bHLH TFs NEUROG1, NEUROG2, ASCL1, NEUROD4, NHLH1 and Notch-related DLL1/HES6 support a neural progenitor program.",
+      "EMX1 supports forebrain/cortical regional identity.",
+      "Cell-cycle genes MKI67, TOP2A, CENPF, CDK1, RRM2, UBE2C, NUSAP1, PTTG1 reflect the actively cycling state of neural progenitors."
+    ],
+    "conflicting": [
+      "Enrichment term 'enteroendocrine cell differentiation' appears non-specific and does not alter the core neural progenitor identity."
+    ],
+    "enrichment_or_literature": [
+      "GO enrichment includes cerebral cortex neuron differentiation, forebrain neuron differentiation, central nervous system neuron differentiation, forebrain development, and neuroepithelial cell differentiation, all consistent with neural progenitor identity."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Intermediate progenitor (IPC)",
+    "reference_cl_term": "Intermediate progenitor (IPC)",
+    "reference_cl_id": "CL:0011020",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_11_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

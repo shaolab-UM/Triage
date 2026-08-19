@@ -1,0 +1,109 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_5",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "astrocyte",
+    "final_cell_ontology_id": "CL:0000127",
+    "confidence_primary": 0.95
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "astrocyte",
+      "cell_ontology_id": "CL:0000127",
+      "strengths": [
+        "Correctly identified canonical astrocyte core markers (Aqp4, Slc1a3, Aldoc, Atp1a2, Gja1)",
+        "Explicitly ruled out competing CNS lineages based on marker absence",
+        "Provided functional grouping of markers (glutamate transport, gap junctions, end-foot) consistent with astrocyte identity",
+        "Attempted subtype-level interpretation (perivascular/reactive) grounded in observed markers such as Cldn10, Agt, Gpld1, F3"
+      ],
+      "weaknesses": [
+        "Subtype proposal is not ontology-resolvable (unmapped CL term) and cannot be used for the final label",
+        "Reactive/disease-associated interpretation depends partly on experimental context rather than direct cluster-level evidence"
+      ],
+      "reviewer_cl_id": "CL:0000127"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "astrocyte",
+      "cell_ontology_id": "CL:0000127",
+      "strengths": [
+        "Exact ontology-resolvable label with deterministic CL:0000127 mapping",
+        "Selected strong discriminative astrocyte markers (Aqp4, Slc1a3, Gja1, Cldn10, Fgfr3)"
+      ],
+      "weaknesses": [
+        "Terse reasoning without functional/pathway integration or explicit exclusion of other CNS lineages"
+      ],
+      "reviewer_cl_id": "CL:0000127"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "astrocyte",
+      "cell_ontology_id": "CL:0000127",
+      "strengths": [
+        "Anchored on highly specific astrocyte markers with functional annotation (Aqp4 end-foot channel, Slc1a3 glutamate uptake, Gja1/Gjb6 gap junctions)",
+        "Correctly noted absence of competing neuronal/microglial/oligodendrocyte markers",
+        "Enrichment terms (astrocyte projection, astrocyte end-foot, L-glutamate transmembrane transport) directly support astrocyte biology"
+      ],
+      "weaknesses": [
+        "Many transport/ion terms are shared with other cell types and only support identity when combined with the marker set"
+      ],
+      "reviewer_cl_id": "CL:0000127"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Canonical astrocyte markers Aqp4, Slc1a3, Aldoc, Atp1a2, Gja1, Gjb6, Slc4a4, Agt, Fgfr3, Gpr37l1",
+      "Astrocyte-specific GO cellular components: astrocyte projection, astrocyte end-foot",
+      "L-glutamate transmembrane transport and amino acid transport enrichment consistent with astrocyte glutamate recycling",
+      "PMID 34065606 (allowed citation) supporting astrocyte identification in mouse CNS single-cell data"
+    ],
+    "conflicting": [
+      "No definitive neuronal, oligodendrocyte, microglial, or endothelial markers in the top DEG list to support an alternative lineage"
+    ],
+    "enrichment_or_literature": [
+      "Enrichment: astrocyte projection, astrocyte end-foot, acidic amino acid transport, L-glutamate transmembrane transport, gap junction assembly",
+      "Literature: PMID 34065606, 37144489, 36012153, 37998387, 39540334, 39983812, 23966770, 39386590 (supplied evidence set)"
+    ],
+    "cited_pmids": [
+      "34065606"
+    ],
+    "cited_enrichment_terms": [
+      "astrocyte projection",
+      "astrocyte end-foot",
+      "L-glutamate transmembrane transport"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "astrocytes",
+    "reference_cl_term": "astrocytes",
+    "reference_cl_id": "CL:0000127",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_5_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

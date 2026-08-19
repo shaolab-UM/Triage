@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_7",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "CD8-positive, alpha-beta cytotoxic T cell",
+    "final_cell_ontology_id": "CL:0000794",
+    "confidence_primary": 0.93
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "CD8-positive, alpha-beta cytotoxic T cell",
+      "cell_ontology_id": "CL:0000794",
+      "strengths": [
+        "Exact CL:0000794 supported by direct positive markers Cd3d/Cd3e/Cd3g/Trac/Trbc1/Trbc2 and Cd8a/Cd8b1.",
+        "Correctly integrates cytotoxic effector genes Gzmb/Gzmk/Ifng/Ccl5/Nkg7/Fasl into the identity.",
+        "Appropriately down-weighted the single gamma-delta TCR gene Trgv2 in favor of overwhelming alpha-beta TCR evidence."
+      ],
+      "weaknesses": [
+        "State-level effector-memory speculation extends somewhat beyond the directly supported ontology identity.",
+        "Quantitative candidate scores were not available for independent verification."
+      ],
+      "reviewer_cl_id": "CL:0000794"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Correctly identifies the T-cell lineage from Cd3d/Cd3e/Cd3g/Trac/Trbc1/Trbc2 markers.",
+        "Conservative broad-level call avoids over-committing to a subtype."
+      ],
+      "weaknesses": [
+        "Under-specific: directly supported Cd8a/Cd8b1 and cytotoxic effector program are omitted from the top1 label.",
+        "Rank2 CD8-positive alpha-beta T cell (CL:0000625) is better but still lacks the directly supported cytotoxic component."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "CD8-positive, alpha-beta cytotoxic T cell",
+      "cell_ontology_id": "CL:0000794",
+      "strengths": [
+        "Exact CL:0000794 supported by direct markers Cd3d/Cd3e/Cd3g/Trac/Trbc1/Trbc2/Cd8a/Cd8b1.",
+        "Correctly distinguishes T cells from NK cells using TCR complex and CD8 co-receptor evidence despite shared cytotoxic genes."
+      ],
+      "weaknesses": [
+        "Part of the reasoning relies on absence of NK markers (Ncr1/Klrb1c/Il2rb) rather than positive lineage-defining markers.",
+        "Enrichment list includes generic pathways that are not discriminative on their own."
+      ],
+      "reviewer_cl_id": "CL:0000794"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Original DEGs include T-cell receptor complex genes Cd3d/Cd3e/Cd3g/Trac/Trbc1/Trbc2 and CD8 co-receptor genes Cd8a/Cd8b1.",
+      "Cytotoxic effector identity is directly supported by Gzmb/Gzmk/Ifng/Ccl5/Nkg7/Fasl.",
+      "Enrichment evidence includes alpha-beta T cell receptor complex and T cell receptor signaling pathway.",
+      "PMID 34500759 is among the original evidence citations supporting the CD8+ T-cell annotation."
+    ],
+    "conflicting": [
+      "Trgv2 (gamma-delta TCR) and NK-associated genes Klrc1/Klrk1/Nkg7 are present but insufficient to shift the dominant alpha-beta CD8 T-cell identity.",
+      "In-house top1 'T cell' is not incorrect but omits directly supported CD8 and cytotoxic specificity."
+    ],
+    "enrichment_or_literature": [
+      "T cell receptor signaling pathway",
+      "alpha-beta T cell receptor complex",
+      "leukocyte mediated cytotoxicity"
+    ],
+    "cited_pmids": [
+      "34500759"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "T cell",
+    "reference_cl_term": "T cell",
+    "reference_cl_id": "CL:0000084",
+    "cl_similarity": 54.23356042937625
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_7_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

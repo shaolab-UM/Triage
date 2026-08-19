@@ -1,0 +1,100 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "neuron",
+    "final_cell_ontology_id": "CL:0000540",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Differentiating/Immature Neurons",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes a neuronal identity and captures the immature/differentiating state visible in EOMES, INSM1, DLL3 plus NEUROD6, MAP2, NPTX1.",
+        "Balanced integration of transcription factors, structural genes, and synaptic markers."
+      ],
+      "weaknesses": [
+        "Proposed label is unmapped in the frozen ontology and cannot provide a release-ready CL identifier.",
+        "Top-k mixes divergent subtype hypotheses (IPC-derived glutamatergic vs SST+ interneuron) without cluster-level branch-specific evidence."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Directly supported by canonical neuronal markers MAP2, TUBB2B, TUBA1A, NRXN1, NEUROD6, ELAVL4, NHLH1.",
+        "Clean, exact ontology mapping to CL:0000540 without unsupported anatomical specificity."
+      ],
+      "weaknesses": [
+        "Less informative than the immature/differentiating state interpretation, although this state is not represented by a valid, mappable CL term in the provided context."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "lateral ventricle neuron",
+      "cell_ontology_id": "CL:1001582",
+      "strengths": [
+        "Uses neuronal markers NEUROD6, EOMES, MAP2, TUBB2B, NRXN1 to support a neuronal lineage.",
+        "Acknowledges that KEGG metabolic enrichments are non-discriminatory."
+      ],
+      "weaknesses": [
+        "The added 'lateral ventricle' anatomical component of CL:1001582 has no direct positive support in the ORIGINAL marker list or enrichment terms.",
+        "Marker evidence such as TAC3, SSTR2, NPTX1 is not sufficient to localize the cluster to the lateral ventricle."
+      ],
+      "reviewer_cl_id": "CL:1001582"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Neuronal lineage supported by cluster markers MAP2, TUBB2B, TUBA1A, NRXN1, NEUROD6, ELAVL4, NHLH1, SOX11.",
+      "Immature/differentiating state supported by co-expression of EOMES, INSM1, DLL3 and neuronal maturation markers NEUROD6, MAP2, NPTX1.",
+      "Enrichment terms (noradrenergic neuron differentiation, sympathetic nervous system development, Netrin-1 signaling) are consistent with a neuronal identity."
+    ],
+    "conflicting": [
+      "No ORIGINAL evidence supports the anatomical 'lateral ventricle' specificity of CL:1001582.",
+      "CASSIA's top-1 label is unmapped and mixes subtype hypotheses without cluster-level branch-specific positive evidence."
+    ],
+    "enrichment_or_literature": [
+      "noradrenergic neuron differentiation; sympathetic nervous system development; apical dendrite; growth cone; Netrin-1 signaling",
+      "No retrieved PMIDs were available in the evidence dossier."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Excitatory Neuron",
+    "reference_cl_term": "Excitatory Neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 61.07680713895864
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

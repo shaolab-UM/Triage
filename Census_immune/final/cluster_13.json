@@ -1,0 +1,110 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_13",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "plasma cell",
+    "final_cell_ontology_id": "CL:0000786",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Plasma cells / plasmablasts",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies the plasma cell/antibody-secreting lineage from immunoglobulin genes and SDC1/TNFRSF17/MZB1 markers.",
+        "Top-k also includes isotype-committed plasma cell states, capturing the IgG/IgA signal."
+      ],
+      "weaknesses": [
+        "Label is compound/unmapped and conflates plasma cell and plasmablast.",
+        "No definitive CL mapping; candidate list also includes irrelevant plasmacytoid dendritic cell."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "lymphocyte of B lineage",
+      "cell_ontology_id": "CL:0000945",
+      "strengths": [
+        "Correctly identifies the B lineage as the parent lineage.",
+        "Top-k includes plasma cell and IgG plasma cell, so the plasma cell branch is within the method's own candidate space."
+      ],
+      "weaknesses": [
+        "Top1 is under-specific; it is an ancestor of plasma cell despite abundant direct evidence for plasma cell identity.",
+        "Ignores the stronger evidence in its own sub-candidate (plasma cell score 0.9) and the pathognomonic SDC1/TNFRSF17/MZB1/JCHAIN program."
+      ],
+      "reviewer_cl_id": "CL:0000945"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "plasma cell",
+      "cell_ontology_id": "CL:0000786",
+      "strengths": [
+        "Directly matches the most specific supported ontology class with direct positive support.",
+        "Correctly distinguishes plasma cells from earlier B cells using immunoglobulin genes plus SDC1/TNFRSF17/MZB1/CD38/SLAMF7/FCRL5/DERL3 and absence of B-cell maturation markers.",
+        "Provides actionable rationale tied to the actual marker set."
+      ],
+      "weaknesses": [
+        "Does not resolve IgG versus IgA isotype commitment, but the original markers support both and the parent plasma cell label is the safest specific choice."
+      ],
+      "reviewer_cl_id": "CL:0000786"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "IGHG3/IGHG2/IGHG4, IGHA1/IGHA2, IGKC, IGLC2/IGLC3, JCHAIN, and IGLL5 provide direct positive support for antibody-secreting plasma cell identity.",
+      "SDC1 (CD138), TNFRSF17 (BCMA), MZB1, CD38, SLAMF7, FCRL5, and DERL3 support terminal plasma cell phenotype.",
+      "ER/secretory markers HSP90B1, PDIA4, TXNDC5, SEC11C, SSR4, and FKBP11 support the high secretory load of plasma cells.",
+      "Enrichment for immunoglobulin-mediated immune response, humoral immune response mediated by circulating immunoglobulin, and IgG immunoglobulin complex supports plasma cell identity.",
+      "Allowed PMID 36233633 provides literature context for the plasma cell annotation."
+    ],
+    "conflicting": [
+      "SCNN1B is an unusual top marker (epithelial Na+ channel subunit) and is treated as ambient/non-specific rather than a competing lineage signal.",
+      "In-house top1 CL:0000945 is under-specific relative to direct plasma cell evidence.",
+      "CASSIA's unmapped compound label conflates plasmablast with plasma cell."
+    ],
+    "enrichment_or_literature": [
+      "immunoglobulin mediated immune response",
+      "humoral immune response mediated by circulating immunoglobulin",
+      "IgG immunoglobulin complex",
+      "antigen binding",
+      "vesicle-mediated transport",
+      "PMID 36233633 (allowed)"
+    ],
+    "cited_pmids": [
+      "36233633"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "plasma cell",
+    "reference_cl_term": "plasma cell",
+    "reference_cl_id": "CL:0000786",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_13_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zha_AD_mouse",
+  "cluster_id": "cluster_6",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "GABAergic interneuron",
+    "final_cell_ontology_id": "CL:0011005",
+    "confidence_primary": 0.87
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "GABAergic Inhibitory Interneurons",
+      "cell_ontology_id": "CL:0011005",
+      "strengths": [
+        "Correctly prioritized the lineage-defining Dlx1/Dlx2/Dlx5/Dlx6os1/Dlx1as and Gad1/Gad2/Arx markers over generic neuronal markers.",
+        "Recognized Sp8/Sp9 and immature markers (Dcx, Sox4, Sox11) as consistent with an immature/differentiating forebrain GABAergic interneuron state.",
+        "Aligned with enrichment terms 'cerebral cortex GABAergic interneuron differentiation' and 'GABAergic neuron differentiation'."
+      ],
+      "weaknesses": [
+        "Raised the Dcx concern without fully resolving that Dcx co-expressed with Dlx/Gad/Arx supports a developing GABAergic interneuron program.",
+        "Subtype/CGE-lineage ranking is more speculative than the robust lineage-level call."
+      ],
+      "reviewer_cl_id": "CL:0011005"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "forebrain GABAergic interneuron",
+      "cell_ontology_id": "CL:0011005",
+      "strengths": [
+        "Consistent with the same Dlx/Gad/Arx-positive GABAergic interneuron identity and matches the majority CL:0011005 anchor.",
+        "Forebrain component is supported by forebrain/telencephalon/hippocampus enrichment terms."
+      ],
+      "weaknesses": [
+        "Provides no independent score or detailed reasoning.",
+        "'Forebrain' specificity is not separately represented as a CL:0011005 descendant and is not resolved at ontology level."
+      ],
+      "reviewer_cl_id": "CL:0011005"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "immature neuron",
+      "cell_ontology_id": "CL:4042028",
+      "strengths": [
+        "Correctly detected immature/differentiating state markers Dcx, Sox4, Sox11, Nrep, Cdca7, Ccnd2.",
+        "Correctly excluded non-neuronal identities."
+      ],
+      "weaknesses": [
+        "Dropped the dominant GABAergic lineage evidence (Dlx1/Dlx2/Dlx5, Gad1/Gad2, Arx, Sp8/Sp9).",
+        "CL:4042028 immature neuron is non-hierarchical to CL:0011005 and is less specific for this cluster.",
+        "The immature state is better treated as a modifier of the GABAergic interneuron identity rather than the primary cell type."
+      ],
+      "reviewer_cl_id": "CL:4042028"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Cluster markers Dlx1, Dlx2, Dlx5, Dlx6os1, Dlx1as, Gad1, Gad2, Arx, Sp8, Sp9 establish GABAergic interneuron identity.",
+      "Enrichment terms 'cerebral cortex GABAergic interneuron differentiation' and 'GABAergic neuron differentiation' directly support the GABAergic interneuron assignment.",
+      "Dcx, Sox4, Sox11, Nrep, Cdca7, Ccnd2 support an immature/differentiating state within the GABAergic interneuron lineage.",
+      "Forebrain/telencephalon/hippocampus differentiation terms support a forebrain origin; PMID 38027768 and 31645900 are consistent with forebrain GABAergic interneuron development/differentiation."
+    ],
+    "conflicting": [
+      "CL:4042028 immature neuron is non-hierarchical to CL:0011005 and omits the strongly supported Dlx/Gad/Arx GABAergic program.",
+      "No out-of-scope or contaminating marker program was detected; Dcx is not compelling evidence for a non-GABAergic population given co-expression with Dlx/Gad/Arx."
+    ],
+    "enrichment_or_literature": [
+      "forebrain neuron differentiation; forebrain generation of neurons; telencephalon development; hippocampus development; cerebral cortex GABAergic interneuron differentiation; GABAergic neuron differentiation; axon guidance; PMID 38027768; PMID 31645900"
+    ],
+    "cited_pmids": [
+      "38027768",
+      "31645900"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "neuron",
+    "reference_cl_term": "neuron",
+    "reference_cl_id": "CL:0000540",
+    "cl_similarity": 59.53748803046091
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_6_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

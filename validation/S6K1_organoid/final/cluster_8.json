@@ -1,0 +1,101 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "S6K1_organoid",
+  "cluster_id": "cluster_8",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "glutamatergic neuron",
+    "final_cell_ontology_id": "CL:0000679",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "glutamatergic neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Identifies the correct excitatory/glutamatergic identity with direct marker support from GRIA2, NEUROD2, NEUROD6, FEZF2 and SOX5.",
+        "Correctly uses pan-neuronal markers (SYT1, SNAP25, STMN2, TUBB2A, EEF1A2) and does not over-interpret NR4A2/SNCA as dopaminergic."
+      ],
+      "weaknesses": [
+        "Includes weakly supported dopaminergic/retinal lineage speculations despite absence of TH, SLC6A3 and retinal core markers.",
+        "Partially relies on tissue-context reasoning not present in the original evidence."
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Conservative and well-supported by pan-neuronal markers SYT1, SNAP25, STMN2, TUBB2A and EEF1A2."
+      ],
+      "weaknesses": [
+        "Under-specified: does not refine to the glutamatergic neuron descendant despite rank-2 candidate and direct support from GRIA2, NEUROD2 and NEUROD6.",
+        "Ignores excitatory-specific markers in its top1 label."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "glutamatergic neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Directly uses glutamatergic markers GRIA2, NEUROD2 and NEUROD6, plus deep-layer markers FEZF2 and SOX5.",
+        "Correctly excludes glial, interneuron and progenitor alternatives based on absent markers."
+      ],
+      "weaknesses": [
+        "Some supporting terms are pan-neuronal rather than strictly glutamatergic-specific.",
+        "Less detailed subtype reasoning than cassia, but reaches the same valid CLID."
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "GRIA2 encodes an AMPA glutamate receptor subunit and directly supports glutamatergic/excitatory neuron identity.",
+      "NEUROD2 and NEUROD6 are proneural transcription factors supporting glutamatergic neuron differentiation.",
+      "FEZF2 and SOX5 support deep-layer cortical excitatory/projection neuron features consistent with glutamatergic identity.",
+      "Pan-neuronal markers SYT1, SNAP25, STMN2, TUBB2A and EEF1A2 support neuron identity."
+    ],
+    "conflicting": [
+      "NR4A2 and SNCA are dopaminergic-associated markers but lack TH and SLC6A3, so they do not override the dominant glutamatergic signature.",
+      "Weak epithelial program marker CDH7 is not supported by the overall cluster profile and does not indicate a separate lineage."
+    ],
+    "enrichment_or_literature": [
+      "Original enrichment observations such as Glutamate Neurotransmitter Release Cycle, Transmission across Chemical Synapses, forebrain development and neuron migration are consistent with a glutamatergic neuron identity; no external PMIDs are required."
+    ],
+    "cited_pmids": [],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "Excitatory Neuron",
+    "reference_cl_term": "Excitatory Neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_8_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

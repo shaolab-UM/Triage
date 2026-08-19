@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_17",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "endothelial cell",
+    "final_cell_ontology_id": "CL:0000115",
+    "confidence_primary": 0.9
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "brain microvascular endothelial cell",
+      "cell_ontology_id": "CL:2000044",
+      "strengths": [
+        "Correctly identifies endothelial lineage with pan-endothelial markers VWF, PECAM1, FLT1, ENG, ERG, EMCN.",
+        "Adds branch-specific brain microvascular/BBB support via ABCG2, ABCB1, MFSD2A, SLC2A1, SLC7A5, CLDN5, CGNL1 and 'transport across blood-brain barrier' enrichment."
+      ],
+      "weaknesses": [
+        "Raw label is composite; arterial/venous subtype claims are only partially supported.",
+        "Reactive/inflammatory state is inferred rather than directly demonstrated."
+      ],
+      "reviewer_cl_id": "CL:2000044"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "endothelial cell",
+      "cell_ontology_id": "CL:0000115",
+      "strengths": [
+        "Accurate at ancestor level; supported by broad endothelial markers (VWF, PECAM1, FLT1, ENG, ERG)."
+      ],
+      "weaknesses": [
+        "Under-specific; does not use the BBB/microvascular marker evidence for refinement.",
+        "Second-ranked 'cerebral cortex endothelial cell' lacks direct cortex-specific positive marker support (tissue context alone is insufficient)."
+      ],
+      "reviewer_cl_id": "CL:0000115"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "endothelial cell of vascular tree",
+      "cell_ontology_id": "CL:0002139",
+      "strengths": [
+        "Enrichment correctly identifies vascular/endothelial identity from VWF, FLT1, PECAM1, CLDN5, ENG, EMCN."
+      ],
+      "weaknesses": [
+        "Generic vascular-tree label under-specifies the brain microvascular/BBB identity directly supported by markers and enrichment."
+      ],
+      "reviewer_cl_id": "CL:0002139"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CLDN5, VWF, PECAM1, FLT1, ENG, EMCN, ERG support endothelial identity.",
+      "ABCG2, ABCB1, MFSD2A, SLC2A1, SLC7A5, CLDN5, CGNL1 plus 'transport across blood-brain barrier' enrichment support the added brain microvascular/BBB component.",
+      "PMID 36047494 (allowed literature evidence)."
+    ],
+    "conflicting": [
+      "No conflicting lineage markers; IFI27, IFITM3, HLA-E, HLA-B are activation/IFN-response genes rather than evidence of a second lineage."
+    ],
+    "enrichment_or_literature": [
+      "transport across blood-brain barrier",
+      "vascular transport",
+      "Transport of small molecules",
+      "Cell surface interactions at the vascular wall",
+      "PMID 36047494"
+    ],
+    "cited_pmids": [
+      "36047494"
+    ],
+    "cited_enrichment_terms": [
+      "transport across blood-brain barrier",
+      "vascular transport"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "endothelial cell",
+    "reference_cl_term": "endothelial cell",
+    "reference_cl_id": "CL:0000115",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_17_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

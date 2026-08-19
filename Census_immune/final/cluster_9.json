@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Census_immune",
+  "cluster_id": "cluster_9",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "B cell",
+    "final_cell_ontology_id": "CL:0000236",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "B cell / B lymphocyte",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identified B-cell lineage from MS4A1, CD79A/B, CD22, BANK1, TNFRSF13C, FCER2, IGHM, TCL1A",
+        "Excluded T/NK/myeloid and plasma-cell alternatives using lineage markers"
+      ],
+      "weaknesses": [
+        "Top label was not mapped to a single CLID",
+        "Top1 remained at broad B-cell/B-lymphocyte level despite evidence supporting naive/mature B-cell state"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Exact deterministic mapping to CL:0000236",
+        "B-cell identity strongly supported by DEGs and enrichment"
+      ],
+      "weaknesses": [
+        "Stopped at parent B-cell level; naive B cell (CL:0000788) was supported by TCL1A/FCER2/IGHM/TNFRSF13C but not selected as top1"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "naive/mature B cell",
+      "cell_ontology_id": "CL:0000788",
+      "strengths": [
+        "Selected the most specific supported B-cell subtype (naive/mature B cell)",
+        "Used TCL1A, FCER2, TNFRSF13C, IGHM as positive support for naive/unswitched B-cell state"
+      ],
+      "weaknesses": [
+        "Candidate list contained unsupported alternatives (naive T cell, neuron) not supported by the DEG panel"
+      ],
+      "reviewer_cl_id": "CL:0000788"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "In-scope DEGs are dominated by B-cell lineage markers: MS4A1, CD79A, CD79B, CD22, BANK1, TNFRSF13C, FCER2, IGHM, VPREB3",
+      "B-cell transcription factors SPIB, BCL11A, POU2F2, IRF8 and MHC class II genes (HLA-DRA, HLA-DRB1, HLA-DQB1, HLA-DMB, CD74) are present",
+      "Naive/mature B-cell state is positively supported by FCER2, TCL1A, TNFRSF13C, and IGHM",
+      "PMID 35335635 supports B-cell marker-based assignment"
+    ],
+    "conflicting": [
+      "No T-cell/NK-cell markers (CD3D, CD3E, CD8A, FCGR3A) appear in the DEG panel",
+      "naive T-cell candidate unsupported",
+      "Plasma-cell markers (XBP1, SDC1) are absent",
+      "plasma cell identity not supported",
+      "CD83 and NFKBID hint at minor activation but are not lineage-restricted and do not override B-cell identity"
+    ],
+    "enrichment_or_literature": [
+      "Enrichment for B cell receptor signaling and MHC class II antigen presentation",
+      "PMID 35335635 as literature support for B-cell marker interpretation"
+    ],
+    "cited_pmids": [
+      "35335635"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "naive B cell",
+    "reference_cl_term": "naive B cell",
+    "reference_cl_id": "CL:0000788",
+    "cl_similarity": 70.5777170416714
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_9_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

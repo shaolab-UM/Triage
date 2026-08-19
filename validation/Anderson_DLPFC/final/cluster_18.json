@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_18",
+  "cluster_state": "contaminated_or_ambient",
+  "final_decision": {
+    "primary_cell_type": "neuron",
+    "final_cell_ontology_id": "CL:0000540",
+    "confidence_primary": 0.75
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Mixed/ambiguous: capillary/BBB endothelial cell + deep-layer (L5/6) excitatory neuron, with mural/pericyte contamination",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly detected multiple mutually exclusive lineage programs (endothelial, deep-layer excitatory neuron, mural/pericyte) in the DEG list.",
+        "Appropriately treated weak immune/ciliary markers as secondary/contamination.",
+        "Recommended doublet/QC checks before single-label assignment."
+      ],
+      "weaknesses": [
+        "No single primary cell type; mixed label cannot serve as a clean annotation.",
+        "Over-indexed on the endothelial program (ERG, SLC5A8) despite the larger neuronal marker block.",
+        "No CLID could be assigned."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "cortical neuron",
+      "cell_ontology_id": "CL:0000540",
+      "strengths": [
+        "Correctly identified the dominant neuronal lineage (SYT2, VAT1L, CHST8, BCL11B, NEFH, SCN4B, KCNN2, HTR7).",
+        "Ontology-valid mapping to neuron (CL:0000540)."
+      ],
+      "weaknesses": [
+        "Under-specific: neuron/cortical neuron is an ancestor of the supported glutamatergic neuron label.",
+        "Ignored glutamatergic-specific evidence (GRM8, BCL11B layer 5/6) and the vascular/mural contamination signals."
+      ],
+      "reviewer_cl_id": "CL:0000540"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "glutamatergic neuron",
+      "cell_ontology_id": "CL:0000679",
+      "strengths": [
+        "Added glutamatergic specificity supported by GRM8 (glutamate receptor) and BCL11B (layer 5/6 projection neuron marker).",
+        "Correctly ruled out GABAergic identity by absence of GAD1/SST/PVALB.",
+        "Hierarchically consistent with in-house neuron label; most specific ontology-valid descendant."
+      ],
+      "weaknesses": [
+        "Did not address the endothelial/BBB and mural/pericyte contamination programs in the same cluster.",
+        "Layer/area specificity (L5/6, DLPFC) not fully captured by CL:0000679."
+      ],
+      "reviewer_cl_id": "CL:0000679"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Neuronal identity: SYT2, VAT1L, CHST8, ATP10A, NEFH, SCN4B, KCNN2, HTR7, SPHKAP in top DEGs.",
+      "Glutamatergic/excitatory identity: GRM8 (glutamate receptor), BCL11B (layer 5/6 excitatory projection neuron marker), plus absence of GABAergic markers GAD1/SST/PVALB (PMID 29276055).",
+      "No inhibitory neuron markers (GAD1, SST, PVALB) support the glutamatergic over GABAergic branch."
+    ],
+    "conflicting": [
+      "Endothelial/BBB program: ERG, SLC5A8, SLC47A1, ADTRP, NRP1, TEC and vascular enrichment terms (Tie2 Signaling, Neurophilin interactions with VEGF/VEGFR, Cell surface interactions at the vascular wall).",
+      "Mural/pericyte/ECM program: ADRA1A, ANGPT1, PAPPA, COL24A1, COL21A1, VWA5A, NPNT."
+    ],
+    "enrichment_or_literature": [
+      "Vascular Reactome terms (Tie2 Signaling, Organic anion transporters) reflect ambient vascular contamination rather than the primary identity.",
+      "PMID 29276055 used as brain cell-type marker reference for BCL11B/GRM8 interpretation."
+    ],
+    "cited_pmids": [
+      "29276055"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "glutamatergic neuron",
+    "reference_cl_term": "glutamatergic neuron",
+    "reference_cl_id": "CL:0000679",
+    "cl_similarity": 61.07680713895864
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_18_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

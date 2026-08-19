@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Anderson_DLPFC",
+  "cluster_id": "cluster_10",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "macrophage",
+    "final_cell_ontology_id": "CL:0000235",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "microglial cell",
+      "cell_ontology_id": "CL:0000129",
+      "strengths": [
+        "Correctly recognizes a CNS-resident myeloid/macrophage lineage from PTPRC, CSF1R, CD74, CIITA, CD86, SYK, TLR2, CYBB.",
+        "Appropriately notes the activated/reactive state based on CD74/CIITA/CD86 and absence of homeostatic microglial markers."
+      ],
+      "weaknesses": [
+        "Microglial specificity (CL:0000129) is not directly supported by positive microglial markers such as P2RY12, TMEM119, CX3CR1, or HEXB.",
+        "MHC-II-high/activated microglial state is inferred from CD74/CIITA/CD86, not directly measured."
+      ],
+      "reviewer_cl_id": "CL:0000129"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "macrophage",
+      "cell_ontology_id": "CL:0000235",
+      "strengths": [
+        "Directly supported by core macrophage/myeloid markers: CSF1R, SLC11A1, CD74, CIITA, CD86, CYBB, TFEC, C3, ALOX5, HCK.",
+        "Appropriate specificity: avoids unsupported microglial or dendritic cell refinements."
+      ],
+      "weaknesses": [
+        "Generic 'macrophage' label does not capture the activated antigen-presenting state in the primary term."
+      ],
+      "reviewer_cl_id": "CL:0000235"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "myeloid dendritic cell",
+      "cell_ontology_id": "CL:0000782",
+      "strengths": [
+        "Recognizes the antigen-presenting myeloid phenotype (CD74, CIITA, CD86, CSF2RA)."
+      ],
+      "weaknesses": [
+        "No positive DC-defining markers (CD1C, CLEC9A, THBD/BDCA-3) are present.",
+        "DC branch is non-hierarchical with macrophage and is supported only by shared myeloid/antigen-presentation programs.",
+        "The 'Paneth cell' enrichment was acknowledged as a false positive driven by shared innate immune genes."
+      ],
+      "reviewer_cl_id": "CL:0000782"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CSF1R, SLC11A1, CD74, CIITA, CD86, CYBB, TFEC, C3, ALOX5 and HCK directly support a macrophage/myeloid identity (CL:0000235).",
+      "Absence of DC-defining markers (CD1C, CLEC9A, THBD/BDCA-3) and of homeostatic microglial markers (P2RY12, TMEM119, CX3CR1, HEXB) means no added specificity is directly supported.",
+      "RAG-retrieved literature (PMID 38957312) is consistent with a CSF1R-dependent myeloid/macrophage identity."
+    ],
+    "conflicting": [
+      "CASSIA's microglial cell (CL:0000129) refinement is not supported by positive microglial-specific DEGs.",
+      "Enrichment's myeloid dendritic cell (CL:0000782) branch is non-hierarchical and unsupported by DC-specific markers.",
+      "The absence of homeostatic microglia markers argues against a resting microglial label but cannot, by itself, create positive support for activated microglia."
+    ],
+    "enrichment_or_literature": [
+      "Original pathway enrichment includes myeloid cell differentiation, phagocytosis, Fc receptor signaling, and CSF1 (M-CSF) signaling in myeloid cells, consistent with macrophage identity.",
+      "RAG-retrieved PMIDs (e.g., 38957312) support the myeloid/macrophage assignment."
+    ],
+    "cited_pmids": [
+      "38957312"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "microglial cell",
+    "reference_cl_term": "microglial cell",
+    "reference_cl_id": "CL:0000129",
+    "cl_similarity": 72.23904121644156
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_10_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / V2_Validation_Adjudication",
+    "note": "Publication-facing final decision, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

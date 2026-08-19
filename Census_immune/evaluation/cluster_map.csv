@@ -1,0 +1,17 @@
+cluster,cluster_anon
+CD14-positive monocyte,cluster_1
+"CD8-positive, alpha-beta T cell",cluster_2
+bone marrow hematopoietic cell,cluster_3
+conventional dendritic cell,cluster_4
+cytotoxic T cell,cluster_5
+erythroid lineage cell,cluster_6
+megakaryocyte,cluster_7
+mesenchymal stem cell of the bone marrow,cluster_8
+naive B cell,cluster_9
+naive T cell,cluster_10
+"naive thymus-derived CD4-positive, alpha-beta T cell",cluster_11
+natural killer cell,cluster_12
+plasma cell,cluster_13
+plasmacytoid dendritic cell,cluster_14
+precursor B cell,cluster_15
+pro-B cell,cluster_16
