@@ -1,0 +1,19 @@
+parameter	value	evidence
+handling_editor_model	deepseek-v4-flash	formal primary run logs + manuscript
+chief_qc_model	deepseek-chat	formal primary run logs + manuscript
+temperature	0	primary run configuration
+prompt_profile	compact	final adjudication JSON
+min_depth_for_eligibility	3	final adjudication JSON / 09 default
+delta_depth	2	final adjudication JSON
+gate_mode	fixed_k	final adjudication JSON
+gate_k	2	final adjudication JSON
+parity_mode	TRUE	primary run configuration
+identity_policy	ontology_guarded	final adjudication JSON
+enable_aggressive_lca_hard_guard	TRUE	final adjudication JSON
+enable_method_reliability_gate	FALSE	final adjudication JSON
+meta_reviewer_gate	FALSE	final adjudication JSON
+ols_first	FALSE	primary run configuration
+release_policy	auto	formal primary run configuration
+always_run_chief	TRUE	retained formal run configuration
+max_rounds	3	retained formal run configuration
+workers	4	retained formal run configuration

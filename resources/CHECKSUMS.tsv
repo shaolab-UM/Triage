@@ -1,0 +1,8 @@
+expected_path	size_bytes	sha256
+inputs/raw/ontology/CL-ontology-v2025-07-30.json	1455986	2cb74a09d7f9bc9413e638f9263463b4e519f74808a1b8e9b622772ce0d3d3ea
+inputs/raw/ppi/9606.protein.aliases.v12.0.txt	199702624	510631e358af51784446f19eb482d112d29bc1e233d920b03125155ab765d2de
+inputs/raw/ppi/9606.protein.physical.links.v12.0.txt	67970093	f46f306d840f2d3751987216433675fde23ae7122aa51b7b7449c297abcf058a
+inputs/raw/ppi/10090.protein.aliases.v12.0.txt	114859520	beb465ade75ff37ed4410f8e13ca094b0691f68699ad52cb61009b1fdf67addb
+inputs/raw/ppi/10090.protein.physical.links.v12.0.txt	38186781	6d4e9cf2daff807065bd8c2af8464906333c4fd761439a6b4651a7d4326d8fde
+inputs/raw/collectri/collectri_human_network.rds	209934	b5dc3c6aad73209a1f88608a11963c72f5a1e91c36f8c2bd04b9032bbc2a9644
+inputs/raw/collectri/collectri_mouse_network.rds	197102	5b5e1bf02b6c4d2444e682fdb92a30123591a15836a11573585ddcc8a9d121af

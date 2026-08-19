@@ -1,0 +1,14 @@
+parameter	value	source
+additional_reviewer_source	cluster DEG ORA against CellMarkerDB	manuscript Methods
+reviewer_role	non-core fourth reviewer	manuscript Methods
+core_reviewers_preserved	cassia;our;enrich	09_run_judge.R
+reliability_min	0.55	09_run_judge.R
+alignment_min	0.45	09_run_judge.R
+missing_alignment_fallback	use reliability score	09_run_judge.R
+reliability_valid_cl_weight	0.35	09_run_judge.R
+reliability_mapping_quality_weight	0.30	09_run_judge.R
+reliability_ontology_proximity_weight	0.25	09_run_judge.R
+reliability_specificity_weight	0.10	09_run_judge.R
+lineage_distance_cap	8	09_run_judge.R
+hard_low_reliability_if_no_cl_or_generic_or_far	0.01	09_run_judge.R
+far_from_lock_threshold	ontology distance >= 6	09_run_judge.R
