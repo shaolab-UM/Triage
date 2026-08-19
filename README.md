@@ -67,7 +67,6 @@ External validation:
 - S6K1 organoid: 15
 - Total: 42
 
-The internal S6K1 run contained 16 outputs; `cluster_16` (Ribosomal protein, RP) is excluded from the reported 15-cluster validation set and documented in `data/validation/S6K1_organoid/exclusions.tsv`.
 
 ## Formal primary adjudication settings
 
