@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_6",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "macrophage",
+    "final_cell_ontology_id": "CL:0000235",
+    "confidence_primary": 0.84
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "macrophage",
+      "cell_ontology_id": "CL:0000235",
+      "strengths": [
+        "Correctly assigned the cluster to the macrophage lineage from observed markers (MARCO, MSR1, C1QA, FCAR, TFEC, ACP5, TREM2).",
+        "Recognized alveolar/activated/interstitial alternatives in its top-k."
+      ],
+      "weaknesses": [
+        "Remained at the ancestor level and did not refine to the supported alveolar macrophage subtype.",
+        "Top-2 combined label is not a single ontology-valid cell type."
+      ],
+      "reviewer_cl_id": "CL:0000235"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "macrophage",
+      "cell_ontology_id": "CL:0000235",
+      "strengths": [
+        "Correctly identified macrophage as the dominant lineage.",
+        "Listed alveolar macrophage as the second candidate, consistent with MARCO/MSR1 marker evidence."
+      ],
+      "weaknesses": [
+        "Primary label stayed at the general macrophage ancestor despite direct marker support for the alveolar descendant."
+      ],
+      "reviewer_cl_id": "CL:0000235"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "alveolar macrophage",
+      "cell_ontology_id": "CL:0000583",
+      "strengths": [
+        "Selected the most specific ontology-valid descendant with direct positive support (MARCO, MSR1, C1QA, TREM2, MS4A4A, MS4A14, TFEC, ACP5, FCAR, SNX10).",
+        "Aligned with lung alveolar macrophage identity while excluding T/NK/neutrophil alternatives."
+      ],
+      "weaknesses": [
+        "Reported enrichment p-values were non-meaningful, so marker interpretation rather than pathway statistics carries the decision."
+      ],
+      "reviewer_cl_id": "CL:0000583"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Original DEGs contain classic alveolar macrophage markers MARCO, MSR1, C1QA, FCAR, TREM2, MS4A4A, MS4A14, TFEC, ACP5, and SNX10.",
+      "Reactome enrichment for Innate Immune System and Scavenging by Class A Receptors supports the scavenger macrophage phenotype.",
+      "PMID 39560475 provides interpretable literature context for lung macrophage marker-based annotation."
+    ],
+    "conflicting": [
+      "TREM2 can also mark lipid-associated/activated macrophages, but this is best interpreted as an activation/state component, not a separate lineage.",
+      "Enrichment p-values were flagged as unreliable, but marker-level evidence remains decisive."
+    ],
+    "enrichment_or_literature": [
+      "Innate Immune System",
+      "Immune System",
+      "Scavenging by Class A Receptors",
+      "Binding and Uptake of Ligands by Scavenger Receptors"
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "macrophage",
+    "reference_cl_term": "macrophage",
+    "reference_cl_id": "CL:0000235",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_6_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

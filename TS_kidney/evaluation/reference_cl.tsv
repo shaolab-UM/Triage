@@ -1,0 +1,5 @@
+cluster_id	published_reference_annotation	reference_cl_term	reference_cl_id
+cluster_1	B cell	B cell	CL:0000236
+cluster_2	CD8-positive, alpha-beta T cell	CD8-positive, alpha-beta T cell	CL:0000625
+cluster_3	kidney epithelial cell	kidney epithelial cell	CL:0002518
+cluster_4	macrophage	macrophage	CL:0000235

@@ -1,0 +1,108 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_7",
+  "cluster_state": "mixed",
+  "final_decision": {
+    "primary_cell_type": "pancreatic acinar cell",
+    "final_cell_ontology_id": "CL:0002064",
+    "confidence_primary": 0.62
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "pancreatic ductal cell",
+      "cell_ontology_id": "CL:0002079",
+      "strengths": [
+        "Recognizes an epithelial/pancreatic lineage and maps to a valid ontology term"
+      ],
+      "weaknesses": [
+        "Pancreatic ductal specificity rests on CA12, not a canonical ductal marker; canonical KRT19/CFTR/SOX9 absent; competing acinar and hepatocyte markers present"
+      ],
+      "reviewer_cl_id": "CL:0002079"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Conservative supported ancestor consistent with CA12/AQP8/DPEP1 epithelial-associated markers",
+        "Does not over-commit to an unsupported subtype amid conflicting signals"
+      ],
+      "weaknesses": [
+        "Broad label only; PRSS3/AQP8 acinar and ANGPTL3/SLC22A9 hepatocyte signals remain unresolved"
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Hepatocyte-like / Acinar-like (ambiguous)",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly flags liver/transport markers (SLC22A9, ANGPTL3, AQP8) and metabolic enrichment"
+      ],
+      "weaknesses": [
+        "Ambiguous mapping; hepatocyte branch lacks canonical hepatocyte markers (ALB/TTR/APOA2) and does not meaningfully outrank acinar/ductal alternatives"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CA12, AQP8 and DPEP1 are top positive DEGs and are consistent with an epithelial identity (broad supported ancestor).",
+      "PRSS3 and AQP8 provide a weak pancreatic acinar signal, but no canonical PRSS1/CPA1/CEL acinar markers are present",
+      "ANGPTL3 and SLC22A9 provide a hepatocyte-like signal but no canonical ALB/TTR markers are present, so subtype refinement is not supported."
+    ],
+    "conflicting": [
+      "ANGPTL3 and SLC22A9 favor a hepatocyte-like program",
+      "PRSS3 and AQP8 favor pancreatic acinar",
+      "CA12 alone is insufficient to establish pancreatic ductal identity",
+      "classic ductal (KRT19/CFTR/SOX9), acinar (PRSS1/CPA1/CEL), and hepatocyte (ALB/TTR/APOA2) markers are absent."
+    ],
+    "enrichment_or_literature": [
+      "Reactome terms: Antimicrobial peptides",
+      "Metabolism",
+      "LTC4-CYSLTR mediated IL4 production",
+      "NR1H2 & NR1H3 regulate gene expression linked to lipogenesis",
+      "Protein lipoylation",
+      "Uptake of dietary cobalamins into enterocytes",
+      "Alpha-defensins",
+      "Lysine catabolism",
+      "P2Y receptors.",
+      "RAG-retrieved pancreatic context (PMID 37397988)."
+    ],
+    "cited_pmids": [
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": true,
+    "release_state": "Manual review",
+    "chief_qc_status": "failed",
+    "chief_qc_round": 2
+  },
+  "evaluation": {
+    "published_reference_annotation": "pancreatic acinar cell",
+    "reference_cl_term": "pancreatic acinar cell",
+    "reference_cl_id": "CL:0002064",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_7_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

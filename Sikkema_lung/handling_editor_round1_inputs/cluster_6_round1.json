@@ -1,0 +1,815 @@
+{
+  "query_id": "cluster_6_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["39560475", "39758026", "34100896", "25398611", "35957916", "34223696", "37175711", "38163861", "38480611", "35359458", "22427062", "35445016", "36907103", "36855111", "36711725", "32938505", "34445747", "41148224", "35839778", "28984199", "39278810", "34315813", "39209483", "36453543", "35089335"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["39560475", "39758026", "34100896", "25398611", "35957916", "34223696", "37175711", "38163861", "38480611", "35359458", "22427062", "35445016", "36907103", "36855111", "36711725", "32938505", "34445747", "41148224", "35839778", "28984199", "39278810", "34315813", "39209483", "36453543", "35089335"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "Macrophage",
+        "clid": "CL:0000235",
+        "canonical_label": "macrophage",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "macrophage",
+        "clid": "CL:0000235",
+        "canonical_label": "macrophage",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "alveolar macrophage",
+        "clid": "CL:0000583",
+        "canonical_label": "alveolar macrophage",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "alveolar macrophage",
+        "clid": "CL:0000583",
+        "canonical_label": "alveolar macrophage",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": "CL:0000235",
+      "label": "macrophage",
+      "votes": 2,
+      "n_reviewers": 3,
+      "fraction": 0.6667
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000235",
+        "label_a": "macrophage",
+        "clid_b": "CL:0000583",
+        "label_b": "alveolar macrophage",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000235",
+        "lca_label": "macrophage",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 2
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "Macrophage",
+      "topk_cell_types": [
+        "Macrophage",
+        "Alveolar macrophage, TREM2+ lipid-associated / activated macrophage, Interstitial / monocyte-derived macrophage",
+        "macrophage"
+      ],
+      "cell_ontology_id": "CL:0000235",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "Macrophage",
+        "canonical_label": "macrophage",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "normalized",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000235",
+        "candidate_cl_ids": [
+          "CL:0000235"
+        ],
+        "candidate_labels": [
+          "macrophage"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000235",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "reasoning_short": null,
+      "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+      "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+      "evidence_markers_method": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "Macrophage",
+        "predicted_sub": "Alveolar macrophage, TREM2+ lipid-associated / activated macrophage, Interstitial / monocyte-derived macrophage",
+        "possible_mixed": null,
+        "score": "NA"
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "macrophage",
+      "topk_cell_types": [
+        "macrophage",
+        "alveolar macrophage"
+      ],
+      "cell_ontology_id": "CL:0000235",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "macrophage",
+        "canonical_label": "macrophage",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000235",
+        "candidate_cl_ids": [
+          "CL:0000235"
+        ],
+        "candidate_labels": [
+          "macrophage"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000235",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "reasoning_short": "In-house top1=macrophage; top markers=MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+      "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+      "evidence_markers_method": "MARCO, MSR1, C1QA, FCAR, IQSEC1, ACP5, TREM2, SNX10, TXNDC17, MS4A4A, TFEC, ALOX5, EIF4E2, RAPGEF5, ZFYVE28",
+      "raw_inputs": {
+        "main_pred": "macrophage",
+        "subtype1_pred": "alveolar macrophage",
+        "subtype2_core_pred": "alveolar macrophage",
+        "candidate_score_main": 0.25,
+        "candidate_score_sub1": "NA",
+        "candidate_score_sub2": "NA"
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "macrophage",
+      "topk_cell_types": [
+        "macrophage",
+        "alveolar macrophage"
+      ],
+      "cell_ontology_id": "CL:0000235",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "macrophage",
+        "canonical_label": "macrophage",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000235",
+        "candidate_cl_ids": [
+          "CL:0000235"
+        ],
+        "candidate_labels": [
+          "macrophage"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000235",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "reasoning_short": "In-house top1=macrophage; top markers=MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+      "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+      "evidence_markers_method": "MARCO, MSR1, C1QA, FCAR, IQSEC1, ACP5, TREM2, SNX10, TXNDC17, MS4A4A, TFEC, ALOX5, EIF4E2, RAPGEF5, ZFYVE28"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "alveolar macrophage",
+      "topk_cell_types": [
+        "alveolar macrophage"
+      ],
+      "cell_ontology_id": "CL:0000583",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker gene list is dominated by classic alveolar macrophage (AM) markers: MARCO, MSR1, C1QA, TREM2, MS4A4A, MS4A14, TFEC, ACP5, FCAR, and SNX10. TREM2 and C1QA are also associated with disease-associated microglia/macrophages, but in the lung context, MARCO and MSR1 are highly specific for alveolar macrophages. The enriched geneRatio terms (e.g., metabolism of cofactors, glycan biosynthesis) reflect the metabolic remodelling seen in tissue-resident macrophages, though the pvalues are not meaningful (0.931 and negative adjusted p-values indicate a data artifact). Crucially, the absence of markers for other top candidates (e.g., no CD3D/CD8A for T cells, no FCGR3A/FGFBP2 for NK, no CD14 for monocytes, no S100A8/A9 for neutrophils) supports alveolar macrophage identity.",
+      "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+      "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+      "evidence_markers_method": "MARCO; MSR1; C1QA; TREM2; MS4A4A; MS4A14; TFEC; ACP5; FCAR; SNX10",
+      "evidence_terms_method": null,
+      "predicted_label": "alveolar macrophage",
+      "cl_id": "CL:0000583",
+      "rationale": "The marker gene list is dominated by classic alveolar macrophage (AM) markers: MARCO, MSR1, C1QA, TREM2, MS4A4A, MS4A14, TFEC, ACP5, FCAR, and SNX10. TREM2 and C1QA are also associated with disease-associated microglia/macrophages, but in the lung context, MARCO and MSR1 are highly specific for alveolar macrophages. The enriched geneRatio terms (e.g., metabolism of cofactors, glycan biosynthesis) reflect the metabolic remodelling seen in tissue-resident macrophages, though the pvalues are not meaningful (0.931 and negative adjusted p-values indicate a data artifact). Crucially, the absence of markers for other top candidates (e.g., no CD3D/CD8A for T cells, no FCGR3A/FGFBP2 for NK, no CD14 for monocytes, no S100A8/A9 for neutrophils) supports alveolar macrophage identity.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "alveolar macrophage",
+        "canonical_label": "alveolar macrophage",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000583",
+        "candidate_cl_ids": [
+          "CL:0000583"
+        ],
+        "candidate_labels": [
+          "alveolar macrophage"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000583",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "alveolar macrophage",
+      "topk_cell_types": [
+        "alveolar macrophage"
+      ],
+      "cell_ontology_id": "CL:0000583",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker gene list is dominated by classic alveolar macrophage (AM) markers: MARCO, MSR1, C1QA, TREM2, MS4A4A, MS4A14, TFEC, ACP5, FCAR, and SNX10. TREM2 and C1QA are also associated with disease-associated microglia/macrophages, but in the lung context, MARCO and MSR1 are highly specific for alveolar macrophages. The enriched geneRatio terms (e.g., metabolism of cofactors, glycan biosynthesis) reflect the metabolic remodelling seen in tissue-resident macrophages, though the pvalues are not meaningful (0.931 and negative adjusted p-values indicate a data artifact). Crucially, the absence of markers for other top candidates (e.g., no CD3D/CD8A for T cells, no FCGR3A/FGFBP2 for NK, no CD14 for monocytes, no S100A8/A9 for neutrophils) supports alveolar macrophage identity.",
+      "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+      "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+      "evidence_markers_method": "MARCO; MSR1; C1QA; TREM2; MS4A4A; MS4A14; TFEC; ACP5; FCAR; SNX10",
+      "evidence_terms_method": null,
+      "predicted_label": "alveolar macrophage",
+      "cl_id": "CL:0000583",
+      "rationale": "The marker gene list is dominated by classic alveolar macrophage (AM) markers: MARCO, MSR1, C1QA, TREM2, MS4A4A, MS4A14, TFEC, ACP5, FCAR, and SNX10. TREM2 and C1QA are also associated with disease-associated microglia/macrophages, but in the lung context, MARCO and MSR1 are highly specific for alveolar macrophages. The enriched geneRatio terms (e.g., metabolism of cofactors, glycan biosynthesis) reflect the metabolic remodelling seen in tissue-resident macrophages, though the pvalues are not meaningful (0.931 and negative adjusted p-values indicate a data artifact). Crucially, the absence of markers for other top candidates (e.g., no CD3D/CD8A for T cells, no FCGR3A/FGFBP2 for NK, no CD14 for monocytes, no S100A8/A9 for neutrophils) supports alveolar macrophage identity.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "alveolar macrophage",
+        "canonical_label": "alveolar macrophage",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000583",
+        "candidate_cl_ids": [
+          "CL:0000583"
+        ],
+        "candidate_labels": [
+          "alveolar macrophage"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000583",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "Macrophage",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": 0.25,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Alveolar macrophage, TREM2+ lipid-associated / activated macrophage, Interstitial / monocyte-derived macrophage",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": 0.25,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "macrophage",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 0.25,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "alveolar macrophage",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.25,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "alveolar macrophage",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "Macrophage",
+        "clid": "CL:0000235",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.25,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "Alveolar macrophage, TREM2+ lipid-associated / activated macrophage, Interstitial / monocyte-derived macrophage",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "macrophage",
+        "clid": "CL:0000235",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.25,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "alveolar macrophage",
+        "clid": "CL:0000583",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "alveolar macrophage",
+        "clid": "CL:0000583",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "Macrophage",
+      "Alveolar macrophage, TREM2+ lipid-associated / activated macrophage, Interstitial / monocyte-derived macrophage",
+      "macrophage",
+      "alveolar macrophage"
+    ],
+    "allowed_backoff_candidates": [
+      "mononuclear phagocyte",
+      "professional antigen presenting cell",
+      "myeloid leukocyte",
+      "phagocyte (sensu Vertebrata)",
+      "mononuclear leukocyte",
+      "leukocyte",
+      "myeloid cell",
+      "tissue-resident macrophage",
+      "lung macrophage",
+      "macrophage"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "Macrophage",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "Macrophage",
+          "canonical_label": "macrophage",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "normalized",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000235",
+          "candidate_cl_ids": [
+            "CL:0000235"
+          ],
+          "candidate_labels": [
+            "macrophage"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000235",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Macrophage",
+          "Alveolar macrophage, TREM2+ lipid-associated / activated macrophage, Interstitial / monocyte-derived macrophage"
+        ],
+        "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+        "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+        "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+        "evidence_markers_method": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+        "reasoning_short": null
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "macrophage",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "macrophage",
+          "canonical_label": "macrophage",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000235",
+          "candidate_cl_ids": [
+            "CL:0000235"
+          ],
+          "candidate_labels": [
+            "macrophage"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000235",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "macrophage",
+          "alveolar macrophage"
+        ],
+        "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+        "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+        "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+        "evidence_markers_method": "MARCO, MSR1, C1QA, FCAR, IQSEC1, ACP5, TREM2, SNX10, TXNDC17, MS4A4A, TFEC, ALOX5, EIF4E2, RAPGEF5, ZFYVE28",
+        "reasoning_short": "In-house top1=macrophage; top markers=MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "alveolar macrophage",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "alveolar macrophage",
+          "canonical_label": "alveolar macrophage",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000583",
+          "candidate_cl_ids": [
+            "CL:0000583"
+          ],
+          "candidate_labels": [
+            "alveolar macrophage"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000583",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "alveolar macrophage"
+        ],
+        "evidence_markers_std": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+        "evidence_terms_std": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+        "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861",
+        "evidence_markers_method": "MARCO; MSR1; C1QA; TREM2; MS4A4A; MS4A14; TFEC; ACP5; FCAR; SNX10",
+        "evidence_terms_method": null,
+        "reasoning_short": "The marker gene list is dominated by classic alveolar macrophage (AM) markers: MARCO, MSR1, C1QA, TREM2, MS4A4A, MS4A14, TFEC, ACP5, FCAR, and SNX10. TREM2 and C1QA are also associated with disease-associated microglia/macrophages, but in the lung context, MARCO and MSR1 are highly specific for alveolar macrophages. The enriched geneRatio terms (e.g., metabolism of cofactors, glycan biosynthesis) reflect the metabolic remodelling seen in tissue-resident macrophages, though the pvalues are not meaningful (0.931 and negative adjusted p-values indicate a data artifact). Crucially, the absence of markers for other top candidates (e.g., no CD3D/CD8A for T cells, no FCGR3A/FGFBP2 for NK, no CD14 for monocytes, no S100A8/A9 for neutrophils) supports alveolar macrophage identity."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "enrichment_terms": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+      "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_6, population: lung.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "MT1HL1",
+              "ZFYVE28",
+              "DBR1",
+              "FRMPD2",
+              "BPIFB3",
+              "PROSER3",
+              "GADD45G",
+              "FKBP9",
+              "MARCO",
+              "KHDRBS1",
+              "MSR1",
+              "C1QA",
+              "FCAR",
+              "FAM72A",
+              "TOMM40",
+              "NDNF",
+              "AP2A2",
+              "IQSEC1",
+              "KCNE2",
+              "PDIA4",
+              "ACP5",
+              "NUP210",
+              "TREM2",
+              "MEA1",
+              "EIF4E2",
+              "SNX10",
+              "MS4A14",
+              "TXNDC17",
+              "PGAP4",
+              "MS4A4A",
+              "RFESD",
+              "THAP12",
+              "GLIPR1L1",
+              "U2SURP",
+              "PAQR8",
+              "RAPGEF5",
+              "ZPBP2",
+              "WASF3",
+              "TFEC",
+              "ALOX5",
+              "MCL1",
+              "TTYH1",
+              "ADTRP",
+              "ADM5",
+              "LARP1",
+              "KCNIP1",
+              "SLC45A3",
+              "FPR1",
+              "SLC11A1",
+              "ARID5B"
+            ]
+          }
+        },
+        "scope_profile": "whole_tissue",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "immune_activation": [
+              "Innate Immune System",
+              "Immune System"
+            ]
+          },
+          "programs_from_markers": {
+            "transport_program_markers": [
+              "SNX10",
+              "SLC45A3",
+              "SLC11A1"
+            ],
+            "secretory_program_markers": "IQSEC1"
+          },
+          "support_level": {
+            "epithelial": "none",
+            "transport": "strong",
+            "secretory": "weak"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 95,
+            "in_scope_count": 95,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "unknown": 89,
+              "neural_glial": 11,
+              "immune": 12
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [],
+            "cellular_components": [],
+            "molecular_functions": "amyloid-beta binding",
+            "kegg_pathways": [],
+            "reactome_pathways": [
+              "Innate Immune System",
+              "Immune System",
+              "Scavenging by Class A Receptors",
+              "Binding and Uptake of Ligands by Scavenger Receptors",
+              "Biosynthesis of DPAn-3-derived 13-series resolvins",
+              "ISG15 antiviral mechanism",
+              "Biosynthesis of DPAn-3-derived maresins",
+              "Biosynthesis of DPAn-3-derived protectins and resolvins",
+              "Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives",
+              "Biosynthesis of aspirin-triggered D-series resolvins"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: NUP210, PDIA4",
+            "disease_associations_do": [],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "39560475",
+                "39758026",
+                "34100896",
+                "25398611",
+                "35957916",
+                "34223696",
+                "37175711",
+                "38163861",
+                "38480611",
+                "35359458",
+                "22427062",
+                "35445016",
+                "36907103",
+                "36855111",
+                "36711725",
+                "32938505",
+                "34445747",
+                "41148224",
+                "35839778",
+                "28984199",
+                "39278810",
+                "34315813",
+                "39209483",
+                "36453543",
+                "35089335"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "dendritic cell",
+              "macrophage",
+              "monocyte",
+              "myeloid cell",
+              "pancreatic ductal cell",
+              "natural killer cell",
+              "mononuclear phagocyte",
+              "microglial cell",
+              "Kupffer cell",
+              "astrocyte"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000451",
+              "CL:0000235",
+              "CL:0000576",
+              "CL:0000763",
+              "CL:0002079",
+              "CL:0000623",
+              "CL:0000113",
+              "CL:0000129",
+              "CL:0000091",
+              "CL:0000127"
+            ],
+            "Final_Score": [
+              0.3,
+              0.25,
+              0.225,
+              0.2,
+              0.2,
+              0.2,
+              0.175,
+              0.175,
+              0.175,
+              0.15
+            ],
+            "Top_Evidence_Genes": [
+              "MARCO, MSR1, C1QA, FCAR, IQSEC1, ACP5, TREM2, SNX10, TXNDC17, MS4A4A, TFEC, ALOX5",
+              "MARCO, MSR1, C1QA, FCAR, ACP5, TREM2, SNX10, TXNDC17, MS4A4A, ALOX5",
+              "MARCO, MSR1, C1QA, FCAR, IQSEC1, ACP5, SNX10, TFEC, ALOX5",
+              "MARCO, MSR1, C1QA, FCAR, ACP5, TREM2, MS4A4A, TFEC",
+              "MSR1, C1QA, ACP5, EIF4E2, SNX10, TXNDC17, RAPGEF5, ALOX5",
+              "ZFYVE28, KHDRBS1, PDIA4, NUP210, MEA1, EIF4E2, SNX10, TXNDC17, THAP12, U2SURP",
+              "MARCO, MSR1, C1QA, FCAR, ACP5, TREM2, MS4A4A",
+              "C1QA, TREM2, TXNDC17, MS4A4A, PAQR8, TFEC, ALOX5",
+              "MARCO, MSR1, C1QA, AP2A2, SNX10, MS4A4A, ALOX5",
+              "ZFYVE28, GADD45G, C1QA, PDIA4, PAQR8, RAPGEF5"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 12,
+        "n_degs_available": 50,
+        "top_evidence_genes_count": 24
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "MT1HL1, ZFYVE28, DBR1, FRMPD2, BPIFB3, PROSER3, GADD45G, FKBP9, MARCO, KHDRBS1, MSR1, C1QA, FCAR, FAM72A, TOMM40, NDNF, AP2A2, IQSEC1, KCNE2, PDIA4, ACP5, NUP210, TREM2, MEA1, EIF4E2, SNX10, MS4A14, TXNDC17, PGAP4, MS4A4A, RFESD, THAP12, GLIPR1L1, U2SURP, PAQR8, RAPGEF5, ZPBP2, WASF3, TFEC, ALOX5, MCL1, TTYH1, ADTRP, ADM5, LARP1, KCNIP1, SLC45A3, FPR1, SLC11A1, ARID5B",
+      "enrichment_terms": "Innate Immune System; Immune System; Scavenging by Class A Receptors; Binding and Uptake of Ligands by Scavenger Receptors; Biosynthesis of DPAn-3-derived 13-series resolvins; ISG15 antiviral mechanism; Biosynthesis of DPAn-3-derived maresins; Biosynthesis of DPAn-3-derived protectins and resolvins; Biosynthesis of electrophilic ω-3 PUFA oxo-derivatives; Biosynthesis of aspirin-triggered D-series resolvins",
+      "pmids_top": "39560475, 39758026, 34100896, 25398611, 35957916, 34223696, 37175711, 38163861"
+    }
+  },
+  "cluster_id": "cluster_6"
+}

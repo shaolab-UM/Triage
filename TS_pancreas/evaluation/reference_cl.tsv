@@ -1,0 +1,11 @@
+cluster_id	published_reference_annotation	reference_cl_term	reference_cl_id
+cluster_1	B cell	B cell	CL:0000236
+cluster_10	type B pancreatic cell	type B pancreatic cell	CL:0000169
+cluster_2	CD8-positive, alpha-beta T cell	CD8-positive, alpha-beta T cell	CL:0000625
+cluster_3	classical monocyte	classical monocyte	CL:0000860
+cluster_4	endothelial cell	endothelial cell	CL:0000115
+cluster_5	fibroblast	fibroblast	CL:0000057
+cluster_6	macrophage	macrophage	CL:0000235
+cluster_7	pancreatic acinar cell	pancreatic acinar cell	CL:0002064
+cluster_8	pancreatic ductal cell	pancreatic ductal cell	CL:0002079
+cluster_9	pancreatic stellate cell	pancreatic stellate cell	CL:0002410

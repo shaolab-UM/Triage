@@ -1,0 +1,101 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_2",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "basal cell",
+    "final_cell_ontology_id": "CL:0000646",
+    "confidence_primary": 0.72
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Airway basal epithelial cell / basal progenitor",
+      "cell_ontology_id": "CL:0002633",
+      "strengths": [
+        "Correctly points to a basal epithelial identity; supported by TP63, KRTAP19-8, PKP1, DSC1, CDH3, FERMT1."
+      ],
+      "weaknesses": [
+        "Adds airway/respiratory specificity that is not positively supported by airway-specific markers; CL:0002633 cannot be distinguished from other basal epithelia with the observed evidence."
+      ],
+      "reviewer_cl_id": "CL:0002633"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Epithelial label is supported by epithelial/basal markers; rank-2 basal cell (CL:0000646) matches the supported specificity."
+      ],
+      "weaknesses": [
+        "Top-1 'epithelial cell' is too broad and under-weights the strong TP63/KRTAP19-8/PKP1/DSC1 basal and keratinizing signal."
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Basal epithelial cell (airway) with potential squamous differentiation",
+      "cell_ontology_id": "CL:0002329",
+      "strengths": [
+        "Recognizes basal identity and the squamous/keratinizing differentiation component (PKP1, DSC1, KRTAP19-8; keratinization, cornified envelope)."
+      ],
+      "weaknesses": [
+        "Adds airway/tracheobronchial or prostate anatomical specificity without direct site-specific marker support; mapping to CL:0002329 is therefore unsupported."
+      ],
+      "reviewer_cl_id": "CL:0002329"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "TP63, KRTAP19-8, PKP1, DSC1, CDH3, FERMT1 are direct DEGs positively supporting a basal epithelial identity (CL:0000646).",
+      "Keratinization and cornified-envelope enrichment together with PKP1/DSC1/KRTAP19-8 support a keratinizing/squamous differentiation state within the same basal population.",
+      "PMID 35957916 is an allowed literature citation associated with the basal/epithelial marker evidence."
+    ],
+    "conflicting": [
+      "No airway-specific markers (e.g., KRT5/KRT14/NGFR) or prostate-specific markers (e.g., NKX3-1) are observed, so CL:0002633 and CL:0002329 anatomical refinements are unsupported.",
+      "FGFBP2 and PDCD1LG2 are immune-associated genes but lack a complete T/NK program",
+      "treated as minor ambient/contamination signals."
+    ],
+    "enrichment_or_literature": [
+      "Keratinization",
+      "Formation of the cornified envelope",
+      "skin epidermis development (support keratinizing squamous program)",
+      "PMID 35957916."
+    ],
+    "cited_pmids": [
+      "35957916"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 2
+  },
+  "evaluation": {
+    "published_reference_annotation": "basal cell",
+    "reference_cl_term": "basal cell",
+    "reference_cl_id": "CL:0000646",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_2_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

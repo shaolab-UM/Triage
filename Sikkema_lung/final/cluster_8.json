@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_8",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "monocyte",
+    "final_cell_ontology_id": "CL:0000576",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Myeloid lineage — monocyte/macrophage (mononuclear phagocyte)",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "Correctly identifies the myeloid lineage based on observed FCN1, S100A12, VCAN, LILRB1, MS4A6A, and CLEC4A.",
+        "Top-k includes classical CD14+ monocyte / FCN1+ monocyte, consistent with the final refined identity."
+      ],
+      "weaknesses": [
+        "Mapped to broadly generic CL:0000763 (myeloid cell), which is a valid ancestor but not the most specific supported identity.",
+        "Does not commit to monocyte/classical monocyte despite FCN1 and S100A12 evidence."
+      ],
+      "reviewer_cl_id": "CL:0000763"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "monocyte",
+      "cell_ontology_id": "CL:0000576",
+      "strengths": [
+        "Exact ontology match CL:0000576 is supported by observed monocyte markers FCN1, S100A12, AQP9, LST1, CLEC4A, and PLAUR.",
+        "Top-2 classical monocyte (CL:0000860) provides a hierarchical refinement directly supported by FCN1/S100A12."
+      ],
+      "weaknesses": [
+        "Top-1 'monocyte' is accurate but slightly less specific than the FCN1/S100A12-supported classical monocyte label."
+      ],
+      "reviewer_cl_id": "CL:0000576"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Monocyte-derived macrophage",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Recognizes the monocyte/macrophage lineage from FCN1, S100A12, VCAN, CLEC4A, and CPVL.",
+        "Correctly notes the absence of classic tissue-macrophage markers such as CD68 and CD163."
+      ],
+      "weaknesses": [
+        "Top-1 'Monocyte-derived macrophage' is not directly supported and lacks an ontology mapping; no CD68/CD163/CSF1R evidence favors a macrophage branch.",
+        "Includes liver-specific Kupffer cell candidate CL:4072015 without hepatic tissue evidence, representing an unsupported non-hierarchical branch."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Observed positive DEGs FCN1, S100A12, AQP9, LST1, CLEC4A, and PLAUR support a monocyte/classical monocyte identity",
+      "FCN1 and S100A12 are canonical classical monocyte markers, supporting refinement to CL:0000860.",
+      "PMID 39560475 links FCN1+ classical monocyte identity in human scRNA-seq."
+    ],
+    "conflicting": [
+      "Enrichment's 'Monocyte-derived macrophage' top-1 label is unsupported: CD68, CD163, and CSF1R are absent from the observed marker list.",
+      "Kupffer cell candidate CL:4072015 is liver-specific and incompatible with the lung tissue context without additional hepatic evidence.",
+      "CASSIA's CL:0000763 myeloid cell label is a valid ancestor but does not capture the observed FCN1/S100A12 classical monocyte specificity."
+    ],
+    "enrichment_or_literature": [
+      "Innate Immune System and Neutrophil degranulation enrichment are consistent with an innate myeloid/classical monocyte program.",
+      "PMID 39560475 supports FCN1-based classical monocyte annotation in human immune cell transcriptomics."
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "monocyte",
+    "reference_cl_term": "monocyte",
+    "reference_cl_id": "CL:0000576",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_8_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

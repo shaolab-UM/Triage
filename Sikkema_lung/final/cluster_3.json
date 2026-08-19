@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_3",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "endothelial cell",
+    "final_cell_ontology_id": "CL:0000115",
+    "confidence_primary": 0.78
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "endothelial cell",
+      "cell_ontology_id": "CL:0000115",
+      "strengths": [
+        "Correctly anchors the endothelial lineage using VWF, TIE1, FLT1, EDN1, CALCRL, PRCP, FOXF1.",
+        "Recognizes the aerocyte/pulmonary capillary signature (SLC6A4, AOC2, EMID1, KIRREL3, HYAL2, SLCO4A1, PRX, AGER).",
+        "Excludes alveolar epithelial and immune alternatives despite AGER/CCL3 presence."
+      ],
+      "weaknesses": [
+        "Top1 remains the broader CL:0000115 even though the same evidence supports the descendant CL:4028001.",
+        "Top-ranked markers include non-endothelial genes (SMG8, CCL3, ciliary genes) without fully explaining their presence."
+      ],
+      "reviewer_cl_id": "CL:0000115"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "endothelial cell",
+      "cell_ontology_id": "CL:0000115",
+      "strengths": [
+        "Conservative and correctly mapped to the exact majority CLID CL:0000115.",
+        "Consistent with canonical endothelial evidence from the same marker list."
+      ],
+      "weaknesses": [
+        "Does not capture the pulmonary capillary specialization supported by SLC6A4/AOC2/EMID1/KIRREL3/HYAL2/SLCO4A1/PRX/AGER.",
+        "Ignores granularity available in the original marker evidence."
+      ],
+      "reviewer_cl_id": "CL:0000115"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "pulmonary capillary endothelial cell",
+      "cell_ontology_id": "CL:4028001",
+      "strengths": [
+        "Explicitly proposes the pulmonary capillary endothelial subtype, matching the supported aerocyte signature.",
+        "Correctly prioritizes VWF, TIE1, ROBO3, KIRREL3, EMID1, CALCRL for endothelial identity.",
+        "Reasonably excludes immune and epithelial candidates based on absence of CD3D/CD68/EPCAM."
+      ],
+      "weaknesses": [
+        "Top1 label 'Pulmonary vascular endothelial cell (likely capillary endothelial subtype)' is non-canonical and unmapped.",
+        "Candidate list includes alveolar epithelial/fibroblast options, creating ambiguity even though those are unsupported.",
+        "Mapping status was 'review', so CL:4028001 was only a registry candidate rather than a deterministic exact match."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "VWF, TIE1, FLT1, EDN1, GPER1, CALCRL, PRCP, FOXF1 are canonical endothelial markers and establish the dominant endothelial lineage.",
+      "SLC6A4, AOC2, EMID1, KIRREL3, HYAL2, SLCO4A1, PRX, AGER form an aerocyte/pulmonary capillary endothelial signature, directly supporting the added capillary/pulmonary components of CL:4028001 (PMID 31840817).",
+      "Absence of EPCAM, CD3D, and CD68 and lack of a broad AT1/AT2 program exclude the alveolar epithelial candidate despite shared AGER expression."
+    ],
+    "conflicting": [
+      "Top-ranked non-endothelial DEGs (SMG8, CCL3, GPN2, NIPSNAP1, SPATA42, DNAH1, CFAP221, DYNLT2B, LRRIQ3) create minor noise and a possible low-level ciliated/immune signal.",
+      "AGER is also a classical alveolar type 1 marker, but the overall combination of aerocyte markers favors pulmonary capillary endothelium over alveolar epithelium."
+    ],
+    "enrichment_or_literature": [
+      "Reactome terms (Intrinsic Pathway of Fibrin Clot Formation, Glycosaminoglycan metabolism, SLC-mediated transmembrane transport) are consistent with endothelial/vascular biology but are not lineage-specific.",
+      "PMID 31840817 supports the pulmonary capillary/aerocyte interpretation of the observed marker combination in human lung."
+    ],
+    "cited_pmids": [
+      "31840817"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "capillary endothelial cell",
+    "reference_cl_term": "capillary endothelial cell",
+    "reference_cl_id": "CL:0002144",
+    "cl_similarity": 79.1260640546
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_3_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

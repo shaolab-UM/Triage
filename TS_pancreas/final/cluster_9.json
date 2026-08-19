@@ -1,0 +1,98 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_9",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "pancreatic stellate cell",
+    "final_cell_ontology_id": "CL:0002410",
+    "confidence_primary": 0.7
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Pancreatic acinar / exocrine epithelial cell",
+      "cell_ontology_id": "CL:0002064",
+      "strengths": [
+        "Maps to an exact ontology term and considers a pancreatic epithelial candidate."
+      ],
+      "weaknesses": [
+        "No canonical acinar markers (PRSS1, CPA1, CELA3A) are present in the DEG list; top markers ACTA2/DCN/GFRA2 point to stellate/mesenchymal rather than acinar identity."
+      ],
+      "reviewer_cl_id": "CL:0002064"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "cell of skeletal muscle",
+      "cell_ontology_id": "CL:0000188",
+      "strengths": [
+        "Detects muscle-associated signal via ACTA2, HSPB6, JPH2 and includes smooth muscle cell as a rank-2 candidate."
+      ],
+      "weaknesses": [
+        "No skeletal muscle myogenic markers (MYOD1, MYOG, DES, TNNT2/TNNI2) are present; the skeletal muscle top1 is unsupported, and the PSC branch is better supported by DCN/GFRA2 in pancreatic context."
+      ],
+      "reviewer_cl_id": "CL:0000188"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+      "cell_ontology_id": "CL:0002410",
+      "strengths": [
+        "Directly uses positive markers ACTA2, DCN, GFRA2, HSPB6 to support activated pancreatic stellate identity; correctly notes absence of acinar/endocrine/ductal markers."
+      ],
+      "weaknesses": [
+        "The DEG list is noisy and includes some non-mesenchymal genes (ELF3, CDX1, PMFBP1), so the PSC assignment rests on a subset of the observed markers."
+      ],
+      "reviewer_cl_id": "CL:0002410"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Positive DEGs ACTA2, DCN, GFRA2, HSPB6, RASL12, JPH2 in cluster_9 support activated pancreatic stellate/mesenchymal identity (PMID 38092774).",
+      "No canonical acinar DEGs (PRSS1, CPA1, CELA3A) are present in the original DEG list, so the acinar branch is unsupported.",
+      "No skeletal muscle DEGs (MYOD1, MYOG, DES, TNNT2/TNNI2) are present, so the skeletal muscle branch is unsupported."
+    ],
+    "conflicting": [
+      "The DEG list also contains ELF3, CDX1, BPIFA3, PMFBP1, PLA2G2E, SPACA1, which are not expected in pancreatic stellate cells and may represent ambient/noise or minor contamination.",
+      "Step1 lineage mapping for the original markers is largely 'unknown', so the PSC signature rests on a subset of the DEG list."
+    ],
+    "enrichment_or_literature": [
+      "Reactome enrichment terms (Metabolism, Glycosaminoglycan metabolism, Signal Transduction, Interleukin-38 signaling, MyD88/IRAK4 deficiency) are compatible with an activated stromal/inflammatory state.",
+      "PMID 38092774 is cited as allowed literature context for the stellate/mesenchymal marker interpretation."
+    ],
+    "cited_pmids": [
+      "38092774"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "pancreatic stellate cell",
+    "reference_cl_term": "pancreatic stellate cell",
+    "reference_cl_id": "CL:0002410",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_9_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

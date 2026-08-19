@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zheng_blood",
+  "cluster_id": "cluster_7",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "hematopoietic precursor cell",
+    "final_cell_ontology_id": "CL:0008001",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Hematopoietic stem/progenitor cell (HSPC)",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies the dominant CD34+GATA2+HOXA9+ HSPC program using CD34, GATA2, HOXA9, CRHBP, EGFL7, LYL1, HHEX.",
+        "Correctly treats FCER1A/LYZ/IL1B as lineage priming rather than a mature DC/monocyte assignment."
+      ],
+      "weaknesses": [
+        "Composite stem/progenitor label cannot map to a single CL term.",
+        "Proposed HSC CL:0000037 lacks decisive HSC-versus-progenitor branch evidence from the original markers."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "hematopoietic precursor cell",
+      "cell_ontology_id": "CL:0008001",
+      "strengths": [
+        "Exact, clean ontology mapping to CL:0008001.",
+        "Broad hematopoietic precursor label captures the dominant CD34+ HSPC identity without over-committing to an unsupported HSC or early-myeloid branch.",
+        "Consistent with absence of mature lymphoid, monocyte, and dendritic cell markers."
+      ],
+      "weaknesses": [
+        "Less specific than possible descendant terms; lineage priming is reflected only in secondary signals."
+      ],
+      "reviewer_cl_id": "CL:0008001"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Hematopoietic Stem/Progenitor Cell (HSPC) / Early Myeloid Progenitor",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes the HSPC program and notes the absence of mature lineage markers.",
+        "Acknowledges low-level FCER1A/LYZ/IL1B signals as lineage priming rather than committed identity."
+      ],
+      "weaknesses": [
+        "'Early Myeloid Progenitor' is not directly supported because the primitive CD34/GATA2/HOXA9/CRHBP/EGFL7 signature is dominant.",
+        "Candidate mappings to CL:0002031/CL:0002032 are ambiguous and lack direct lineage-restricted/oligopotent support."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CD34, GATA2, HOXA9, CRHBP, EGFL7, LYL1, HHEX, SPINK2, PRSS57 support a CD34+ hematopoietic precursor/HSPC identity.",
+      "PMID 37407551 provides allowed literature support for the HSPC interpretation of this marker program."
+    ],
+    "conflicting": [
+      "FCER1A, LYZ, IL1B, AIF1, LST1 are potential myeloid/DC/monocyte signals but are outweighed by the primitive CD34+ HSPC program and interpreted as lineage priming.",
+      "NFE2 and MPP1 indicate weak erythroid/megakaryocytic priming but are insufficient to call megakaryocyte-erythroid progenitor identity.",
+      "No mature lineage markers such as CD3, CD19, CD14, or CD56 are present."
+    ],
+    "enrichment_or_literature": [
+      "Retrieved literature PMID 37407551 supports the CD34+ HSPC annotation.",
+      "PMID 34135910 was also retrieved and is consistent with primitive hematopoietic progenitor programs."
+    ],
+    "cited_pmids": [
+      "37407551",
+      "34135910"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "hematopoietic stem cell",
+    "reference_cl_term": "hematopoietic stem cell",
+    "reference_cl_id": "CL:0000037",
+    "cl_similarity": 76.0971911039702
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_7_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

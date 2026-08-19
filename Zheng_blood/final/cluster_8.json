@@ -1,0 +1,108 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zheng_blood",
+  "cluster_id": "cluster_8",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "naive T cell",
+    "final_cell_ontology_id": "CL:0000898",
+    "confidence_primary": 0.88
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Correctly establishes T-cell lineage from CD3E, CD3D, LCK, LAT, CD7, LTB.",
+        "Recognizes the naive/resting state via LEF1, CCR7, MAL, PIK3IP1, SELL, CD27.",
+        "Avoids CD4 commitment in the primary top1 label."
+      ],
+      "weaknesses": [
+        "Top1 remains at the T-cell ancestor level rather than the supported naive T-cell refinement.",
+        "Top2 composite label includes CD4+ naive/central memory components without direct CD4 or memory markers in the DEG list."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "naive T cell",
+      "cell_ontology_id": "CL:0000898",
+      "strengths": [
+        "Provides the clean supported refinement to naive T cell without adding unsupported CD4/CD8 or central-memory components.",
+        "Supported by the same core markers: LEF1, CCR7, MAL, PIK3IP1, SELL, CD27 plus T-lineage genes CD3E/CD3D/LCK/LAT.",
+        "Conservative and consistent with the absence of activation, cytotoxic, NK, B-cell, and myeloid markers."
+      ],
+      "weaknesses": [
+        "Top1 label is the broader T cell, leaving the more informative naive T-cell call in the second rank.",
+        "Does not resolve CD4 vs CD8, but this is appropriately conservative given the marker evidence."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Naive/Mature CD4+ T cell (central memory-like)",
+      "cell_ontology_id": "CL:0000898",
+      "strengths": [
+        "Correctly recognizes the naive T-cell state and maps to CL:0000898.",
+        "Correctly notes absence of cytotoxic and NK markers such as GZMB, PRF1, FCGR3A, FGFBP2.",
+        "Identifies LEF1/CCR7/SELL/CD27 as consistent with a naive/resting T-cell program."
+      ],
+      "weaknesses": [
+        "Adds CD4+ and central-memory-like components that are not directly supported by cluster-level markers; no CD4 or CD8 lineage markers are present.",
+        "CCR7/SELL/CD27 are shared with central memory T cells, so the central-memory component is not positively supported.",
+        "Overstates lineage confidence relative to the observed DEG evidence."
+      ],
+      "reviewer_cl_id": "CL:0000898"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CD3E, CD3D, LCK, LAT, CD7, LTB establish T-cell lineage.",
+      "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27 directly support the naive/resting T-cell refinement.",
+      "Naive T-cell identity is consistent with the observed absence of effector/cytotoxic markers and with PMID 36658547."
+    ],
+    "conflicting": [
+      "No CD4 or CD8 lineage-defining markers are present among the DEGs, so CD4+ specificity in the enrichment label is unsupported.",
+      "CCR7/SELL/CD27 are shared with central memory T cells, so the central-memory-like component is not positively supported at cluster level."
+    ],
+    "enrichment_or_literature": [
+      "Dossier enrichment terms: T cell differentiation, T cell receptor signaling pathway, alpha-beta T cell receptor complex, TCR signaling, KEGG hsa04658/hsa04659.",
+      "Literature evidence retrieved in dossier includes PMID 36658547 supporting T-cell identity."
+    ],
+    "cited_pmids": [
+      "36658547"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "naive thymus-derived CD4-positive, alpha-beta T cell",
+    "reference_cl_term": "naive thymus-derived CD4-positive, alpha-beta T cell",
+    "reference_cl_id": "CL:0000895",
+    "cl_similarity": 89.016351275355
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_8_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

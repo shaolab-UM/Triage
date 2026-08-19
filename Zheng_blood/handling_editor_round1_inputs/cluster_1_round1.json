@@ -1,0 +1,1066 @@
+{
+  "query_id": "cluster_1_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["34680286", "30218476", "28659920", "37794420", "39592577", "38812540", "36177915", "34876062", "38010064", "31015447", "34126969", "33171100", "35055093", "34497389", "35113934", "34887858", "40274959", "39885523", "35411050", "35118195", "28251903", "28819565", "32075964", "33679883", "38531930"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["34680286", "30218476", "28659920", "37794420", "39592577", "38812540", "36177915", "34876062", "38010064", "31015447", "34126969", "33171100", "35055093", "34497389", "35113934", "34887858", "40274959", "39885523", "35411050", "35118195", "28251903", "28819565", "32075964", "33679883", "38531930"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "B lymphocytes / B cells",
+        "clid": "CL:0000236",
+        "canonical_label": "B cell",
+        "direct_parents": [],
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "B cell",
+        "clid": "CL:0000236",
+        "canonical_label": "B cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "naive B cell",
+        "clid": "CL:0000788",
+        "canonical_label": "naive B cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "Mature naïve B cell",
+        "clid": "CL:0000785",
+        "canonical_label": "mature B cell",
+        "direct_parents": [],
+        "mapping_status": "parent_only",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "submitted_label": "mature B cell",
+        "clid": "CL:0000785",
+        "canonical_label": "mature B cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "submitted_label": "mature natural killer cell",
+        "clid": "CL:0000824",
+        "canonical_label": "mature natural killer cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": "CL:0000236",
+      "label": "B cell",
+      "votes": 2,
+      "n_reviewers": 3,
+      "fraction": 0.6667
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000236",
+        "label_a": "B cell",
+        "clid_b": "CL:0000788",
+        "label_b": "naive B cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000236",
+        "lca_label": "B cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0000236",
+        "label_a": "B cell",
+        "clid_b": "CL:0000785",
+        "label_b": "mature B cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000236",
+        "lca_label": "B cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 2
+      },
+      {
+        "clid_a": "CL:0000236",
+        "label_a": "B cell",
+        "clid_b": "CL:0000824",
+        "label_b": "mature natural killer cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000542",
+        "lca_label": "lymphocyte",
+        "a_distance_to_lca": 2,
+        "b_distance_to_lca": 4
+      },
+      {
+        "clid_a": "CL:0000788",
+        "label_a": "naive B cell",
+        "clid_b": "CL:0000785",
+        "label_b": "mature B cell",
+        "relation": "b_is_ancestor_of_a",
+        "lca_clid": "CL:0001201",
+        "lca_label": "B cell, CD19-positive",
+        "a_distance_to_lca": 2,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0000788",
+        "label_a": "naive B cell",
+        "clid_b": "CL:0000824",
+        "label_b": "mature natural killer cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000542",
+        "lca_label": "lymphocyte",
+        "a_distance_to_lca": 5,
+        "b_distance_to_lca": 4
+      },
+      {
+        "clid_a": "CL:0000785",
+        "label_a": "mature B cell",
+        "clid_b": "CL:0000824",
+        "label_b": "mature natural killer cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000542",
+        "lca_label": "lymphocyte",
+        "a_distance_to_lca": 4,
+        "b_distance_to_lca": 4
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "B lymphocytes / B cells",
+      "topk_cell_types": [
+        "B lymphocytes / B cells",
+        "Naïve mature B cells (CD23⁺ TCL1A⁺ CD27⁻ B cells), Unswitched / marginal-zone-like memory B cells (CD27⁺ IgD⁺ IgM⁺), Transitional / immature B cells",
+        "B cell",
+        "lymphocyte",
+        "B-lymphoblast",
+        "B-1 B cell",
+        "B-2 B cell"
+      ],
+      "cell_ontology_id": "CL:0000236",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "B lymphocytes / B cells",
+        "canonical_label": "B cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=exact",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000236",
+        "candidate_cl_ids": [
+          "CL:0000236",
+          "CL:0000542",
+          "CL:0017006",
+          "CL:0000819",
+          "CL:0000822"
+        ],
+        "candidate_labels": [
+          "B cell",
+          "lymphocyte",
+          "B-lymphoblast",
+          "B-1 B cell",
+          "B-2 B cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000236",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "reasoning_short": "The annotation is scientifically accurate and demonstrates a strong grasp of the underlying cell identity. The marker list is overwhelmingly consistent with B lymphocytes: MS4A1, CD79A, CD79B, BANK1, BLK, and CD37 are canonical B-cell markers, while FCER2 and TCL1A strongly indicate a mature naïve B-cell state in human blood. The annotation correctly does not overinterpret the high expression of HLA class II genes as evidence of dendritic cells; instead, it recognizes them as the expected antigen-presenting machinery of B cells. The reasoning is well balanced. Rather than relying on a single marker, the annotation integrates multiple lines of evidence: BCR signaling components, B-cell developmental transcription factors, MHC class II genes, and absence of T-cell, NK-cell, myeloid, and plasma-cell markers. It also considers marker ranking appropriately: the top markers FCER2 and TCL1A are decisive for the naïve B-cell interpretation, while lower-ranked genes such as SNX2, ARPC3, and CHCHD10 are not incorrectly used as lineage-defining evidence. The subtype reasoning is also sound. The absence of MZB1, XBP1, SDC1, and JCHAIN rules out plasma cells; the lack of CD27 as a top marker and the presence of FCER2/TCL1A favor naïve mature B cells over memory B cells or transitional B cells. The alternative subtypes listed are reasonable and are explicitly prioritized, with the final annotation clearly given as naïve mature B cells. Minor limitations are that some subtype-specific inferences, especially CD27 negativity, are made indirectly from absence among top markers rather than direct measurement. Additionally, the alternative subtypes in the structured output could be misread as simultaneous subtypes rather than ranked possibilities. However, these are minor issues and do not undermine the overall conclusion. Overall, the annotation captures the cell population accurately, uses markers in a balanced and biologically informed way, and provides a comprehensive and correct interpretation of the cluster.",
+      "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+      "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+      "evidence_markers_method": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "B lymphocytes / B cells",
+        "predicted_sub": "Naïve mature B cells (CD23⁺ TCL1A⁺ CD27⁻ B cells), Unswitched / marginal-zone-like memory B cells (CD27⁺ IgD⁺ IgM⁺), Transitional / immature B cells",
+        "possible_mixed": null,
+        "score": 95
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "B cell",
+      "topk_cell_types": [
+        "B cell",
+        "naive B cell"
+      ],
+      "cell_ontology_id": "CL:0000236",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "B cell",
+        "canonical_label": "B cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000236",
+        "candidate_cl_ids": [
+          "CL:0000236"
+        ],
+        "candidate_labels": [
+          "B cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000236",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "reasoning_short": "In-house top1=B cell; top markers=FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+      "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+      "evidence_markers_method": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1",
+      "raw_inputs": {
+        "main_pred": "B cell",
+        "subtype1_pred": "naive B cell",
+        "subtype2_core_pred": "naive B cell",
+        "candidate_score_main": 0.9,
+        "candidate_score_sub1": 0.55,
+        "candidate_score_sub2": 0.55
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "B cell",
+      "topk_cell_types": [
+        "B cell",
+        "naive B cell"
+      ],
+      "cell_ontology_id": "CL:0000236",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "B cell",
+        "canonical_label": "B cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000236",
+        "candidate_cl_ids": [
+          "CL:0000236"
+        ],
+        "candidate_labels": [
+          "B cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000236",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "reasoning_short": "In-house top1=B cell; top markers=FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+      "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+      "evidence_markers_method": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "Mature naïve B cell",
+      "topk_cell_types": [
+        "Mature naïve B cell",
+        "mature B cell",
+        "mature natural killer cell",
+        "mature NK T cell",
+        "mature T cell",
+        "mature alpha-beta T cell"
+      ],
+      "cell_ontology_id": "CL:0000785",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "Top markers (MS4A1, CD79A, CD79B, BANK1, VPREB3, IGLL5, TCL1A, FCER2, P2RX5, EAF2, BLK) are definitive B-cell lineage markers. Specifically, MS4A1 (CD20), CD79A/B (BCR components), and BANK1 are canonical mature B-cell markers. The absence of T-cell (CD3D/E), NK-cell (FCGR3A, FGFBP2), or plasma cell (MZB1, XBP1, SDC1) markers distinguishes this from T/NK/plasma cells. The presence of FCER2 (CD23) and TCL1A is characteristic of naïve and activated B cells, with a strong MHC class II expression signature (HLA-DRA, HLA-DQA1, HLA-DRB1, etc.) indicating antigen-presenting capability, typical of mature naïve B cells. Pathways show generic metabolism and signaling (e.g., signal transduction hsa04151) but the key support is the marker set.",
+      "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+      "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+      "evidence_markers_method": "MS4A1; CD79A; CD79B; BANK1; VPREB3; IGLL5; TCL1A; FCER2; P2RX5; EAF2; BLK; IRF8; HLA-DRA; HLA-DQA1; HLA-DRB1; HLA-DPA1",
+      "evidence_terms_method": null,
+      "predicted_label": "Mature naïve B cell",
+      "cl_id": "CL:0000785",
+      "rationale": "Top markers (MS4A1, CD79A, CD79B, BANK1, VPREB3, IGLL5, TCL1A, FCER2, P2RX5, EAF2, BLK) are definitive B-cell lineage markers. Specifically, MS4A1 (CD20), CD79A/B (BCR components), and BANK1 are canonical mature B-cell markers. The absence of T-cell (CD3D/E), NK-cell (FCGR3A, FGFBP2), or plasma cell (MZB1, XBP1, SDC1) markers distinguishes this from T/NK/plasma cells. The presence of FCER2 (CD23) and TCL1A is characteristic of naïve and activated B cells, with a strong MHC class II expression signature (HLA-DRA, HLA-DQA1, HLA-DRB1, etc.) indicating antigen-presenting capability, typical of mature naïve B cells. Pathways show generic metabolism and signaling (e.g., signal transduction hsa04151) but the key support is the marker set.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Mature naïve B cell",
+        "canonical_label": "mature B cell",
+        "mapping_status": "parent_only",
+        "mapping_decision": "verifier_accept_parent",
+        "mapping_reason": "A/B consistent; spec=exact | verifier: The label specifies 'naive' B cell, but the proposed mapping is to mature B cell, which is a broader term. The markers support B cell identity but do not distinguish naive from other mature B cell states.",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000785",
+        "candidate_cl_ids": [
+          "CL:0000785",
+          "CL:0000824",
+          "CL:0000814",
+          "CL:0002419",
+          "CL:0000791"
+        ],
+        "candidate_labels": [
+          "mature B cell",
+          "mature natural killer cell",
+          "mature NK T cell",
+          "mature T cell",
+          "mature alpha-beta T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000785",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "Mature naïve B cell",
+      "topk_cell_types": [
+        "Mature naïve B cell",
+        "mature B cell",
+        "mature natural killer cell",
+        "mature NK T cell",
+        "mature T cell",
+        "mature alpha-beta T cell"
+      ],
+      "cell_ontology_id": "CL:0000785",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "Top markers (MS4A1, CD79A, CD79B, BANK1, VPREB3, IGLL5, TCL1A, FCER2, P2RX5, EAF2, BLK) are definitive B-cell lineage markers. Specifically, MS4A1 (CD20), CD79A/B (BCR components), and BANK1 are canonical mature B-cell markers. The absence of T-cell (CD3D/E), NK-cell (FCGR3A, FGFBP2), or plasma cell (MZB1, XBP1, SDC1) markers distinguishes this from T/NK/plasma cells. The presence of FCER2 (CD23) and TCL1A is characteristic of naïve and activated B cells, with a strong MHC class II expression signature (HLA-DRA, HLA-DQA1, HLA-DRB1, etc.) indicating antigen-presenting capability, typical of mature naïve B cells. Pathways show generic metabolism and signaling (e.g., signal transduction hsa04151) but the key support is the marker set.",
+      "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+      "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+      "evidence_markers_method": "MS4A1; CD79A; CD79B; BANK1; VPREB3; IGLL5; TCL1A; FCER2; P2RX5; EAF2; BLK; IRF8; HLA-DRA; HLA-DQA1; HLA-DRB1; HLA-DPA1",
+      "evidence_terms_method": null,
+      "predicted_label": "Mature naïve B cell",
+      "cl_id": "CL:0000785",
+      "rationale": "Top markers (MS4A1, CD79A, CD79B, BANK1, VPREB3, IGLL5, TCL1A, FCER2, P2RX5, EAF2, BLK) are definitive B-cell lineage markers. Specifically, MS4A1 (CD20), CD79A/B (BCR components), and BANK1 are canonical mature B-cell markers. The absence of T-cell (CD3D/E), NK-cell (FCGR3A, FGFBP2), or plasma cell (MZB1, XBP1, SDC1) markers distinguishes this from T/NK/plasma cells. The presence of FCER2 (CD23) and TCL1A is characteristic of naïve and activated B cells, with a strong MHC class II expression signature (HLA-DRA, HLA-DQA1, HLA-DRB1, etc.) indicating antigen-presenting capability, typical of mature naïve B cells. Pathways show generic metabolism and signaling (e.g., signal transduction hsa04151) but the key support is the marker set.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Mature naïve B cell",
+        "canonical_label": "mature B cell",
+        "mapping_status": "parent_only",
+        "mapping_decision": "verifier_accept_parent",
+        "mapping_reason": "A/B consistent; spec=exact | verifier: The label specifies 'naive' B cell, but the proposed mapping is to mature B cell, which is a broader term. The markers support B cell identity but do not distinguish naive from other mature B cell states.",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000785",
+        "candidate_cl_ids": [
+          "CL:0000785",
+          "CL:0000824",
+          "CL:0000814",
+          "CL:0002419",
+          "CL:0000791"
+        ],
+        "candidate_labels": [
+          "mature B cell",
+          "mature natural killer cell",
+          "mature NK T cell",
+          "mature T cell",
+          "mature alpha-beta T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000785",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "B lymphocytes / B cells",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": 0.9,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Naïve mature B cells (CD23⁺ TCL1A⁺ CD27⁻ B cells), Unswitched / marginal-zone-like memory B cells (CD27⁺ IgD⁺ IgM⁺), Transitional / immature B cells",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": 0.9,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "B cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 0.9,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "naive B cell",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.9,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Mature naïve B cell",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": 0.55,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "mature B cell",
+          "method": "enrich",
+          "rank": 2,
+          "candidate_score": 0.55,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "mature natural killer cell",
+          "method": "enrich",
+          "rank": 3,
+          "candidate_score": 0.55,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "B lymphocytes / B cells",
+        "clid": "CL:0000236",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "Naïve mature B cells (CD23⁺ TCL1A⁺ CD27⁻ B cells), Unswitched / marginal-zone-like memory B cells (CD27⁺ IgD⁺ IgM⁺), Transitional / immature B cells",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "B cell",
+        "clid": "CL:0000236",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.9,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "naive B cell",
+        "clid": "CL:0000788",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": 0.55,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "Mature naïve B cell",
+        "clid": "CL:0000785",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "parent_only",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "label": "mature B cell",
+        "clid": "CL:0000785",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": 0.55,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "label": "mature natural killer cell",
+        "clid": "CL:0000824",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "B lymphocytes / B cells",
+      "Naïve mature B cells (CD23⁺ TCL1A⁺ CD27⁻ B cells), Unswitched / marginal-zone-like memory B cells (CD27⁺ IgD⁺ IgM⁺), Transitional / immature B cells",
+      "B cell",
+      "naive B cell",
+      "Mature naïve B cell",
+      "mature B cell",
+      "mature natural killer cell",
+      "mature NK T cell",
+      "mature T cell",
+      "mature alpha-beta T cell",
+      "lymphocyte",
+      "B-lymphoblast",
+      "B-1 B cell",
+      "B-2 B cell"
+    ],
+    "allowed_backoff_candidates": [
+      "lymphocyte of B lineage",
+      "lymphocyte",
+      "mature B cell",
+      "professional antigen presenting cell",
+      "B cell, CD19-positive",
+      "leukocyte",
+      "B cell",
+      "lymphocyte of B lineage, CD19-positive",
+      "natural killer cell",
+      "group 1 innate lymphoid cell",
+      "mature alpha-beta T cell",
+      "alpha-beta T cell",
+      "mature T cell",
+      "T cell",
+      "mononuclear leukocyte",
+      "single nucleate cell",
+      "lymphoblast"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "B lymphocytes / B cells",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "B lymphocytes / B cells",
+          "canonical_label": "B cell",
+          "mapping_status": "mapped_evidence",
+          "mapping_decision": "accept_after_verifier",
+          "mapping_reason": "A/B consistent; spec=exact",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000236",
+          "candidate_cl_ids": [
+            "CL:0000236",
+            "CL:0000542",
+            "CL:0017006",
+            "CL:0000819",
+            "CL:0000822"
+          ],
+          "candidate_labels": [
+            "B cell",
+            "lymphocyte",
+            "B-lymphoblast",
+            "B-1 B cell",
+            "B-2 B cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000236",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "B lymphocytes / B cells",
+          "Naïve mature B cells (CD23⁺ TCL1A⁺ CD27⁻ B cells), Unswitched / marginal-zone-like memory B cells (CD27⁺ IgD⁺ IgM⁺), Transitional / immature B cells"
+        ],
+        "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+        "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+        "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+        "evidence_markers_method": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+        "reasoning_short": "The annotation is scientifically accurate and demonstrates a strong grasp of the underlying cell identity. The marker list is overwhelmingly consistent with B lymphocytes: MS4A1, CD79A, CD79B, BANK1, BLK, and CD37 are canonical B-cell markers, while FCER2 and TCL1A strongly indicate a mature naïve B-cell state in human blood. The annotation correctly does not overinterpret the high expression of HLA class II genes as evidence of dendritic cells; instead, it recognizes them as the expected antigen-presenting machinery of B cells. The reasoning is well balanced. Rather than relying on a single marker, the annotation integrates multiple lines of evidence: BCR signaling components, B-cell developmental transcription factors, MHC class II genes, and absence of T-cell, NK-cell, myeloid, and plasma-cell markers. It also considers marker ranking appropriately: the top markers FCER2 and TCL1A are decisive for the naïve B-cell interpretation, while lower-ranked genes such as SNX2, ARPC3, and CHCHD10 are not incorrectly used as lineage-defining evidence. The subtype reasoning is also sound. The absence of MZB1, XBP1, SDC1, and JCHAIN rules out plasma cells; the lack of CD27 as a top marker and the presence of FCER2/TCL1A favor naïve mature B cells over memory B cells or transitional B cells. The alternative subtypes listed are reasonable and are explicitly prioritized, with the final annotation clearly given as naïve mature B cells. Minor limitations are that some subtype-specific inferences, especially CD27 negativity, are made indirectly from absence among top markers rather than direct measurement. Additionally, the alternative subtypes in the structured output could be misread as simultaneous subtypes rather than ranked possibilities. However, these are minor issues and do not undermine the overall conclusion. Overall, the annotation captures the cell population accurately, uses markers in a balanced and biologically informed way, and provides a comprehensive and correct interpretation of the cluster."
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "B cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "B cell",
+          "canonical_label": "B cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000236",
+          "candidate_cl_ids": [
+            "CL:0000236"
+          ],
+          "candidate_labels": [
+            "B cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000236",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "B cell",
+          "naive B cell"
+        ],
+        "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+        "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+        "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+        "evidence_markers_method": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1",
+        "reasoning_short": "In-house top1=B cell; top markers=FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "Mature naïve B cell",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "Mature naïve B cell",
+          "canonical_label": "mature B cell",
+          "mapping_status": "parent_only",
+          "mapping_decision": "verifier_accept_parent",
+          "mapping_reason": "A/B consistent; spec=exact | verifier: The label specifies 'naive' B cell, but the proposed mapping is to mature B cell, which is a broader term. The markers support B cell identity but do not distinguish naive from other mature B cell states.",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000785",
+          "candidate_cl_ids": [
+            "CL:0000785",
+            "CL:0000824",
+            "CL:0000814",
+            "CL:0002419",
+            "CL:0000791"
+          ],
+          "candidate_labels": [
+            "mature B cell",
+            "mature natural killer cell",
+            "mature NK T cell",
+            "mature T cell",
+            "mature alpha-beta T cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000785",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Mature naïve B cell",
+          "mature B cell",
+          "mature natural killer cell",
+          "mature NK T cell",
+          "mature T cell",
+          "mature alpha-beta T cell"
+        ],
+        "evidence_markers_std": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+        "evidence_terms_std": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+        "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062",
+        "evidence_markers_method": "MS4A1; CD79A; CD79B; BANK1; VPREB3; IGLL5; TCL1A; FCER2; P2RX5; EAF2; BLK; IRF8; HLA-DRA; HLA-DQA1; HLA-DRB1; HLA-DPA1",
+        "evidence_terms_method": null,
+        "reasoning_short": "Top markers (MS4A1, CD79A, CD79B, BANK1, VPREB3, IGLL5, TCL1A, FCER2, P2RX5, EAF2, BLK) are definitive B-cell lineage markers. Specifically, MS4A1 (CD20), CD79A/B (BCR components), and BANK1 are canonical mature B-cell markers. The absence of T-cell (CD3D/E), NK-cell (FCGR3A, FGFBP2), or plasma cell (MZB1, XBP1, SDC1) markers distinguishes this from T/NK/plasma cells. The presence of FCER2 (CD23) and TCL1A is characteristic of naïve and activated B cells, with a strong MHC class II expression signature (HLA-DRA, HLA-DQA1, HLA-DRB1, etc.) indicating antigen-presenting capability, typical of mature naïve B cells. Pathways show generic metabolism and signaling (e.g., signal transduction hsa04151) but the key support is the marker set."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "enrichment_terms": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+      "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_1, population: blood.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "FCER2",
+              "TCL1A",
+              "MS4A1",
+              "VPREB3",
+              "BANK1",
+              "IGLL5",
+              "CD79A",
+              "BLK",
+              "CD79B",
+              "P2RX5",
+              "IRF8",
+              "HLA-DQA2",
+              "EAF2",
+              "HLA-DRA",
+              "HLA-DQA1",
+              "HVCN1",
+              "CD74",
+              "HLA-DPA1",
+              "PDLIM1",
+              "HLA-DMB",
+              "LY86",
+              "HLA-DPB1",
+              "HLA-DRB1",
+              "HLA-DRB5",
+              "HLA-DQB1",
+              "CYB561A3",
+              "HLA-DMA",
+              "NCF1",
+              "SNX2",
+              "CD37",
+              "POLD4",
+              "CHCHD10",
+              "SNX3",
+              "PPP1R15A",
+              "CTSS",
+              "SEC62",
+              "CXCR4",
+              "TSC22D3",
+              "LAPTM5",
+              "NFKBIA",
+              "ARPC3",
+              "CD52",
+              "LTB",
+              "SNHG7",
+              "CYBA",
+              "ISG20",
+              "DUSP1"
+            ]
+          }
+        },
+        "scope_profile": "immune_enriched",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "basement_ecm_program": [
+              "positive regulation of leukocyte cell-cell adhesion",
+              "regulation of leukocyte cell-cell adhesion"
+            ],
+            "immune_activation": [
+              "antigen processing and presentation of exogenous peptide antigen via MHC class II",
+              "antigen processing and presentation of peptide antigen via MHC class II",
+              "antigen processing and presentation of peptide or polysaccharide antigen via MHC class II",
+              "peptide antigen assembly with MHC class II protein complex",
+              "antigen processing and presentation of exogenous peptide antigen",
+              "antigen processing and presentation of exogenous antigen",
+              "peptide antigen assembly with MHC protein complex",
+              "antigen processing and presentation of peptide antigen",
+              "antigen processing and presentation",
+              "positive regulation of leukocyte cell-cell adhesion",
+              "regulation of leukocyte cell-cell adhesion",
+              "peptide antigen binding",
+              "MHC class II antigen presentation",
+              "Immune System",
+              "Adaptive Immune System",
+              "Interferon gamma signaling",
+              "autoimmune thyroiditis",
+              "autoimmune disease",
+              "autoimmune disease of endocrine system"
+            ],
+            "neural_differentiation": "Translocation of ZAP-70 to Immunological synapse"
+          },
+          "programs_from_markers": {
+            "transport_program_markers": [
+              "SNX2",
+              "SNX3"
+            ],
+            "secretory_program_markers": "SEC62"
+          },
+          "support_level": {
+            "epithelial": "none",
+            "transport": "moderate",
+            "secretory": "weak"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 47,
+            "in_scope_count": 47,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "immune": 27,
+              "unknown": 35
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [
+              "antigen processing and presentation of exogenous peptide antigen via MHC class II",
+              "antigen processing and presentation of peptide antigen via MHC class II",
+              "antigen processing and presentation of peptide or polysaccharide antigen via MHC class II",
+              "MHC class II protein complex assembly",
+              "peptide antigen assembly with MHC class II protein complex",
+              "antigen processing and presentation of exogenous peptide antigen",
+              "antigen processing and presentation of exogenous antigen",
+              "MHC protein complex assembly",
+              "peptide antigen assembly with MHC protein complex",
+              "antigen processing and presentation of peptide antigen",
+              "antigen processing and presentation",
+              "positive regulation of T cell activation",
+              "positive regulation of leukocyte cell-cell adhesion",
+              "regulation of T cell activation",
+              "regulation of leukocyte cell-cell adhesion"
+            ],
+            "cellular_components": [
+              "MHC class II protein complex",
+              "MHC protein complex",
+              "lumenal side of endoplasmic reticulum membrane"
+            ],
+            "molecular_functions": [
+              "MHC class II protein complex binding",
+              "MHC protein complex binding",
+              "peptide antigen binding"
+            ],
+            "kegg_pathways": [
+              "hsa05310",
+              "hsa04640",
+              "hsa04672",
+              "hsa04612",
+              "hsa05330",
+              "hsa04940",
+              "hsa05332",
+              "hsa05140",
+              "hsa05320",
+              "hsa05323"
+            ],
+            "reactome_pathways": [
+              "MHC class II antigen presentation",
+              "Translocation of ZAP-70 to Immunological synapse",
+              "Immune System",
+              "Phosphorylation of CD3 and TCR zeta chains",
+              "Co-inhibition by PD-1",
+              "Adaptive Immune System",
+              "Generation of second messenger molecules",
+              "Interferon gamma signaling",
+              "Regulation of T cell activation by CD28 family",
+              "Downstream TCR signaling"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: CD74, HLA-DRB1, HLA-DMA, HLA-DRB5, HLA-DRA",
+            "disease_associations_do": [
+              "autoimmune thyroiditis",
+              "autoimmune disease",
+              "parasitic helminthiasis infectious disease",
+              "Behcet's disease",
+              "autoimmune disease of endocrine system"
+            ],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "34680286",
+                "30218476",
+                "28659920",
+                "37794420",
+                "39592577",
+                "38812540",
+                "36177915",
+                "34876062",
+                "38010064",
+                "31015447",
+                "34126969",
+                "33171100",
+                "35055093",
+                "34497389",
+                "35113934",
+                "34887858",
+                "40274959",
+                "39885523",
+                "35411050",
+                "35118195",
+                "28251903",
+                "28819565",
+                "32075964",
+                "33679883",
+                "38531930"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "B cell",
+              "monocyte",
+              "follicular B cell",
+              "mature B cell",
+              "macrophage",
+              "naive B cell",
+              "memory B cell",
+              "dendritic cell",
+              "immature B cell",
+              "professional antigen presenting cell"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000236",
+              "CL:0000576",
+              "CL:0000843",
+              "CL:0000785",
+              "CL:0000235",
+              "CL:0000788",
+              "CL:0000787",
+              "CL:0000451",
+              "CL:0000816",
+              "CL:0000145"
+            ],
+            "Final_Score": [
+              0.9,
+              0.65,
+              0.6,
+              0.55,
+              0.55,
+              0.55,
+              0.5,
+              0.5,
+              0.475,
+              0.45
+            ],
+            "Top_Evidence_Genes": [
+              "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1",
+              "MS4A1, CD79A, IRF8, HLA-DQA2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1",
+              "FCER2, TCL1A, MS4A1, VPREB3, BANK1, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1",
+              "FCER2, TCL1A, MS4A1, VPREB3, BANK1, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1",
+              "FCER2, HLA-DQA2, HLA-DRA, HLA-DQA1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, HLA-DMA, SNX2",
+              "FCER2, TCL1A, MS4A1, VPREB3, BANK1, CD79A, BLK, CD79B, P2RX5, IRF8, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74",
+              "FCER2, MS4A1, VPREB3, BANK1, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, HLA-DRA, HLA-DQA1, CD74, HLA-DPA1, LY86",
+              "FCER2, IRF8, HLA-DQA2, HLA-DRA, HLA-DQA1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, HLA-DMA",
+              "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, CD79B, HLA-DQA2, HLA-DRA, HLA-DQA1, CD74, HLA-DPA1, HLA-DPB1, HLA-DRB1",
+              "MS4A1, BANK1, CD79A, IRF8, HLA-DQA2, HLA-DRA, HLA-DQA1, CD74, HLA-DPA1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 47,
+        "n_degs_available": 47,
+        "top_evidence_genes_count": 27
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 1,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "FCER2, TCL1A, MS4A1, VPREB3, BANK1, IGLL5, CD79A, BLK, CD79B, P2RX5, IRF8, HLA-DQA2, EAF2, HLA-DRA, HLA-DQA1, HVCN1, CD74, HLA-DPA1, PDLIM1, HLA-DMB, LY86, HLA-DPB1, HLA-DRB1, HLA-DRB5, HLA-DQB1, CYB561A3, HLA-DMA, NCF1, SNX2, CD37, POLD4, CHCHD10, SNX3, PPP1R15A, CTSS, SEC62, CXCR4, TSC22D3, LAPTM5, NFKBIA, ARPC3, CD52, LTB, SNHG7, CYBA, ISG20, DUSP1",
+      "enrichment_terms": "antigen processing and presentation of exogenous peptide antigen via MHC class II; antigen processing and presentation of peptide antigen via MHC class II; antigen processing and presentation of peptide or polysaccharide antigen via MHC class II; MHC class II protein complex assembly; peptide antigen assembly with MHC class II protein complex; antigen processing and presentation of exogenous peptide antigen; antigen processing and presentation of exogenous antigen; MHC protein complex assembly; peptide antigen assembly with MHC protein complex; antigen processing and presentation of peptide antigen; antigen processing and presentation; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; regulation of T cell activation; regulation of leukocyte cell-cell adhesion; MHC class II protein complex; MHC protein complex; lumenal side of endoplasmic reticulum membrane; hsa05310; hsa04640; hsa04672; hsa04612; hsa05330; hsa04940; hsa05332; hsa05140; hsa05320; hsa05323; MHC class II antigen presentation; Translocation of ZAP-70 to Immunological synapse; Immune System; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Adaptive Immune System; Generation of second messenger molecules; Interferon gamma signaling; Regulation of T cell activation by CD28 family; Downstream TCR signaling",
+      "pmids_top": "34680286, 30218476, 28659920, 37794420, 39592577, 38812540, 36177915, 34876062"
+    }
+  },
+  "cluster_id": "cluster_1"
+}

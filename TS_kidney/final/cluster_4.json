@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_kidney",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "classical monocyte",
+    "final_cell_ontology_id": "CL:0000860",
+    "confidence_primary": 0.75
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Myeloid lineage: mononuclear phagocyte — monocyte/macrophage",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "Correctly anchors the cluster to the myeloid/mononuclear phagocyte lineage using LYZ, AIF1, MAFB, CD14, S100-family and C1Q markers.",
+        "Explicitly rejects eosinophil identity for RNASE2 by noting absence of CLC/PRG2/EPX/SIGLEC8.",
+        "Recognizes both monocyte (CD14/FCN1/S100) and macrophage (C1Q/CD163/VSIG4) programs rather than forcing a single branch."
+      ],
+      "weaknesses": [
+        "Mapped top1 is the broad ancestor CL:0000763; the more specific classical monocyte identity is not selected despite strong CD14/S100/FCN1 support.",
+        "The proposed monocyte/macrophage continuum is not an ontology-valid single cell type and leaves granularity unresolved."
+      ],
+      "reviewer_cl_id": "CL:0000763"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "myeloid cell",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "Top1 CL:0000763 provides the correct lineage anchor; rank2 CL:0000860 classical monocyte is the best-supported descendant.",
+        "Classical monocyte rank2 is consistent with CD14, FCN1, S100A8/A9/A12, LYZ, VCAN, CSTA, MNDA, EREG and TREM1.",
+        "Does not over-claim CD16-negative status absent direct FCGR3A evidence."
+      ],
+      "weaknesses": [
+        "Top1 is overly broad; the provided reasoning does not explicitly integrate or explain the C1Q/CD163/VSIG4 macrophage-like markers."
+      ],
+      "reviewer_cl_id": "CL:0000763"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "CD14-positive, CD16-negative classical monocyte",
+      "cell_ontology_id": "CL:0002057",
+      "strengths": [
+        "Correctly emphasizes the classical monocyte block: CD14, S100A8/A9/A12, FCN1, LYZ, VCAN, CSTA, TREM1, MNDA.",
+        "Correctly rules out T cell, NK and conventional DC identities using absence of CD3/FCGR3A/FGFBP2/CLEC9A/BATF3."
+      ],
+      "weaknesses": [
+        "Adds 'CD16-negative' to the primary label without direct positive support; FCGR3A absence from top DEGs is not positive evidence of CD16-negativity.",
+        "Downplays the C1QA/B/C, CD163, VSIG4, CD300LF and P2RY13 resident-macrophage-like component, which is prominent in the marker list."
+      ],
+      "reviewer_cl_id": "CL:0002057"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Classical monocyte refinement is directly supported by CD14, FCN1, S100A8, S100A9, S100A12, LYZ, VCAN, CSTA, MNDA, EREG and TREM1.",
+      "Myeloid lineage anchor is supported by LYZ, AIF1, MAFB, LST1, MS4A7, LILRB2, CD33 and the GO/Reactome myeloid leukocyte activation and innate immune response terms.",
+      "The hierarchical refinement from myeloid cell (CL:0000763) to classical monocyte (CL:0000860) is supported by positive cluster-level markers and is consistent with published monocyte/macrophage atlases (PMID 37397988)."
+    ],
+    "conflicting": [
+      "C1QA, C1QB, C1QC, CD163, VSIG4, CD300LF and P2RY13 support a tissue-resident macrophage-like program not encompassed by the classical monocyte label.",
+      "RNASE2 is top-ranked but lacks corroborating eosinophil markers (CLC, PRG2, EPX, SIGLEC8), so an eosinophil identity is not supported."
+    ],
+    "enrichment_or_literature": [
+      "GO terms (myeloid leukocyte activation, innate immune response, complement activation, chemotaxis) and Reactome Innate Immune System/Neutrophil degranulation are consistent with an activated monocyte/macrophage program.",
+      "PMID 37397988 is cited as an allowed reference supporting monocyte/macrophage marker interpretation."
+    ],
+    "cited_pmids": [
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "macrophage",
+    "reference_cl_term": "macrophage",
+    "reference_cl_id": "CL:0000235",
+    "cl_similarity": 58.3214181505012
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

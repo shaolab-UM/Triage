@@ -1,0 +1,115 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_5",
+  "cluster_state": "contaminated_or_ambient",
+  "final_decision": {
+    "primary_cell_type": "fibroblast",
+    "final_cell_ontology_id": "CL:0000057",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Fibroblast / mesenchymal / stromal cell with possible mixed-lineage contamination",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies the dominant fibroblast/ECM program (DCN, KERA, OGN, COL1A1, PDGFRL, FBLN1, MMP2)",
+        "Flags out-of-lineage markers (PNOC, MYH6, CDX1, SLC6A19) instead of forcing an overly clean label",
+        "Suggests appropriate QC/doublet/subclustering follow-up"
+      ],
+      "weaknesses": [
+        "Label is not a single clean cell type and mapping is unresolved (mixed_signal)",
+        "Overstates possible mixed-lineage without proportion or doublet evidence",
+        "Ciliated-cell inference relies on weak/indirect markers (CEP97, FAAP20)"
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "mesenchymal cell",
+      "cell_ontology_id": "CL:0008019",
+      "strengths": [
+        "Recognizes the mesenchymal/stromal character of the cluster",
+        "Consistent with ECM-related markers such as DCN, OGN, COL1A1, ACTA2"
+      ],
+      "weaknesses": [
+        "Less specific than fibroblast; canonical fibroblast markers (DCN, KERA, OGN, COL1A1, PDGFRL, FBLN1) meaningfully favor the fibroblast branch",
+        "CL:0008019 and CL:0000057 are non-hierarchical in the frozen ontology, so the more specific fibroblast branch is preferred",
+        "Ignores the potential contamination signals highlighted by the marker list"
+      ],
+      "reviewer_cl_id": "CL:0008019"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "fibroblast",
+      "cell_ontology_id": "CL:0000057",
+      "strengths": [
+        "Directly supported by canonical fibroblast markers DCN, KERA, OGN, COL1A1, PDGFRL, FBLN1, MMP2",
+        "Consistent with keratan sulfate/glycosaminoglycan metabolism enrichment and DCN/COL1A1/OGN hub genes",
+        "Produces a clean, ontology-valid single primary label"
+      ],
+      "weaknesses": [
+        "Incorrectly states that no epithelial markers are present despite CDX1, SLC6A19, TRPV6",
+        "Dismisses MYH6/TBX20/TNNI3K as spurious without direct evidence",
+        "Does not address possible ambient contamination"
+      ],
+      "reviewer_cl_id": "CL:0000057"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Fibroblast branch supported by canonical markers DCN, KERA, OGN, COL1A1, PDGFRL, FBLN1, FNDC1, CCN5, SFRP4, MMP2",
+      "Reactome keratan sulfate/glycosaminoglycan metabolism terms are consistent with fibroblast/ECM identity",
+      "Protein interaction hubs DCN, ACTA2, MMP2, COL1A1, OGN support a fibroblast/matrix-producing phenotype"
+    ],
+    "conflicting": [
+      "PNOC, IL17REL, GFRA2 suggest possible neuroendocrine/tuft-like signal",
+      "MYH6, TBX20, TNNI3K suggest myocardial/contamination signal",
+      "SLC6A19, CDX1, TRPV6 suggest intestinal/renal-type epithelial contamination",
+      "DNAAF1, CEP97, FAAP20 suggest ciliated cell contamination"
+    ],
+    "enrichment_or_literature": [
+      "Reactome: Diseases associated with glycosaminoglycan metabolism",
+      "Keratan sulfate degradation",
+      "Keratan sulfate biosynthesis",
+      "Defective CHST6 causes MCDC1",
+      "Retrieved literature PMIDs 39560475, 37397988, 39758026, 35957916, 26676933, 35672687, 39823244, 36979137"
+    ],
+    "cited_pmids": [
+      "39560475",
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "fibroblast",
+    "reference_cl_term": "fibroblast",
+    "reference_cl_id": "CL:0000057",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_5_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

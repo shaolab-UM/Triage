@@ -1,0 +1,97 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_6",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "macrophage",
+    "final_cell_ontology_id": "CL:0000235",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "macrophage",
+      "cell_ontology_id": "CL:0000235",
+      "strengths": [
+        "Correctly identifies macrophage/mononuclear phagocyte lineage; strong support from C1QA, MSR1, MS4A4A, FCAR, CD4, STAB1, MARCO."
+      ],
+      "weaknesses": [
+        "Label is broadened and does not explicitly commit to the TREM2-positive subtype despite TREM2 being a top cluster DEG."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "myeloid cell",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "Recognizes the myeloid branch; top-k list includes macrophage and tissue-resident macrophage, indicating the correct lineage."
+      ],
+      "weaknesses": [
+        "Top1 is an ancestor of the most-supported identity and is therefore under-specific; candidate scores are low and do not resolve subtype."
+      ],
+      "reviewer_cl_id": "CL:0000763"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "TREM2+ lipid-associated macrophage",
+      "cell_ontology_id": "CL:4047053",
+      "strengths": [
+        "Uses observed TREM2 plus scavenger/LAM-like markers (MSR1, STAB1, MARCO, MS4A4A, ATP8B4, C1QA) to select the most specific supported ontology node."
+      ],
+      "weaknesses": [
+        "The 'lipid-associated' component is less directly supported by supplied enrichment terms; the robust original observation supports TREM2-positive macrophage."
+      ],
+      "reviewer_cl_id": "CL:4047053"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Cluster DEGs include TREM2, C1QA, MSR1, MS4A4A, MS4A14, ATP8B4, STAB1, MARCO, FCAR and CD4, supporting mononuclear phagocyte/macrophage identity.",
+      "TREM2 is a directly observed DEG and provides positive support for refining the primary identity from macrophage to TREM2-positive macrophage (CL:4047053).",
+      "Reactome enrichment for Innate Immune System, Immune System, Classical antibody-mediated complement activation, Neutrophil degranulation and IRAK2 mediated activation of TAK1 complex is consistent with a macrophage program."
+    ],
+    "conflicting": [
+      "IGHV3-64D (B-cell-like), KRT18P42/EPHB3/SLC45A3 (epithelial/transport-like) and SLC1A3/GRM4/NDNF (glial-like) are present as minor DEGs, suggesting ambient/contamination signals rather than core identity."
+    ],
+    "enrichment_or_literature": [
+      "Observed TREM2 in the DEG list is consistent with a TREM2-positive macrophage identity",
+      "no additional lipid-metabolism enrichment was supplied to justify the lipid-associated qualifier independently."
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "macrophage",
+    "reference_cl_term": "macrophage",
+    "reference_cl_id": "CL:0000235",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_6_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_3",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "classical monocyte",
+    "final_cell_ontology_id": "CL:0000860",
+    "confidence_primary": 0.78
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "myeloid cell",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "Correctly identifies the myelomonocytic lineage from FCN1, LYZ, S100A12, TLR8, MEFV, SIRPB1, PYHIN1, APOBEC3F, FPR1 and AQP9.",
+        "Uses negative evidence (absence of S100A8/S100A9, CSF3R, FCGR3B, CXCR2) to rule out pure mature neutrophils.",
+        "Correctly flags contaminating/non-myeloid genes such as PRSS23, FBLN5, MSX1, NTSR1 and SLC16A6 as unlikely to alter lineage assignment."
+      ],
+      "weaknesses": [
+        "Top-level CLID is the broad ancestor CL:0000763 rather than the more specific, evidence-supported classical monocyte.",
+        "Rank-2 string mixes several subtype hypotheses (monocytes, macrophages, neutrophils) without resolving the specific branch."
+      ],
+      "reviewer_cl_id": "CL:0000763"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "myeloid cell",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "Shared anchor with CASSIA (CL:0000763) is consistent.",
+        "Rank-2 classical monocyte (CL:0000860) is the most specific supported identity and is supported by FCN1."
+      ],
+      "weaknesses": [
+        "Top-1 label remains the broad ancestor CL:0000763 despite available discrimination toward classical monocyte.",
+        "Candidate scores are low and do not strongly separate the broad vs specific hypotheses."
+      ],
+      "reviewer_cl_id": "CL:0000763"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "macrophage",
+      "cell_ontology_id": "CL:0000235",
+      "strengths": [
+        "Recognizes the myeloid core using FCN1, S100A12, SIRPB1, TLR8, LYZ, VCAN, FPR1, AQP9 and RETN."
+      ],
+      "weaknesses": [
+        "Proposes a non-hierarchical macrophage/neutrophil branch without cluster-level evidence that meaningfully favors macrophage over monocyte.",
+        "Gastrointestinal lamina propria macrophage (CL:0000865) has no tissue-specific positive support in a pancreas-derived cluster (no CD68/C1QA/C1QB or GI macrophage markers).",
+        "Top label is a mixture/transitional state and lacks an ontology ID; such a mixed state is not required by the evidence."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "FCN1 is a diagnostic classical monocyte marker and directly supports CL:0000860 as a descendant of the shared CL:0000763 anchor.",
+      "LYZ, S100A12, TLR8, MEFV, SIRPB1, PYHIN1, APOBEC3F, FPR1 and AQP9 confirm the myelomonocytic lineage.",
+      "Absence of mature neutrophil markers S100A8/S100A9, CSF3R, FCGR3B and CXCR2 argues against a pure neutrophil identity.",
+      "Absence of CD68/C1QA/C1QB and GI-specific markers argues against a tissue-resident macrophage identity."
+    ],
+    "conflicting": [
+      "S100A12, FPR1, AQP9 and RETN are neutrophil-associated signals that could suggest an alternative branch.",
+      "PRSS23, FBLN5, MSX1, NTSR1 and SLC16A6 are likely pancreatic acinar/stromal or ambient contamination and do not support the core lineage.",
+      "Neutrophil degranulation is the top enriched term but is driven by shared myeloid activation genes and does not distinguish monocyte from neutrophil."
+    ],
+    "enrichment_or_literature": [
+      "REACTOME Neutrophil degranulation term reflects a shared myeloid granule/degranulation program, not a mature neutrophil identity (PMID:34575035).",
+      "FCN1+ classical monocyte identity is supported by literature on CD14+ monocytes retrieved via PMIDs 37397988 and 38092774."
+    ],
+    "cited_pmids": [
+      "34575035"
+    ],
+    "cited_enrichment_terms": [
+      "Neutrophil degranulation"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "classical monocyte",
+    "reference_cl_term": "classical monocyte",
+    "reference_cl_id": "CL:0000860",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_3_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

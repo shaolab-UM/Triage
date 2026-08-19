@@ -1,0 +1,102 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "ciliated epithelial cell",
+    "final_cell_ontology_id": "CL:0000067",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Ciliated airway epithelial cell / multiciliated epithelial cell",
+      "cell_ontology_id": "CL:0000067",
+      "strengths": [
+        "Identifies the coherent ciliary/axonemal module in the DEG list (SPAG6, DNAAF6, CCDC141, C5orf47, C7orf31/CFAP69, PDE10A, NYX, EFCAB6, RAB28).",
+        "Correctly supports epithelial/airway-surface origin with TMPRSS7, GSTA1, HNF4G, EPPIN, PSCA, KL.",
+        "Appropriately excludes AT1/AT2, goblet, basal, fibroblast, endothelial, and immune identities as the dominant program."
+      ],
+      "weaknesses": [
+        "The raw label adds 'airway' and 'multiciliated' text beyond the formal canonical CL:0000067 label (ciliated epithelial cell).",
+        "Minor potential contamination markers (COL4A1, ACE, CYBB) are mentioned but not explicitly carried into release metadata."
+      ],
+      "reviewer_cl_id": "CL:0000067"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Correctly identifies the broad epithelial ancestry of the cluster."
+      ],
+      "weaknesses": [
+        "Under-specific: it omits the ciliated refinement that is directly supported by multiple ciliary/axonemal DEGs."
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Unknown/Ambiguous - likely microvascular endothelial or epithelial progenitor-like with metabolic stress",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly notes that many enrichment terms are generic stress/metabolic pathways rather than lineage-defining."
+      ],
+      "weaknesses": [
+        "Misses the direct ciliary markers in the original DEG list; the vascular/endothelial hypothesis is unsupported.",
+        "No endothelial-defining markers (PECAM1, VWF, KDR, CLDN5) are present to support the top1 hypothesis.",
+        "No stable cell-ontology mapping for the top1 ambiguous label."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Original DEG list contains a ciliary/axonemal module: SPAG6, DNAAF6, CCDC141, C5orf47, C7orf31 (CFAP69), PDE10A, NYX, EFCAB6, RAB28.",
+      "Proximal airway/epithelial markers in original DEGs: TMPRSS7, GSTA1, HNF4G, EPPIN, PSCA, KL.",
+      "CL:0000067 (ciliated epithelial cell) is the ontology-valid descendant of CL:0000066 (epithelial cell) with direct positive support for both the epithelial and ciliated components."
+    ],
+    "conflicting": [
+      "COL4A1, ACE, CYBB, CD1E, NLRP4, GBP2 are not ciliary/epithelial-specific and may represent low-level ambient or contaminating signal.",
+      "clusterProfiler reviewer's vascular/endothelial interpretation is contradicted by the ciliary DEG module and lacks endothelial-defining markers (PECAM1, VWF, KDR, CLDN5)."
+    ],
+    "enrichment_or_literature": [
+      "Enrichment terms (Unfolded Protein Response, Cellular responses to stress, RNA Polymerase II Transcription) are generic and do not override the direct marker-based lineage assignment.",
+      "Allowed literature context from the dossier (PMID 34100896) is consistent with the epithelial/ciliated airway annotation."
+    ],
+    "cited_pmids": [
+      "34100896"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "ciliated cell",
+    "reference_cl_term": "ciliated cell",
+    "reference_cl_id": "CL:0000064",
+    "cl_similarity": 98.9351649167543
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

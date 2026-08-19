@@ -1,0 +1,1027 @@
+{
+  "query_id": "cluster_9_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["38092774", "39560475", "35547861", "31840817", "35957916", "36879662", "31401395", "35359458", "36979137", "34575035", "37349336", "25340282", "24307629", "41882276", "39228892", "35839778", "35662458", "32295833", "33087046", "41261523", "37635986", "38881316", "36140671", "36768419", "32576952"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["38092774", "39560475", "35547861", "31840817", "35957916", "36879662", "31401395", "35359458", "36979137", "34575035", "37349336", "25340282", "24307629", "41882276", "39228892", "35839778", "35662458", "32295833", "33087046", "41261523", "37635986", "38881316", "36140671", "36768419", "32576952"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "Pancreatic acinar / exocrine epithelial cell",
+        "clid": "CL:0002064",
+        "canonical_label": "pancreatic acinar cell",
+        "direct_parents": [],
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "cell of skeletal muscle",
+        "clid": "CL:0000188",
+        "canonical_label": "cell of skeletal muscle",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "smooth muscle cell",
+        "clid": "CL:0000192",
+        "canonical_label": "smooth muscle cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+        "clid": "CL:0002410",
+        "canonical_label": "pancreatic stellate cell",
+        "direct_parents": [],
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "submitted_label": "pancreatic stellate cell",
+        "clid": "CL:0002410",
+        "canonical_label": "pancreatic stellate cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "submitted_label": "pancreatic islet capillary endothelial cell",
+        "clid": "CL:4052014",
+        "canonical_label": "pancreatic islet capillary endothelial cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": null,
+      "label": null,
+      "votes": 1,
+      "n_reviewers": 3,
+      "fraction": 0.3333
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0002064",
+        "label_a": "pancreatic acinar cell",
+        "clid_b": "CL:0000188",
+        "label_b": "cell of skeletal muscle",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0002064",
+        "label_a": "pancreatic acinar cell",
+        "clid_b": "CL:0000192",
+        "label_b": "smooth muscle cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0002064",
+        "label_a": "pancreatic acinar cell",
+        "clid_b": "CL:0002410",
+        "label_b": "pancreatic stellate cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 4
+      },
+      {
+        "clid_a": "CL:0002064",
+        "label_a": "pancreatic acinar cell",
+        "clid_b": "CL:4052014",
+        "label_b": "pancreatic islet capillary endothelial cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0000188",
+        "label_a": "cell of skeletal muscle",
+        "clid_b": "CL:0000192",
+        "label_b": "smooth muscle cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 1,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0000188",
+        "label_a": "cell of skeletal muscle",
+        "clid_b": "CL:0002410",
+        "label_b": "pancreatic stellate cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 1,
+        "b_distance_to_lca": 4
+      },
+      {
+        "clid_a": "CL:0000188",
+        "label_a": "cell of skeletal muscle",
+        "clid_b": "CL:4052014",
+        "label_b": "pancreatic islet capillary endothelial cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 1,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0000192",
+        "label_a": "smooth muscle cell",
+        "clid_b": "CL:0002410",
+        "label_b": "pancreatic stellate cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 4
+      },
+      {
+        "clid_a": "CL:0000192",
+        "label_a": "smooth muscle cell",
+        "clid_b": "CL:4052014",
+        "label_b": "pancreatic islet capillary endothelial cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 3,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0002410",
+        "label_a": "pancreatic stellate cell",
+        "clid_b": "CL:4052014",
+        "label_b": "pancreatic islet capillary endothelial cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000255",
+        "lca_label": "eukaryotic cell",
+        "a_distance_to_lca": 4,
+        "b_distance_to_lca": 3
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "Pancreatic acinar / exocrine epithelial cell",
+      "topk_cell_types": [
+        "Pancreatic acinar / exocrine epithelial cell",
+        "pancreatic acinar cell",
+        "epithelial cell of pancreas",
+        "pancreatic centro-acinar cell",
+        "pancreatic islet capillary endothelial cell",
+        "pancreatic endocrine cell"
+      ],
+      "cell_ontology_id": "CL:0002064",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "Pancreatic acinar / exocrine epithelial cell",
+        "canonical_label": "pancreatic acinar cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=exact",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0002064",
+        "candidate_cl_ids": [
+          "CL:0002064",
+          "CL:0000083",
+          "CL:0002080",
+          "CL:4052014",
+          "CL:0008024"
+        ],
+        "candidate_labels": [
+          "pancreatic acinar cell",
+          "epithelial cell of pancreas",
+          "pancreatic centro-acinar cell",
+          "pancreatic islet capillary endothelial cell",
+          "pancreatic endocrine cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0002064",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "reasoning_short": null,
+      "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+      "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+      "evidence_markers_method": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "Pancreatic acinar / exocrine epithelial cell",
+        "predicted_sub": "Immature / developing pancreatic acinar cell, Acinar/ductal bipotent or transitional exocrine progenitor, Pancreatic stellate cell / myofibroblast (contaminating/admixed)",
+        "possible_mixed": "Doublets between acinar cells and stellate cells, Acinar cells with stromal/EMT contamination",
+        "score": "NA"
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "cell of skeletal muscle",
+      "topk_cell_types": [
+        "cell of skeletal muscle",
+        "smooth muscle cell"
+      ],
+      "cell_ontology_id": "CL:0000188",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "cell of skeletal muscle",
+        "canonical_label": "cell of skeletal muscle",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000188",
+        "candidate_cl_ids": [
+          "CL:0000188"
+        ],
+        "candidate_labels": [
+          "cell of skeletal muscle"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000188",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "reasoning_short": "In-house top1=cell of skeletal muscle; top markers=PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+      "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+      "evidence_markers_method": "SDHC, ATP6V1E1, CIAO2B, DCN, CEP97, TESPA1, FAAP20, STAG1, ACTA2, HSPB6, JPH2, MGST3, RASL12, ELF3, MYD88",
+      "raw_inputs": {
+        "main_pred": "cell of skeletal muscle",
+        "subtype1_pred": "smooth muscle cell",
+        "subtype2_core_pred": "smooth muscle cell",
+        "candidate_score_main": "NA",
+        "candidate_score_sub1": 0.125,
+        "candidate_score_sub2": 0.125
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "cell of skeletal muscle",
+      "topk_cell_types": [
+        "cell of skeletal muscle",
+        "smooth muscle cell"
+      ],
+      "cell_ontology_id": "CL:0000188",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "cell of skeletal muscle",
+        "canonical_label": "cell of skeletal muscle",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000188",
+        "candidate_cl_ids": [
+          "CL:0000188"
+        ],
+        "candidate_labels": [
+          "cell of skeletal muscle"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000188",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "reasoning_short": "In-house top1=cell of skeletal muscle; top markers=PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+      "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+      "evidence_markers_method": "SDHC, ATP6V1E1, CIAO2B, DCN, CEP97, TESPA1, FAAP20, STAG1, ACTA2, HSPB6, JPH2, MGST3, RASL12, ELF3, MYD88"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+      "topk_cell_types": [
+        "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+        "pancreatic stellate cell",
+        "pancreatic islet capillary endothelial cell",
+        "pancreatic D cell",
+        "pancreatic epsilon cell",
+        "pancreatic A cell"
+      ],
+      "cell_ontology_id": "CL:0002410",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The top markers include definitive markers of pancreatic stellate cells and activated mesenchymal cells: ACTA2 (alpha-smooth muscle actin, a hallmark of activated PSCs), DCN (decorin, a major proteoglycan of stellate cells), HSPB6 (Hsp20, expressed in smooth muscle and stellate cells), and GFRA2 (GDNF receptor, enriched in stellate cells). Additional markers such as KERA, RASL12, JPH2, and MYD88 support a mesenchymal/inflammatory identity. The pathway enrichment is dominated by metabolism (energy, cofactors, amino acid, lipid, glycan) which is consistent with activated stellate cells undergoing metabolic reprogramming. The absence of acinar (e.g., PRSS1, CPA1), beta (INS), alpha (GCG), ductal (KRT19, CFTR), or immune (CD3D, CD8A) markers, and presence of ACTA2 and DCN, strongly excludes other pancreatic candidates.",
+      "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+      "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+      "evidence_markers_method": "ACTA2 (activated stellate cell contractility); DCN (extracellular matrix remodeling); HSPB6 (stress response, smooth muscle-like); GFRA2 (GDNF signaling); KERA (keratocan, extracellular matrix); RASL12 (Ras-like, cytoskeletal); JPH2 (junctional membrane protein, calcium handling); MYD88 (NF-kB pathway, inflammatory activation); Pathways: Energy metabolism, Lipid metabolism, Glycan biosynthesis, Amino acid metabolism (reprogramming of activated PSCs)",
+      "evidence_terms_method": null,
+      "predicted_label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+      "cl_id": "CL:0002410",
+      "rationale": "The top markers include definitive markers of pancreatic stellate cells and activated mesenchymal cells: ACTA2 (alpha-smooth muscle actin, a hallmark of activated PSCs), DCN (decorin, a major proteoglycan of stellate cells), HSPB6 (Hsp20, expressed in smooth muscle and stellate cells), and GFRA2 (GDNF receptor, enriched in stellate cells). Additional markers such as KERA, RASL12, JPH2, and MYD88 support a mesenchymal/inflammatory identity. The pathway enrichment is dominated by metabolism (energy, cofactors, amino acid, lipid, glycan) which is consistent with activated stellate cells undergoing metabolic reprogramming. The absence of acinar (e.g., PRSS1, CPA1), beta (INS), alpha (GCG), ductal (KRT19, CFTR), or immune (CD3D, CD8A) markers, and presence of ACTA2 and DCN, strongly excludes other pancreatic candidates.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+        "canonical_label": "pancreatic stellate cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=exact",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0002410",
+        "candidate_cl_ids": [
+          "CL:0002410",
+          "CL:4052014",
+          "CL:0000173",
+          "CL:0005019",
+          "CL:0000171"
+        ],
+        "candidate_labels": [
+          "pancreatic stellate cell",
+          "pancreatic islet capillary endothelial cell",
+          "pancreatic D cell",
+          "pancreatic epsilon cell",
+          "pancreatic A cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0002410",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+      "topk_cell_types": [
+        "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+        "pancreatic stellate cell",
+        "pancreatic islet capillary endothelial cell",
+        "pancreatic D cell",
+        "pancreatic epsilon cell",
+        "pancreatic A cell"
+      ],
+      "cell_ontology_id": "CL:0002410",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The top markers include definitive markers of pancreatic stellate cells and activated mesenchymal cells: ACTA2 (alpha-smooth muscle actin, a hallmark of activated PSCs), DCN (decorin, a major proteoglycan of stellate cells), HSPB6 (Hsp20, expressed in smooth muscle and stellate cells), and GFRA2 (GDNF receptor, enriched in stellate cells). Additional markers such as KERA, RASL12, JPH2, and MYD88 support a mesenchymal/inflammatory identity. The pathway enrichment is dominated by metabolism (energy, cofactors, amino acid, lipid, glycan) which is consistent with activated stellate cells undergoing metabolic reprogramming. The absence of acinar (e.g., PRSS1, CPA1), beta (INS), alpha (GCG), ductal (KRT19, CFTR), or immune (CD3D, CD8A) markers, and presence of ACTA2 and DCN, strongly excludes other pancreatic candidates.",
+      "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+      "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+      "evidence_markers_method": "ACTA2 (activated stellate cell contractility); DCN (extracellular matrix remodeling); HSPB6 (stress response, smooth muscle-like); GFRA2 (GDNF signaling); KERA (keratocan, extracellular matrix); RASL12 (Ras-like, cytoskeletal); JPH2 (junctional membrane protein, calcium handling); MYD88 (NF-kB pathway, inflammatory activation); Pathways: Energy metabolism, Lipid metabolism, Glycan biosynthesis, Amino acid metabolism (reprogramming of activated PSCs)",
+      "evidence_terms_method": null,
+      "predicted_label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+      "cl_id": "CL:0002410",
+      "rationale": "The top markers include definitive markers of pancreatic stellate cells and activated mesenchymal cells: ACTA2 (alpha-smooth muscle actin, a hallmark of activated PSCs), DCN (decorin, a major proteoglycan of stellate cells), HSPB6 (Hsp20, expressed in smooth muscle and stellate cells), and GFRA2 (GDNF receptor, enriched in stellate cells). Additional markers such as KERA, RASL12, JPH2, and MYD88 support a mesenchymal/inflammatory identity. The pathway enrichment is dominated by metabolism (energy, cofactors, amino acid, lipid, glycan) which is consistent with activated stellate cells undergoing metabolic reprogramming. The absence of acinar (e.g., PRSS1, CPA1), beta (INS), alpha (GCG), ductal (KRT19, CFTR), or immune (CD3D, CD8A) markers, and presence of ACTA2 and DCN, strongly excludes other pancreatic candidates.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+        "canonical_label": "pancreatic stellate cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=exact",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0002410",
+        "candidate_cl_ids": [
+          "CL:0002410",
+          "CL:4052014",
+          "CL:0000173",
+          "CL:0005019",
+          "CL:0000171"
+        ],
+        "candidate_labels": [
+          "pancreatic stellate cell",
+          "pancreatic islet capillary endothelial cell",
+          "pancreatic D cell",
+          "pancreatic epsilon cell",
+          "pancreatic A cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0002410",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "Pancreatic acinar / exocrine epithelial cell",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "cell of skeletal muscle",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "smooth muscle cell",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.125,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_label"
+        },
+        {
+          "label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "pancreatic stellate cell",
+          "method": "enrich",
+          "rank": 2,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "pancreatic islet capillary endothelial cell",
+          "method": "enrich",
+          "rank": 3,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "Pancreatic acinar / exocrine epithelial cell",
+        "clid": "CL:0002064",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "cell of skeletal muscle",
+        "clid": "CL:0000188",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "smooth muscle cell",
+        "clid": "CL:0000192",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": 0.125,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+        "clid": "CL:0002410",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "label": "pancreatic stellate cell",
+        "clid": "CL:0002410",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "label": "pancreatic islet capillary endothelial cell",
+        "clid": "CL:4052014",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "Pancreatic acinar / exocrine epithelial cell",
+      "smooth muscle cell",
+      "cell of skeletal muscle",
+      "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+      "pancreatic stellate cell",
+      "pancreatic islet capillary endothelial cell",
+      "pancreatic D cell",
+      "pancreatic epsilon cell",
+      "pancreatic A cell",
+      "pancreatic acinar cell",
+      "epithelial cell of pancreas",
+      "pancreatic centro-acinar cell",
+      "pancreatic endocrine cell"
+    ],
+    "allowed_backoff_candidates": [
+      "non-striated muscle cell",
+      "visceral muscle cell",
+      "muscle cell",
+      "eukaryotic cell",
+      "fibroblast",
+      "stromal cell of pancreas",
+      "stromal cell",
+      "fenestrated endothelial cell",
+      "capillary endothelial cell",
+      "endothelial cell",
+      "squamous endothelial cell",
+      "microvascular endothelial cell",
+      "type D enteroendocrine cell",
+      "pancreatic endocrine cell",
+      "enteroendocrine cell",
+      "neuroendocrine cell",
+      "somatostatin secreting cell",
+      "epithelial cell of pancreas",
+      "ghrelin secreting cell",
+      "peptide hormone secreting cell"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "Pancreatic acinar / exocrine epithelial cell",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "Pancreatic acinar / exocrine epithelial cell",
+          "canonical_label": "pancreatic acinar cell",
+          "mapping_status": "mapped_evidence",
+          "mapping_decision": "accept_after_verifier",
+          "mapping_reason": "A/B consistent; spec=exact",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0002064",
+          "candidate_cl_ids": [
+            "CL:0002064",
+            "CL:0000083",
+            "CL:0002080",
+            "CL:4052014",
+            "CL:0008024"
+          ],
+          "candidate_labels": [
+            "pancreatic acinar cell",
+            "epithelial cell of pancreas",
+            "pancreatic centro-acinar cell",
+            "pancreatic islet capillary endothelial cell",
+            "pancreatic endocrine cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0002064",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Pancreatic acinar / exocrine epithelial cell"
+        ],
+        "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+        "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+        "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+        "evidence_markers_method": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+        "reasoning_short": null
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "cell of skeletal muscle",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "cell of skeletal muscle",
+          "canonical_label": "cell of skeletal muscle",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000188",
+          "candidate_cl_ids": [
+            "CL:0000188"
+          ],
+          "candidate_labels": [
+            "cell of skeletal muscle"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000188",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "smooth muscle cell",
+          "cell of skeletal muscle"
+        ],
+        "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+        "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+        "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+        "evidence_markers_method": "SDHC, ATP6V1E1, CIAO2B, DCN, CEP97, TESPA1, FAAP20, STAG1, ACTA2, HSPB6, JPH2, MGST3, RASL12, ELF3, MYD88",
+        "reasoning_short": "In-house top1=cell of skeletal muscle; top markers=PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+          "canonical_label": "pancreatic stellate cell",
+          "mapping_status": "mapped_evidence",
+          "mapping_decision": "accept_after_verifier",
+          "mapping_reason": "A/B consistent; spec=exact",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0002410",
+          "candidate_cl_ids": [
+            "CL:0002410",
+            "CL:4052014",
+            "CL:0000173",
+            "CL:0005019",
+            "CL:0000171"
+          ],
+          "candidate_labels": [
+            "pancreatic stellate cell",
+            "pancreatic islet capillary endothelial cell",
+            "pancreatic D cell",
+            "pancreatic epsilon cell",
+            "pancreatic A cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0002410",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Pancreatic Stellate Cells (PSC) / Activated Mesenchymal-Like Cells",
+          "pancreatic stellate cell",
+          "pancreatic islet capillary endothelial cell",
+          "pancreatic D cell",
+          "pancreatic epsilon cell",
+          "pancreatic A cell"
+        ],
+        "evidence_markers_std": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+        "evidence_terms_std": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+        "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458",
+        "evidence_markers_method": "ACTA2 (activated stellate cell contractility); DCN (extracellular matrix remodeling); HSPB6 (stress response, smooth muscle-like); GFRA2 (GDNF signaling); KERA (keratocan, extracellular matrix); RASL12 (Ras-like, cytoskeletal); JPH2 (junctional membrane protein, calcium handling); MYD88 (NF-kB pathway, inflammatory activation); Pathways: Energy metabolism, Lipid metabolism, Glycan biosynthesis, Amino acid metabolism (reprogramming of activated PSCs)",
+        "evidence_terms_method": null,
+        "reasoning_short": "The top markers include definitive markers of pancreatic stellate cells and activated mesenchymal cells: ACTA2 (alpha-smooth muscle actin, a hallmark of activated PSCs), DCN (decorin, a major proteoglycan of stellate cells), HSPB6 (Hsp20, expressed in smooth muscle and stellate cells), and GFRA2 (GDNF receptor, enriched in stellate cells). Additional markers such as KERA, RASL12, JPH2, and MYD88 support a mesenchymal/inflammatory identity. The pathway enrichment is dominated by metabolism (energy, cofactors, amino acid, lipid, glycan) which is consistent with activated stellate cells undergoing metabolic reprogramming. The absence of acinar (e.g., PRSS1, CPA1), beta (INS), alpha (GCG), ductal (KRT19, CFTR), or immune (CD3D, CD8A) markers, and presence of ACTA2 and DCN, strongly excludes other pancreatic candidates."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "enrichment_terms": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+      "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_9, population: pancreas.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "PMFBP1",
+              "BPIFA3",
+              "C16orf78",
+              "SHC4",
+              "SDHC",
+              "ACTA2",
+              "RNU6-988P",
+              "ATP6V1E1",
+              "LECT2",
+              "TUBA3GP",
+              "RBM12B",
+              "SLC35B1",
+              "CIAO2B",
+              "IL1RL2",
+              "OPN4",
+              "DSCAML1",
+              "DCAF8L2",
+              "DCN",
+              "CEP97",
+              "ELF3",
+              "HSPB6",
+              "PLA2G2E",
+              "UBQLN4",
+              "SNX33",
+              "FLVCR1-DT",
+              "TESPA1",
+              "KERA",
+              "NR3C2",
+              "RASL12",
+              "JPH2",
+              "MYD88",
+              "GPR63",
+              "SPACA1",
+              "FAAP20",
+              "RREB1",
+              "UGT2B15",
+              "STAG1",
+              "MGST3",
+              "DUSP19",
+              "GFRA2",
+              "KCNJ13",
+              "FANCF",
+              "WEE1",
+              "USP34",
+              "MED12L",
+              "BTC",
+              "DNAAF1",
+              "CDX1",
+              "FAM83G",
+              "ASPN"
+            ]
+          }
+        },
+        "scope_profile": "whole_tissue",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {},
+          "programs_from_markers": {
+            "transport_program_markers": [
+              "ATP6V1E1",
+              "SLC35B1",
+              "SNX33"
+            ]
+          },
+          "support_level": {
+            "epithelial": "none",
+            "transport": "strong",
+            "secretory": "none"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 98,
+            "in_scope_count": 98,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "unknown": 96,
+              "muscle": 5,
+              "stromal_mesenchymal": 3,
+              "endothelial": 3,
+              "neural_glial": 4
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [],
+            "cellular_components": [],
+            "molecular_functions": [],
+            "kegg_pathways": [],
+            "reactome_pathways": [
+              "Diseases associated with glycosaminoglycan metabolism",
+              "Metabolism",
+              "Signal Transduction",
+              "MyD88 deficiency (TLR5)",
+              "Phase II - Conjugation of compounds",
+              "Interleukin-38 signaling",
+              "DSCAM interactions",
+              "IRAK4 deficiency (TLR5)",
+              "Glycosaminoglycan metabolism",
+              "Interleukin-1 family signaling"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: DCN, ACTA2, IL1RL2, KERA, DUSP19",
+            "disease_associations_do": [],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "38092774",
+                "39560475",
+                "35547861",
+                "31840817",
+                "35957916",
+                "36879662",
+                "31401395",
+                "35359458",
+                "36979137",
+                "34575035",
+                "37349336",
+                "25340282",
+                "24307629",
+                "41882276",
+                "39228892",
+                "35839778",
+                "35662458",
+                "32295833",
+                "33087046",
+                "41261523",
+                "37635986",
+                "38881316",
+                "36140671",
+                "36768419",
+                "32576952"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "natural killer cell",
+              "smooth muscle cell",
+              "astrocyte",
+              "ciliated cell",
+              "pancreatic ductal cell",
+              "mesenchymal cell",
+              "pericyte",
+              "vascular associated smooth muscle cell",
+              "brain pericyte",
+              "endothelial cell"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000623",
+              "CL:0000192",
+              "CL:0000127",
+              "CL:0000064",
+              "CL:0002079",
+              "CL:0008019",
+              "CL:0000669",
+              "CL:0000359",
+              "CL:2000043",
+              "CL:0000115"
+            ],
+            "Final_Score": [
+              0.2,
+              0.125,
+              0.1,
+              0.1,
+              0.1,
+              0.075,
+              0.075,
+              0.075,
+              0.075,
+              0.075
+            ],
+            "Top_Evidence_Genes": [
+              "SDHC, ATP6V1E1, CIAO2B, DCN, CEP97, TESPA1, FAAP20, STAG1",
+              "ACTA2, DCN, HSPB6, JPH2, MGST3",
+              "ATP6V1E1, DCN, HSPB6, RASL12",
+              "SDHC, CEP97, ELF3, MGST3",
+              "ELF3, MYD88, UGT2B15, MGST3",
+              "ACTA2, DCN, HSPB6",
+              "ACTA2, DCN, RASL12",
+              "ACTA2, DCN, MGST3",
+              "ACTA2, DCN, RASL12",
+              "ACTA2, DCN, MGST3"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 11,
+        "n_degs_available": 50,
+        "top_evidence_genes_count": 16
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 1,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "PMFBP1, BPIFA3, C16orf78, SHC4, SDHC, ACTA2, RNU6-988P, ATP6V1E1, LECT2, TUBA3GP, RBM12B, SLC35B1, CIAO2B, IL1RL2, OPN4, DSCAML1, DCAF8L2, DCN, CEP97, ELF3, HSPB6, PLA2G2E, UBQLN4, SNX33, FLVCR1-DT, TESPA1, KERA, NR3C2, RASL12, JPH2, MYD88, GPR63, SPACA1, FAAP20, RREB1, UGT2B15, STAG1, MGST3, DUSP19, GFRA2, KCNJ13, FANCF, WEE1, USP34, MED12L, BTC, DNAAF1, CDX1, FAM83G, ASPN",
+      "enrichment_terms": "Diseases associated with glycosaminoglycan metabolism; Metabolism; Signal Transduction; MyD88 deficiency (TLR5); Phase II - Conjugation of compounds; Interleukin-38 signaling; DSCAM interactions; IRAK4 deficiency (TLR5); Glycosaminoglycan metabolism; Interleukin-1 family signaling",
+      "pmids_top": "38092774, 39560475, 35547861, 31840817, 35957916, 36879662, 31401395, 35359458"
+    }
+  },
+  "cluster_id": "cluster_9"
+}

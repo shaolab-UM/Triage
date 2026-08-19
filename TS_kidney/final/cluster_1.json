@@ -1,0 +1,102 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_kidney",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "B cell",
+    "final_cell_ontology_id": "CL:0000236",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Correctly identifies the dominant B-cell program via CD79A/CD79B, MS4A1, CD22, PAX5, IGKC and BANK1",
+        "Rank-2 candidate list includes mature/memory/naive B-cell states, allowing hierarchical refinement"
+      ],
+      "weaknesses": [
+        "Evidence list mixes T-cell genes (TRAC, TRBC1/2, CD3D/CD3G, LCK) with B-cell markers without explicitly separating contamination",
+        "Top-k phrasing combines multiple B-cell states and does not commit to a single refined identity"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Top1 B cell is supported by canonical markers CD79A, MS4A1, TNFRSF13C, PAX5, BANK1 and FCRL1",
+        "Rank-2 mature B cell (CL:0000785) is a valid hierarchical refinement supported by CD27 and TNFRSF13C"
+      ],
+      "weaknesses": [
+        "Primary label remains the broader B cell despite the evidence supporting mature B cell as a more specific identity",
+        "Included T-cell genes in the marker list without clearly flagging them as contamination"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Marker-based reasoning explicitly invokes canonical B-cell markers MS4A1, CD79A, CD79B, CD22, PAX5 and BANK1",
+        "Notes mature B-cell identity supported by CD27 and TNFRSF13C and absence of plasma-cell markers"
+      ],
+      "weaknesses": [
+        "Final label stops at B cell (CL:0000236) rather than proposing mature B cell (CL:0000785)",
+        "Enrichment terms are partly generic immune-system terms and include T-cell activation terms"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Canonical B-cell markers: IGKC, CD79A, CD79B, MS4A1, CD22, PAX5, BANK1, POU2AF1, TNFRSF13C, FCRL1, BLK, STAP1, BCL11A, BACH2, EBF1 (PMID 38678059).",
+      "Hierarchical ADDED component 'mature' is directly supported by CD27, TNFRSF13C (BAFF-R), CD22 and FCMR, together with absence of plasma-cell markers (XBP1, PRDM1, SDC1)."
+    ],
+    "conflicting": [
+      "T-cell genes TRAC, TRBC1/TRBC2, CD3D, CD3G, LCK, CD2 and CCL5 appear in the top marker list",
+      "T-cell receptor/activation enrichment terms are outweighed by the dominant B-cell program and interpreted as ambient/doublet contamination."
+    ],
+    "enrichment_or_literature": [
+      "B cell receptor signaling pathway, B cell activation, B cell differentiation, IgM immunoglobulin complex, CD22 mediated BCR regulation, and Signaling by the B Cell Receptor (BCR) support B-cell identity (PMID 38678059)."
+    ],
+    "cited_pmids": [
+      "38678059"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "B cell",
+    "reference_cl_term": "B cell",
+    "reference_cl_id": "CL:0000236",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

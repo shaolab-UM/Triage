@@ -1,0 +1,10 @@
+cluster_id,cluster_label
+1,B cell
+2,CD14-positive monocyte
+3,"CD16-negative, CD56-bright natural killer cell, human"
+4,"CD4-positive, CD25-positive, alpha-beta regulatory T cell"
+5,"CD8-positive, alpha-beta cytotoxic T cell"
+6,"effector memory CD4-positive, alpha-beta T cell"
+7,hematopoietic stem cell
+8,"naive thymus-derived CD4-positive, alpha-beta T cell"
+9,"naive thymus-derived CD8-positive, alpha-beta T cell"

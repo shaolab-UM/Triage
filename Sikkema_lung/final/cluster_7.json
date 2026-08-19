@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_7",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "B cell",
+    "final_cell_ontology_id": "CL:0000236",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "B lymphocytes / B cells",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Correctly identifies the B-cell lineage using CD79A, IGKV5-2, CD37 and PTPRC",
+        "Recognizes activation-associated genes CD69, RGS1 and BIRC3"
+      ],
+      "weaknesses": [
+        "Broad label omits the supported activation state",
+        "Marker list is noisy with housekeeping/structural genes; subtype speculation is somewhat overconfident"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "activated mature B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Retains the correct B-cell lineage markers and adds a supported activation state (CD69, RGS1, BIRC3)",
+        "Maps to the conserved CL:0000236 B-cell ontology anchor"
+      ],
+      "weaknesses": [
+        "The 'mature' component is not strongly supported in the absence of robust CD19/MS4A1/CD27 evidence",
+        "Same noisy marker-list issue as CASSIA"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Medullary thymic epithelial cell / Not a typical lung immune cell; B-cell-like transcriptional signature with epithelial stress and viral response",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly acknowledges the presence of B-cell markers CD79A and IGKV5-2",
+        "Appropriately reports low confidence and absence of canonical mature B-cell markers"
+      ],
+      "weaknesses": [
+        "Proposes medullary thymic epithelial cell without any direct mTEC-specific marker (e.g., AIRE, FEZF2) and in a lung tissue context",
+        "Relies on non-specific structural/transport genes (COL27A1, SDC3, HYDIN) and generic metabolic enrichment",
+        "Ignores the dominant B-lineage positive evidence"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CD79A and IGKV5-2 are B-lineage-specific markers",
+      "CD37 and PTPRC further support B-cell identity",
+      "Activation state is supported by CD69, RGS1, BIRC3 and CREM",
+      "Absence of T/NK/myeloid lineage markers supports a dominant B-cell identity",
+      "Retrieved literature PMID 37397988 is consistent with the B-lineage interpretation"
+    ],
+    "conflicting": [
+      "COL27A1, SDC3, HYDIN, RPE65, CRCT1 and glycosaminoglycan metabolism enrichment are non-B-cell signals likely representing ambient/low-specificity contamination",
+      "Absence of robust mature B-cell markers (CD19, MS4A1, CD27) weakens the 'mature' subtyping"
+    ],
+    "enrichment_or_literature": [
+      "Retrieved literature PMIDs were used as general supporting references",
+      "enrichment terms were non-lineage-specific and not used as primary evidence"
+    ],
+    "cited_pmids": [
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "mast cell",
+    "reference_cl_term": "mast cell",
+    "reference_cl_id": "CL:0000097",
+    "cl_similarity": 33.9249576530237
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_7_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

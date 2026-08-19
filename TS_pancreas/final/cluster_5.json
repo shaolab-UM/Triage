@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_5",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "pancreatic endocrine cell",
+    "final_cell_ontology_id": "CL:0008024",
+    "confidence_primary": 0.65
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Pancreatic islet endocrine cell",
+      "cell_ontology_id": "CL:0008024",
+      "strengths": [
+        "Top DEGs include MAFA, a canonical mature beta-cell/islet endocrine transcription factor, plus G6PC3 and HDC, supporting an endocrine rather than exocrine identity.",
+        "Pancreas tissue context and absence of canonical acinar digestive enzymes (PRSS1, CPA1, CELA3A, AMY2A) favor islet endocrine lineage."
+      ],
+      "weaknesses": [
+        "Top-level label is broad and no definitive islet hormone genes (INS, GCG) are in the marker list.",
+        "CASSIA mapping was ambiguous/unmapped in the frozen registry, although a proposed CL:0008024 was available."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neural_glial cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Some observed DEGs (KCNK2, SCN3B, ROBO1, NAV3, FGF14) have neural/neuroendocrine associations."
+      ],
+      "weaknesses": [
+        "No glial-specific markers (SOX10, PLP1, MBP, S100B) are present.",
+        "MAFA, G6PC3, HDC and the pancreas tissue context strongly favor endocrine over neural/glial identity; neural-like genes are shared/ambiguous and do not distinguish a glial branch."
+      ],
+      "reviewer_cl_id": null
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "pancreatic acinar cell",
+      "cell_ontology_id": "CL:0002064",
+      "strengths": [
+        "Provides a deterministic ontology mapping to CL:0002064.",
+        "SERPINH1 and CRISPLD2 were noted as possible acinar-associated genes, though neither is a canonical acinar marker."
+      ],
+      "weaknesses": [
+        "Canonical acinar markers (PRSS1, CPA1, CELA3A, AMY2A) are absent from the DEG list.",
+        "Enrichment terms are mostly generic transport/metabolic pathways and do not specifically support acinar identity.",
+        "MAFA, G6PC3 and HDC favor pancreatic endocrine rather than exocrine identity."
+      ],
+      "reviewer_cl_id": "CL:0002064"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs MAFA, G6PC3 and HDC support pancreatic islet/endocrine identity.",
+      "Absence of canonical exocrine digestive enzymes (PRSS1, CPA1, CELA3A, AMY2A) argues against acinar identity.",
+      "Pancreas tissue context supports islet endocrine lineage over neural/glial identity."
+    ],
+    "conflicting": [
+      "Neural/glial label is not supported by glial-specific markers and conflicts with MAFA/G6PC3/HDC endocrine signals.",
+      "Acinar label is not supported by canonical acinar digestive enzyme markers.",
+      "Enrichment terms are generic transport/metabolic pathways (ABC transporters, small molecule transport) and do not resolve endocrine vs exocrine identity."
+    ],
+    "enrichment_or_literature": [
+      "ABC transporters in lipid homeostasis",
+      "Transport of small molecules",
+      "ABC-family proteins mediated transport",
+      "TWIK related potassium channel (TREK)",
+      "PMID 39560475 listed in dossier pmids_top"
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "fibroblast",
+    "reference_cl_term": "fibroblast",
+    "reference_cl_id": "CL:0000057",
+    "cl_similarity": 2.67237875951802
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_5_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

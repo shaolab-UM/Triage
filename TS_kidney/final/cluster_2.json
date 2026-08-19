@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_kidney",
+  "cluster_id": "cluster_2",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "T cell",
+    "final_cell_ontology_id": "CL:0000084",
+    "confidence_primary": 0.95
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "T cell (T lymphocyte)",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Correctly points to T-cell lineage based on CD247, ITK, THEMIS, BCL11B, STAT4 and TCR signaling enrichment",
+        "Top1 maps exactly to CL:0000084"
+      ],
+      "weaknesses": [
+        "Rank2 composite label is unmapped and contains unsupported CD8/NK-like/gdT/NKT components",
+        "No direct CD8A/CD8B or NK-lineage markers are present in the observed DEG list"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Top1 T cell is directly supported by CD247, ITK, THEMIS, BCL11B, SKAP1, PRKCQ and T-cell receptor signaling terms",
+        "Deterministic exact ontology mapping to CL:0000084"
+      ],
+      "weaknesses": [
+        "Rank2 CD8-positive alpha-beta T cell is not supportable because CD8A/CD8B are absent from the original DEG evidence"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Explicit marker-based rationale using CD247, ITK, THEMIS, STAT4, PRKCQ, NFATC2 and TCR pathway enrichment",
+        "Correctly notes absence of B-cell/myeloid markers and major NK markers such as FCGR3A and KIR family"
+      ],
+      "weaknesses": [
+        "Overinterprets KLRD1/GRAP2/PTPN22/CBLB as CD8+ cytotoxic identity without direct CD8 marker support"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "DEGs CD247 (CD3 zeta), ITK, THEMIS, BCL11B, TXK, STAT4, PRKCQ, SKAP1, NFATC2 support T-cell lineage",
+      "Enrichment terms include T cell receptor signaling pathway, alpha-beta T cell activation, and T cell differentiation",
+      "PMID 37397988 is consistent with T-cell lineage annotation in this marker context"
+    ],
+    "conflicting": [
+      "CD8-positive alpha-beta T cell (CL:0000625) was not selected because no CD8A or CD8B positive evidence is present among the original DEGs",
+      "B cell receptor signaling and Fc epsilon receptor terms appear in enrichment but are not supported by lineage-defining B-cell or mast-cell markers"
+    ],
+    "enrichment_or_literature": [
+      "T cell receptor signaling pathway",
+      "alpha-beta T cell activation",
+      "T cell differentiation",
+      "PMID 37397988"
+    ],
+    "cited_pmids": [
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "CD8-positive, alpha-beta T cell",
+    "reference_cl_term": "CD8-positive, alpha-beta T cell",
+    "reference_cl_id": "CL:0000625",
+    "cl_similarity": 76.972652108066
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_2_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

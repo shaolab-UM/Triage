@@ -1,0 +1,1022 @@
+{
+  "query_id": "cluster_3_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["37397988", "38092774", "39560475", "39758026", "31840817", "36879662", "35359458", "34575035", "40595924", "39863835", "24391511", "37349336", "33397036", "19890402", "29892481", "40427248", "39823128", "36909580", "37096733", "35839778", "37635986", "36768419", "38881316", "38376036", "36140671"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["37397988", "38092774", "39560475", "39758026", "31840817", "36879662", "35359458", "34575035", "40595924", "39863835", "24391511", "37349336", "33397036", "19890402", "29892481", "40427248", "39823128", "36909580", "37096733", "35839778", "37635986", "36768419", "38881316", "38376036", "36140671"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+        "clid": "CL:0000763",
+        "canonical_label": "myeloid cell",
+        "direct_parents": [],
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "myeloid cell",
+        "clid": "CL:0000763",
+        "canonical_label": "myeloid cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "classical monocyte",
+        "clid": "CL:0000860",
+        "canonical_label": "classical monocyte",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "submitted_label": "gastrointestinal tract (lamina propria) macrophage",
+        "clid": "CL:0000865",
+        "canonical_label": "gastrointestinal tract (lamina propria) macrophage",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "submitted_label": "macrophage",
+        "clid": "CL:0000235",
+        "canonical_label": "macrophage",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": "CL:0000763",
+      "label": "myeloid cell",
+      "votes": 2,
+      "n_reviewers": 2,
+      "fraction": 1
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000763",
+        "label_a": "myeloid cell",
+        "clid_b": "CL:0000860",
+        "label_b": "classical monocyte",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000763",
+        "lca_label": "myeloid cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0000763",
+        "label_a": "myeloid cell",
+        "clid_b": "CL:0000865",
+        "label_b": "gastrointestinal tract (lamina propria) macrophage",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000763",
+        "lca_label": "myeloid cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 7
+      },
+      {
+        "clid_a": "CL:0000763",
+        "label_a": "myeloid cell",
+        "clid_b": "CL:0000235",
+        "label_b": "macrophage",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000763",
+        "lca_label": "myeloid cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 2
+      },
+      {
+        "clid_a": "CL:0000860",
+        "label_a": "classical monocyte",
+        "clid_b": "CL:0000865",
+        "label_b": "gastrointestinal tract (lamina propria) macrophage",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000113",
+        "lca_label": "mononuclear phagocyte",
+        "a_distance_to_lca": 2,
+        "b_distance_to_lca": 6
+      },
+      {
+        "clid_a": "CL:0000860",
+        "label_a": "classical monocyte",
+        "clid_b": "CL:0000235",
+        "label_b": "macrophage",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000113",
+        "lca_label": "mononuclear phagocyte",
+        "a_distance_to_lca": 2,
+        "b_distance_to_lca": 1
+      },
+      {
+        "clid_a": "CL:0000865",
+        "label_a": "gastrointestinal tract (lamina propria) macrophage",
+        "clid_b": "CL:0000235",
+        "label_b": "macrophage",
+        "relation": "b_is_ancestor_of_a",
+        "lca_clid": "CL:0000235",
+        "lca_label": "macrophage",
+        "a_distance_to_lca": 5,
+        "b_distance_to_lca": 0
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+      "topk_cell_types": [
+        "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+        "Classical CD14+FCN1+ monocytes, Monocyte-derived / transitional macrophages, Neutrophils / immature granulocytes",
+        "possible neutrophil contaminating/transitional signal",
+        "myeloid cell",
+        "myeloid leukocyte",
+        "myeloid lineage restricted progenitor cell",
+        "myeloid dendritic cell",
+        "myenteric ganglion of small intestine ChAT/CALR/SOM/SP neuron"
+      ],
+      "cell_ontology_id": "CL:0000763",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+        "canonical_label": "myeloid cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=broadened",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "broadened",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000763",
+        "candidate_cl_ids": [
+          "CL:0000763",
+          "CL:0000766",
+          "CL:0000839",
+          "CL:0000782",
+          "CL:4033165"
+        ],
+        "candidate_labels": [
+          "myeloid cell",
+          "myeloid leukocyte",
+          "myeloid lineage restricted progenitor cell",
+          "myeloid dendritic cell",
+          "myenteric ganglion of small intestine ChAT/CALR/SOM/SP neuron"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000763",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "reasoning_short": "The annotation is scientifically accurate and captures the overall identity of the cluster well. The strongest evidence is the coherent myeloid/monocyte program: FCN1, LYZ, S100A12, TLR8, MEFV, SIRPB1, PYHIN1, APOBEC3F, FPR1, and AQP9 all point consistently toward a myelomonocytic lineage. FCN1 is particularly diagnostic for classical CD14+ monocytes, and the annotation correctly prioritizes this as the most probable subtype. It also appropriately acknowledges the neutrophil-like signals (S100A12, FPR1, AQP9, RETN) while noting that the absence of canonical mature neutrophil markers such as S100A8/S100A9, CSF3R, FCGR3B, and CXCR2 makes a pure neutrophil identity less likely. This is a well-balanced interpretation. The annotation also does a good job of using negative evidence. It explicitly rules out endocrine, exocrine, ductal, endothelial, mesenchymal, lymphoid, mast, and dendritic cell identities based on the absence of their defining markers. This is important because the cluster originates from human pancreas, where immune infiltration can be confused with tissue-resident populations. The conclusion that this is an FCN1+ classical monocyte / monocyte-derived myeloid population is biologically plausible and supported by the marker list. There are a few minor weaknesses. The marker list includes some non-myeloid or potentially contaminating genes such as PRSS23, FBLN5, MSX1, NTSR1, and SLC16A6. Most of these are likely ambient RNA or doublet signals, but the annotation does not explicitly address them. Given that PRSS23 can be related to pancreatic acinar expression and FBLN5/MSX1 can suggest mesenchymal/stromal contamination, a fully comprehensive annotation should mention them and explain why they do not alter the lineage assignment. However, the coherent and strong myeloid signal outweighs these ambiguous markers, and the annotation correctly identifies them as likely noise in a general sense. Overall, the annotation is highly accurate, biologically informed, and captures the general picture of the data. It avoids overinterpreting single markers, uses multiple lineage-defining genes, and provides a sensible ranked set of subtype possibilities. The minor omissions regarding possible contaminating markers are not sufficient to undermine the conclusion.",
+      "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+      "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+      "evidence_markers_method": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+        "predicted_sub": "Classical CD14+FCN1+ monocytes, Monocyte-derived / transitional macrophages, Neutrophils / immature granulocytes",
+        "possible_mixed": "possible neutrophil contaminating/transitional signal",
+        "score": 90
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "myeloid cell",
+      "topk_cell_types": [
+        "myeloid cell",
+        "classical monocyte"
+      ],
+      "cell_ontology_id": "CL:0000763",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "myeloid cell",
+        "canonical_label": "myeloid cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000763",
+        "candidate_cl_ids": [
+          "CL:0000763"
+        ],
+        "candidate_labels": [
+          "myeloid cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000763",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "reasoning_short": "In-house top1=myeloid cell; top markers=ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+      "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+      "evidence_markers_method": "TGFA, TPM3, S100A12, TNFSF13, VCAN, FPR1, LYZ, MEFV, TLR8, FCN1, CCDC30, AQP9, MSRB1, SIRPB1, SLC16A6",
+      "raw_inputs": {
+        "main_pred": "myeloid cell",
+        "subtype1_pred": "classical monocyte",
+        "subtype2_core_pred": "classical monocyte",
+        "candidate_score_main": 0.15,
+        "candidate_score_sub1": 0.225,
+        "candidate_score_sub2": 0.225
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "myeloid cell",
+      "topk_cell_types": [
+        "myeloid cell",
+        "classical monocyte"
+      ],
+      "cell_ontology_id": "CL:0000763",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "myeloid cell",
+        "canonical_label": "myeloid cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000763",
+        "candidate_cl_ids": [
+          "CL:0000763"
+        ],
+        "candidate_labels": [
+          "myeloid cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000763",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "reasoning_short": "In-house top1=myeloid cell; top markers=ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+      "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+      "evidence_markers_method": "TGFA, TPM3, S100A12, TNFSF13, VCAN, FPR1, LYZ, MEFV, TLR8, FCN1, CCDC30, AQP9, MSRB1, SIRPB1, SLC16A6"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+      "topk_cell_types": [
+        "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+        "gastrointestinal tract (lamina propria) macrophage",
+        "macrophage",
+        "macrophage of medullary sinus of lymph node",
+        "macrophage dendritic cell progenitor",
+        "multinucleated giant cell"
+      ],
+      "cell_ontology_id": null,
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The top marker list contains canonical myeloid markers: FCN1, S100A12, SIRPB1, TLR8, MEFV, PYHIN1, LYZ, VCAN, FPR1, AQP9, and RETN. These are definitive for monocyte/macrophage/neutrophil lineage. The presence of FCN1 (a classical monocyte marker), S100A12 (neutrophil activation), and LYZ (myeloid) strongly discriminate from other cell types. The enriched pathways include 'Glycan biosynthesis and metabolism', 'Amino acid metabolism', and 'Lipid metabolism', which are consistent with activated myeloid cells; no lymphoid or T-cell markers (CD3, CD8) are present, nor NK markers (FGFBP2, FCGR3A). The absence of any T/NK markers and the strong FCN1/S100A12 signal indicate a proinflammatory myeloid cell, likely an activated macrophage or neutrophil. Given the co-expression of monocyte marker (FCN1) and neutrophil markers (FPR1, S100A12), the cluster may represent a mixed or transitional myeloid state, but core identity is myeloid.",
+      "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+      "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+      "evidence_markers_method": "FCN1 (classical monocyte marker); S100A12 (neutrophil activation marker); SIRPB1 (myeloid receptor); TLR8 (TLR signaling); LYZ (lysozyme, abundant in myeloid cells); VCAN (proinflammatory monocyte marker); FPR1 (formyl peptide receptor on neutrophils/monocytes); AQP9 (aquaporin on myeloid cells); RETN (resistin, associated with inflammation); MEFV (inflammasome component); PYHIN1 (IFI16-like, innate immune); Pathways: Glycan biosynthesis, Lipid metabolism, Amino acid metabolism (consistent with activated macrophages/neutrophils)",
+      "evidence_terms_method": null,
+      "predicted_label": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+      "cl_id": null,
+      "rationale": "The top marker list contains canonical myeloid markers: FCN1, S100A12, SIRPB1, TLR8, MEFV, PYHIN1, LYZ, VCAN, FPR1, AQP9, and RETN. These are definitive for monocyte/macrophage/neutrophil lineage. The presence of FCN1 (a classical monocyte marker), S100A12 (neutrophil activation), and LYZ (myeloid) strongly discriminate from other cell types. The enriched pathways include 'Glycan biosynthesis and metabolism', 'Amino acid metabolism', and 'Lipid metabolism', which are consistent with activated myeloid cells; no lymphoid or T-cell markers (CD3, CD8) are present, nor NK markers (FGFBP2, FCGR3A). The absence of any T/NK markers and the strong FCN1/S100A12 signal indicate a proinflammatory myeloid cell, likely an activated macrophage or neutrophil. Given the co-expression of monocyte marker (FCN1) and neutrophil markers (FPR1, S100A12), the cluster may represent a mixed or transitional myeloid state, but core identity is myeloid.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+        "canonical_label": null,
+        "mapping_status": "review",
+        "mapping_decision": "mixed_component_mismatch",
+        "mapping_reason": "A components=CL:0000865|CL:0000235; B components=CL:0000647|CL:0000235",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "exact",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0000865",
+          "CL:0000235",
+          "CL:0009047",
+          "CL:0002009",
+          "CL:0000647"
+        ],
+        "candidate_labels": [
+          "gastrointestinal tract (lamina propria) macrophage",
+          "macrophage",
+          "macrophage of medullary sinus of lymph node",
+          "macrophage dendritic cell progenitor",
+          "multinucleated giant cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000235",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+      "topk_cell_types": [
+        "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+        "gastrointestinal tract (lamina propria) macrophage",
+        "macrophage",
+        "macrophage of medullary sinus of lymph node",
+        "macrophage dendritic cell progenitor",
+        "multinucleated giant cell"
+      ],
+      "cell_ontology_id": null,
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The top marker list contains canonical myeloid markers: FCN1, S100A12, SIRPB1, TLR8, MEFV, PYHIN1, LYZ, VCAN, FPR1, AQP9, and RETN. These are definitive for monocyte/macrophage/neutrophil lineage. The presence of FCN1 (a classical monocyte marker), S100A12 (neutrophil activation), and LYZ (myeloid) strongly discriminate from other cell types. The enriched pathways include 'Glycan biosynthesis and metabolism', 'Amino acid metabolism', and 'Lipid metabolism', which are consistent with activated myeloid cells; no lymphoid or T-cell markers (CD3, CD8) are present, nor NK markers (FGFBP2, FCGR3A). The absence of any T/NK markers and the strong FCN1/S100A12 signal indicate a proinflammatory myeloid cell, likely an activated macrophage or neutrophil. Given the co-expression of monocyte marker (FCN1) and neutrophil markers (FPR1, S100A12), the cluster may represent a mixed or transitional myeloid state, but core identity is myeloid.",
+      "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+      "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+      "evidence_markers_method": "FCN1 (classical monocyte marker); S100A12 (neutrophil activation marker); SIRPB1 (myeloid receptor); TLR8 (TLR signaling); LYZ (lysozyme, abundant in myeloid cells); VCAN (proinflammatory monocyte marker); FPR1 (formyl peptide receptor on neutrophils/monocytes); AQP9 (aquaporin on myeloid cells); RETN (resistin, associated with inflammation); MEFV (inflammasome component); PYHIN1 (IFI16-like, innate immune); Pathways: Glycan biosynthesis, Lipid metabolism, Amino acid metabolism (consistent with activated macrophages/neutrophils)",
+      "evidence_terms_method": null,
+      "predicted_label": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+      "cl_id": null,
+      "rationale": "The top marker list contains canonical myeloid markers: FCN1, S100A12, SIRPB1, TLR8, MEFV, PYHIN1, LYZ, VCAN, FPR1, AQP9, and RETN. These are definitive for monocyte/macrophage/neutrophil lineage. The presence of FCN1 (a classical monocyte marker), S100A12 (neutrophil activation), and LYZ (myeloid) strongly discriminate from other cell types. The enriched pathways include 'Glycan biosynthesis and metabolism', 'Amino acid metabolism', and 'Lipid metabolism', which are consistent with activated myeloid cells; no lymphoid or T-cell markers (CD3, CD8) are present, nor NK markers (FGFBP2, FCGR3A). The absence of any T/NK markers and the strong FCN1/S100A12 signal indicate a proinflammatory myeloid cell, likely an activated macrophage or neutrophil. Given the co-expression of monocyte marker (FCN1) and neutrophil markers (FPR1, S100A12), the cluster may represent a mixed or transitional myeloid state, but core identity is myeloid.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+        "canonical_label": null,
+        "mapping_status": "review",
+        "mapping_decision": "mixed_component_mismatch",
+        "mapping_reason": "A components=CL:0000865|CL:0000235; B components=CL:0000647|CL:0000235",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "exact",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0000865",
+          "CL:0000235",
+          "CL:0009047",
+          "CL:0002009",
+          "CL:0000647"
+        ],
+        "candidate_labels": [
+          "gastrointestinal tract (lamina propria) macrophage",
+          "macrophage",
+          "macrophage of medullary sinus of lymph node",
+          "macrophage dendritic cell progenitor",
+          "multinucleated giant cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000235",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": 0.15,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Classical CD14+FCN1+ monocytes, Monocyte-derived / transitional macrophages, Neutrophils / immature granulocytes",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": 0.15,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "possible neutrophil contaminating/transitional signal",
+          "method": "cassia",
+          "rank": 3,
+          "candidate_score": 0.15,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "myeloid cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 0.15,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "classical monocyte",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.15,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "gastrointestinal tract (lamina propria) macrophage",
+          "method": "enrich",
+          "rank": 2,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "macrophage",
+          "method": "enrich",
+          "rank": 3,
+          "candidate_score": 0.25,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_label"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+        "clid": "CL:0000763",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "Classical CD14+FCN1+ monocytes, Monocyte-derived / transitional macrophages, Neutrophils / immature granulocytes",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 3,
+        "label": "possible neutrophil contaminating/transitional signal",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "myeloid cell",
+        "clid": "CL:0000763",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.15,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "classical monocyte",
+        "clid": "CL:0000860",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": 0.225,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "label": "gastrointestinal tract (lamina propria) macrophage",
+        "clid": "CL:0000865",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "label": "macrophage",
+        "clid": "CL:0000235",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": 0.25,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+      "Classical CD14+FCN1+ monocytes, Monocyte-derived / transitional macrophages, Neutrophils / immature granulocytes",
+      "possible neutrophil contaminating/transitional signal",
+      "classical monocyte",
+      "myeloid cell",
+      "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+      "gastrointestinal tract (lamina propria) macrophage",
+      "macrophage",
+      "macrophage of medullary sinus of lymph node",
+      "macrophage dendritic cell progenitor",
+      "multinucleated giant cell",
+      "myeloid leukocyte",
+      "myeloid lineage restricted progenitor cell",
+      "myeloid dendritic cell",
+      "myenteric ganglion of small intestine ChAT/CALR/SOM/SP neuron"
+    ],
+    "allowed_backoff_candidates": [
+      "monocyte",
+      "mononuclear phagocyte",
+      "myeloid leukocyte",
+      "eukaryotic cell",
+      "hematopoietic cell",
+      "gut-associated lymphoid tissue macrophage",
+      "mucosa-associated lymphoid tissue macrophage",
+      "professional antigen presenting cell",
+      "phagocyte (sensu Vertebrata)",
+      "mononuclear leukocyte",
+      "leukocyte",
+      "myeloid cell",
+      "macrophage",
+      "hematopoietic oligopotent progenitor cell",
+      "hematopoietic precursor cell",
+      "syncytial cell",
+      "multinucleate cell",
+      "motile cell",
+      "nucleate cell",
+      "hematopoietic lineage restricted progenitor cell"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+          "canonical_label": "myeloid cell",
+          "mapping_status": "mapped_evidence",
+          "mapping_decision": "accept_after_verifier",
+          "mapping_reason": "A/B consistent; spec=broadened",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "broadened",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000763",
+          "candidate_cl_ids": [
+            "CL:0000763",
+            "CL:0000766",
+            "CL:0000839",
+            "CL:0000782",
+            "CL:4033165"
+          ],
+          "candidate_labels": [
+            "myeloid cell",
+            "myeloid leukocyte",
+            "myeloid lineage restricted progenitor cell",
+            "myeloid dendritic cell",
+            "myenteric ganglion of small intestine ChAT/CALR/SOM/SP neuron"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000763",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Myeloid/innate immune cell — specifically a monocyte/macrophage-lineage cluster.",
+          "Classical CD14+FCN1+ monocytes, Monocyte-derived / transitional macrophages, Neutrophils / immature granulocytes",
+          "possible neutrophil contaminating/transitional signal"
+        ],
+        "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+        "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+        "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+        "evidence_markers_method": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+        "reasoning_short": "The annotation is scientifically accurate and captures the overall identity of the cluster well. The strongest evidence is the coherent myeloid/monocyte program: FCN1, LYZ, S100A12, TLR8, MEFV, SIRPB1, PYHIN1, APOBEC3F, FPR1, and AQP9 all point consistently toward a myelomonocytic lineage. FCN1 is particularly diagnostic for classical CD14+ monocytes, and the annotation correctly prioritizes this as the most probable subtype. It also appropriately acknowledges the neutrophil-like signals (S100A12, FPR1, AQP9, RETN) while noting that the absence of canonical mature neutrophil markers such as S100A8/S100A9, CSF3R, FCGR3B, and CXCR2 makes a pure neutrophil identity less likely. This is a well-balanced interpretation. The annotation also does a good job of using negative evidence. It explicitly rules out endocrine, exocrine, ductal, endothelial, mesenchymal, lymphoid, mast, and dendritic cell identities based on the absence of their defining markers. This is important because the cluster originates from human pancreas, where immune infiltration can be confused with tissue-resident populations. The conclusion that this is an FCN1+ classical monocyte / monocyte-derived myeloid population is biologically plausible and supported by the marker list. There are a few minor weaknesses. The marker list includes some non-myeloid or potentially contaminating genes such as PRSS23, FBLN5, MSX1, NTSR1, and SLC16A6. Most of these are likely ambient RNA or doublet signals, but the annotation does not explicitly address them. Given that PRSS23 can be related to pancreatic acinar expression and FBLN5/MSX1 can suggest mesenchymal/stromal contamination, a fully comprehensive annotation should mention them and explain why they do not alter the lineage assignment. However, the coherent and strong myeloid signal outweighs these ambiguous markers, and the annotation correctly identifies them as likely noise in a general sense. Overall, the annotation is highly accurate, biologically informed, and captures the general picture of the data. It avoids overinterpreting single markers, uses multiple lineage-defining genes, and provides a sensible ranked set of subtype possibilities. The minor omissions regarding possible contaminating markers are not sufficient to undermine the conclusion."
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "myeloid cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "myeloid cell",
+          "canonical_label": "myeloid cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000763",
+          "candidate_cl_ids": [
+            "CL:0000763"
+          ],
+          "candidate_labels": [
+            "myeloid cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000763",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "classical monocyte",
+          "myeloid cell"
+        ],
+        "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+        "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+        "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+        "evidence_markers_method": "TGFA, TPM3, S100A12, TNFSF13, VCAN, FPR1, LYZ, MEFV, TLR8, FCN1, CCDC30, AQP9, MSRB1, SIRPB1, SLC16A6",
+        "reasoning_short": "In-house top1=myeloid cell; top markers=ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+          "canonical_label": null,
+          "mapping_status": "review",
+          "mapping_decision": "mixed_component_mismatch",
+          "mapping_reason": "A components=CL:0000865|CL:0000235; B components=CL:0000647|CL:0000235",
+          "mapping_method": "evidence_llm_abstain",
+          "specificity_relation": "exact",
+          "editor_input_type": "candidate_set",
+          "single_cl_ready": false,
+          "adjudication_ready": true,
+          "evaluation_ready": false,
+          "cell_ontology_id": null,
+          "candidate_cl_ids": [
+            "CL:0000865",
+            "CL:0000235",
+            "CL:0009047",
+            "CL:0002009",
+            "CL:0000647"
+          ],
+          "candidate_labels": [
+            "gastrointestinal tract (lamina propria) macrophage",
+            "macrophage",
+            "macrophage of medullary sinus of lymph node",
+            "macrophage dendritic cell progenitor",
+            "multinucleated giant cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000235",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Macrophage/Neutrophil (myeloid) – likely proinflammatory/activated",
+          "gastrointestinal tract (lamina propria) macrophage",
+          "macrophage",
+          "macrophage of medullary sinus of lymph node",
+          "macrophage dendritic cell progenitor",
+          "multinucleated giant cell"
+        ],
+        "evidence_markers_std": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+        "evidence_terms_std": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+        "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035",
+        "evidence_markers_method": "FCN1 (classical monocyte marker); S100A12 (neutrophil activation marker); SIRPB1 (myeloid receptor); TLR8 (TLR signaling); LYZ (lysozyme, abundant in myeloid cells); VCAN (proinflammatory monocyte marker); FPR1 (formyl peptide receptor on neutrophils/monocytes); AQP9 (aquaporin on myeloid cells); RETN (resistin, associated with inflammation); MEFV (inflammasome component); PYHIN1 (IFI16-like, innate immune); Pathways: Glycan biosynthesis, Lipid metabolism, Amino acid metabolism (consistent with activated macrophages/neutrophils)",
+        "evidence_terms_method": null,
+        "reasoning_short": "The top marker list contains canonical myeloid markers: FCN1, S100A12, SIRPB1, TLR8, MEFV, PYHIN1, LYZ, VCAN, FPR1, AQP9, and RETN. These are definitive for monocyte/macrophage/neutrophil lineage. The presence of FCN1 (a classical monocyte marker), S100A12 (neutrophil activation), and LYZ (myeloid) strongly discriminate from other cell types. The enriched pathways include 'Glycan biosynthesis and metabolism', 'Amino acid metabolism', and 'Lipid metabolism', which are consistent with activated myeloid cells; no lymphoid or T-cell markers (CD3, CD8) are present, nor NK markers (FGFBP2, FCGR3A). The absence of any T/NK markers and the strong FCN1/S100A12 signal indicate a proinflammatory myeloid cell, likely an activated macrophage or neutrophil. Given the co-expression of monocyte marker (FCN1) and neutrophil markers (FPR1, S100A12), the cluster may represent a mixed or transitional myeloid state, but core identity is myeloid."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "enrichment_terms": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+      "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_3, population: pancreas.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "ADIPOR1",
+              "TGFA",
+              "ABLIM2",
+              "TPM3",
+              "APOBEC3F",
+              "S100A12",
+              "MAGEB5",
+              "PRKAG3",
+              "TNFSF13",
+              "VCAN",
+              "FPR1",
+              "KPNA4",
+              "LYZ",
+              "OR5A2",
+              "ACOT13",
+              "PYHIN1",
+              "MEFV",
+              "TLR8",
+              "FCN1",
+              "TMEM132D",
+              "ELSPBP1",
+              "NUDT4",
+              "CCDC30",
+              "AQP9",
+              "AP2A2",
+              "DPPA4",
+              "CMC1",
+              "MSRB1",
+              "CACNG8",
+              "TRIM51",
+              "MTCO3P28",
+              "TTC5",
+              "SIRPB1",
+              "IQCJ",
+              "GDPD4",
+              "NTSR1",
+              "FBLN5",
+              "PATE1",
+              "SLC16A6",
+              "KDSR",
+              "ZPBP2",
+              "PRSS23",
+              "RTP3",
+              "MIR6889",
+              "LY6K",
+              "AMPH",
+              "SULT6B1",
+              "RETN",
+              "MSX1",
+              "PAQR8"
+            ]
+          }
+        },
+        "scope_profile": "whole_tissue",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "epithelial_polarity_transport": "Transport of glycerol from adipocytes to the liver by Aquaporins",
+            "secretory_program": "Cargo recognition for clathrin-mediated endocytosis",
+            "immune_activation": [
+              "Innate Immune System",
+              "Immune System"
+            ],
+            "neural_differentiation": "Transmission across Chemical Synapses"
+          },
+          "programs_from_markers": {
+            "transport_program_markers": "SLC16A6"
+          },
+          "support_level": {
+            "epithelial": "none",
+            "transport": "weak",
+            "secretory": "none"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 94,
+            "in_scope_count": 94,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "immune": 18,
+              "unknown": 88
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [],
+            "cellular_components": [],
+            "molecular_functions": [],
+            "kegg_pathways": [],
+            "reactome_pathways": [
+              "Neutrophil degranulation",
+              "Innate Immune System",
+              "Immune System",
+              "Trafficking of AMPA receptors",
+              "Glutamate binding, activation of AMPA receptors and synaptic plasticity",
+              "Disease",
+              "Neurotransmitter receptors and postsynaptic signal transmission",
+              "Transport of glycerol from adipocytes to the liver by Aquaporins",
+              "Transmission across Chemical Synapses",
+              "Cargo recognition for clathrin-mediated endocytosis"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: AP2A2, PYHIN1, S100A12, TGFA, VCAN",
+            "disease_associations_do": [],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "37397988",
+                "38092774",
+                "39560475",
+                "39758026",
+                "31840817",
+                "36879662",
+                "35359458",
+                "34575035",
+                "40595924",
+                "39863835",
+                "24391511",
+                "37349336",
+                "33397036",
+                "19890402",
+                "29892481",
+                "40427248",
+                "39823128",
+                "36909580",
+                "37096733",
+                "35839778",
+                "37635986",
+                "36768419",
+                "38881316",
+                "38376036",
+                "36140671"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "monocyte",
+              "dendritic cell",
+              "macrophage",
+              "neutrophil",
+              "classical monocyte",
+              "natural killer cell",
+              "dendritic cell, human",
+              "mononuclear phagocyte",
+              "Kupffer cell",
+              "myeloid cell"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000576",
+              "CL:0000451",
+              "CL:0000235",
+              "CL:0000775",
+              "CL:0000860",
+              "CL:0000623",
+              "CL:0001056",
+              "CL:0000113",
+              "CL:0000091",
+              "CL:0000763"
+            ],
+            "Final_Score": [
+              0.375,
+              0.275,
+              0.25,
+              0.25,
+              0.225,
+              0.2,
+              0.175,
+              0.175,
+              0.175,
+              0.15
+            ],
+            "Top_Evidence_Genes": [
+              "TGFA, TPM3, S100A12, TNFSF13, VCAN, FPR1, LYZ, MEFV, TLR8, FCN1, CCDC30, AQP9, MSRB1, SIRPB1, SLC16A6",
+              "ADIPOR1, TPM3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, ACOT13, TLR8, FCN1, SIRPB1",
+              "TGFA, S100A12, TNFSF13, VCAN, FPR1, LYZ, ACOT13, FCN1, AQP9, SIRPB1",
+              "S100A12, VCAN, FPR1, LYZ, MEFV, TLR8, FCN1, AQP9, MSRB1, SIRPB1",
+              "S100A12, VCAN, FPR1, KPNA4, LYZ, TLR8, FCN1, AQP9, SLC16A6",
+              "TPM3, APOBEC3F, KPNA4, LYZ, PYHIN1, NUDT4, CMC1, KDSR",
+              "S100A12, VCAN, FPR1, LYZ, MEFV, FCN1, SIRPB1",
+              "S100A12, TNFSF13, VCAN, LYZ, TLR8, FCN1, SIRPB1",
+              "S100A12, VCAN, FPR1, LYZ, FCN1, AP2A2, SIRPB1",
+              "S100A12, VCAN, FPR1, LYZ, TLR8, FCN1"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 11,
+        "n_degs_available": 50,
+        "top_evidence_genes_count": 24
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "ADIPOR1, TGFA, ABLIM2, TPM3, APOBEC3F, S100A12, MAGEB5, PRKAG3, TNFSF13, VCAN, FPR1, KPNA4, LYZ, OR5A2, ACOT13, PYHIN1, MEFV, TLR8, FCN1, TMEM132D, ELSPBP1, NUDT4, CCDC30, AQP9, AP2A2, DPPA4, CMC1, MSRB1, CACNG8, TRIM51, MTCO3P28, TTC5, SIRPB1, IQCJ, GDPD4, NTSR1, FBLN5, PATE1, SLC16A6, KDSR, ZPBP2, PRSS23, RTP3, MIR6889, LY6K, AMPH, SULT6B1, RETN, MSX1, PAQR8",
+      "enrichment_terms": "Neutrophil degranulation; Innate Immune System; Immune System; Trafficking of AMPA receptors; Glutamate binding, activation of AMPA receptors and synaptic plasticity; Disease; Neurotransmitter receptors and postsynaptic signal transmission; Transport of glycerol from adipocytes to the liver by Aquaporins; Transmission across Chemical Synapses; Cargo recognition for clathrin-mediated endocytosis",
+      "pmids_top": "37397988, 38092774, 39560475, 39758026, 31840817, 36879662, 35359458, 34575035"
+    }
+  },
+  "cluster_id": "cluster_3"
+}

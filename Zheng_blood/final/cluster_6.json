@@ -1,0 +1,108 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zheng_blood",
+  "cluster_id": "cluster_6",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "T cell",
+    "final_cell_ontology_id": "CL:0000084",
+    "confidence_primary": 0.92
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Correctly identifies T cell lineage from ORIGINAL markers CD3D, CD2, IL7R, LTB, CD52, IL32",
+        "Correctly excludes B/NK/myeloid alternatives by absence of CD79A/MS4A1, NKG7/GNLY/PRF1, CD14/S100A8/9",
+        "Appropriately avoids over-specifying CD4+ without direct CD4 evidence"
+      ],
+      "weaknesses": [
+        "Topk contains unmixed/multi-label memory phenotypes that are not directly supported",
+        "Memory interpretation relies on indirect marker reasoning (S100A4 family, absence of CCR7/SELL) rather than definitive T-memory markers",
+        "S100/AQP3/AP-1 genes are shared with activated/non-T states and do not add subtype specificity"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Parsimonious and evidence-faithful: T cell support from CD3D, CD2, IL7R, LTB, CD52, IL32",
+        "No unsupported specificity added",
+        "Consistent with absence of B/NK/myeloid lineage markers"
+      ],
+      "weaknesses": [
+        "Minimal interpretive depth; does not document memory/activation state",
+        "No explicit discussion of why naive/CD4-specific enrich label is not adopted"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Naive/Quiescent T cell (CD4+ T cell)",
+      "cell_ontology_id": "CL:0000895",
+      "strengths": [
+        "Recognizes the underlying T cell identity from CD3D, CD2, IL7R, LTB",
+        "Correctly rules out NK/cytotoxic T cell due to absence of FCGR3A, FGFBP2, KLRF1, granzymes/perforin"
+      ],
+      "weaknesses": [
+        "Adds 'naive' and 'CD4+' components without direct ORIGINAL positive support: CCR7, SELL, TCF7 and CD4/CD8A are absent from top DEGs",
+        "IL7R is expressed on both naive and memory T cells and cannot distinguish the two",
+        "Reported enrichment output is corrupted (negative p.adjust, non-informative pathway names), weakening enrichment-based subtype confidence"
+      ],
+      "reviewer_cl_id": "CL:0000895"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "T-cell lineage supported by ORIGINAL cluster DEGs CD3D, CD2, IL7R, LTB, CD52, IL32",
+      "Absence of B-cell (CD79A/MS4A1), NK-cell (NKG7/GNLY/PRF1/KLRD1), and myeloid (CD14/S100A8/9/CST3/FCN1) markers restricts identity to T/lymphoid lineage",
+      "PMID 36658547 provides permitted literature context consistent with T cell identity"
+    ],
+    "conflicting": [
+      "clusterProfiler reviewer's 'naive CD4+ T cell' label conflicts with the ORIGINAL absence of naive markers CCR7, SELL, TCF7 and lineage markers CD4/CD8A from top DEGs",
+      "Enrichment output contains corrupted p.adjust values and generic pathway descriptions, making subtype claims unreliable"
+    ],
+    "enrichment_or_literature": [
+      "Observed enrichment in Cytokine Signaling in Immune system, Signaling by Interleukins, and immune system pathways is consistent with T cell identity but does not support naive/CD4 specificity",
+      "PMID 36658547 is the permitted citation used for T cell identity support"
+    ],
+    "cited_pmids": [
+      "36658547"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "effector memory CD4-positive, alpha-beta T cell",
+    "reference_cl_term": "effector memory CD4-positive, alpha-beta T cell",
+    "reference_cl_id": "CL:0000905",
+    "cl_similarity": 54.2335604293762
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_6_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,975 @@
+{
+  "query_id": "cluster_8_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["36658547", "36211355", "24293448", "39468655", "38887303", "36820086", "31681329", "34899743", "38694515", "33216732", "21304824", "37350967", "20483239", "32911797", "33015128", "35839778", "33251412", "41261523", "33087046", "29025394", "35371032", "36522221", "29463101", "35269741", "35479413"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["36658547", "36211355", "24293448", "39468655", "38887303", "36820086", "31681329", "34899743", "38694515", "33216732", "21304824", "37350967", "20483239", "32911797", "33015128", "35839778", "33251412", "41261523", "33087046", "29025394", "35371032", "36522221", "29463101", "35269741", "35479413"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "T lymphocyte / T cell",
+        "clid": "CL:0000084",
+        "canonical_label": "T cell",
+        "direct_parents": [],
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "T cell",
+        "clid": "CL:0000084",
+        "canonical_label": "T cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "naive T cell",
+        "clid": "CL:0000898",
+        "canonical_label": "naive T cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "Naive/Mature CD4+ T cell (central memory-like)",
+        "clid": "CL:0000898",
+        "canonical_label": "naive T cell",
+        "direct_parents": [],
+        "mapping_status": "parent_only",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "submitted_label": "naive CCR4-positive regulatory T cell",
+        "clid": "CL:0001045",
+        "canonical_label": "naive CCR4-positive regulatory T cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "submitted_label": "naive T cell",
+        "clid": "CL:0000898",
+        "canonical_label": "naive T cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": "CL:0000084",
+      "label": "T cell",
+      "votes": 2,
+      "n_reviewers": 3,
+      "fraction": 0.6667
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000084",
+        "label_a": "T cell",
+        "clid_b": "CL:0000898",
+        "label_b": "naive T cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000084",
+        "lca_label": "T cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 2
+      },
+      {
+        "clid_a": "CL:0000084",
+        "label_a": "T cell",
+        "clid_b": "CL:0001045",
+        "label_b": "naive CCR4-positive regulatory T cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000084",
+        "lca_label": "T cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 4
+      },
+      {
+        "clid_a": "CL:0000898",
+        "label_a": "naive T cell",
+        "clid_b": "CL:0001045",
+        "label_b": "naive CCR4-positive regulatory T cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000898",
+        "lca_label": "naive T cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 2
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "T lymphocyte / T cell",
+      "topk_cell_types": [
+        "T lymphocyte / T cell",
+        "CD4+ naïve T cell, CD8+ naïve T cell, CD4+ central memory T cell (TCM)",
+        "T cell",
+        "lymphocyte",
+        "T1 B cell",
+        "T2 B cell",
+        "T3 B cell"
+      ],
+      "cell_ontology_id": "CL:0000084",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "T lymphocyte / T cell",
+        "canonical_label": "T cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=exact",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000084",
+        "candidate_cl_ids": [
+          "CL:0000084",
+          "CL:0000542",
+          "CL:0000958",
+          "CL:0000959",
+          "CL:0000960"
+        ],
+        "candidate_labels": [
+          "T cell",
+          "lymphocyte",
+          "T1 B cell",
+          "T2 B cell",
+          "T3 B cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000084",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "reasoning_short": "The annotation is scientifically strong and captures the major biological identity of the cluster well. It correctly recognizes the T-cell lineage from markers such as CD3E, CD3D, LCK, LAT, CD7, and LTB. More importantly, it uses the top-ranked markers appropriately: LEF1, CCR7, MAL, PIK3IP1, SELL, and CD27 are canonical naïve/resting T-cell markers, particularly in human PBMC datasets. The annotation also makes good use of supporting genes such as BTG1 and LDHB to argue for a quiescent/non-activated state, and it correctly notes the absence of effector, cytotoxic, NK, B-cell, and myeloid markers as strong negative evidence. The balanced consideration of markers is generally good. It does not over-focus on a single gene; instead, it integrates the marker list into a coherent transcriptional program. The ranking of markers is respected, especially LEF1, CCR7, MAL, and SELL, which are leading indicators of naïve T cells. The main weakness is a slight over-specificity in assigning the final subtype as “CD4+ naïve T cell” with high confidence. The marker list does not directly include CD4 or CD4-related markers, and CD8+ naïve T cells share many of the same surface/transcriptional features, including CCR7, SELL, CD27, and LEF1. The annotation does list CD8+ naïve T cells as a possible alternative, which is good, but the overall final summary is somewhat more confident than the marker evidence strictly supports. Still, this is a minor issue because the overall cluster identity as naïve/resting T cells is very clear, and CD4+ naïve T cells are indeed the most common circulating population with this exact signature in PBMC scRNA-seq references. Overall, the annotation is accurate, comprehensive, and biologically well grounded. It captures the general picture of the data excellently, with only minor over-interpretation regarding the CD4/CD8 subtype distinction.",
+      "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+      "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+      "evidence_markers_method": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "T lymphocyte / T cell",
+        "predicted_sub": "CD4+ naïve T cell, CD8+ naïve T cell, CD4+ central memory T cell (TCM)",
+        "possible_mixed": null,
+        "score": 88
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "T cell",
+      "topk_cell_types": [
+        "T cell",
+        "naive T cell"
+      ],
+      "cell_ontology_id": "CL:0000084",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "T cell",
+        "canonical_label": "T cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000084",
+        "candidate_cl_ids": [
+          "CL:0000084"
+        ],
+        "candidate_labels": [
+          "T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000084",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "reasoning_short": "In-house top1=T cell; top markers=LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+      "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+      "evidence_markers_method": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB",
+      "raw_inputs": {
+        "main_pred": "T cell",
+        "subtype1_pred": "naive T cell",
+        "subtype2_core_pred": "naive T cell",
+        "candidate_score_main": 0.9444,
+        "candidate_score_sub1": 1,
+        "candidate_score_sub2": 1
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "T cell",
+      "topk_cell_types": [
+        "T cell",
+        "naive T cell"
+      ],
+      "cell_ontology_id": "CL:0000084",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "T cell",
+        "canonical_label": "T cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000084",
+        "candidate_cl_ids": [
+          "CL:0000084"
+        ],
+        "candidate_labels": [
+          "T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000084",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "reasoning_short": "In-house top1=T cell; top markers=LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+      "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+      "evidence_markers_method": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "Naive/Mature CD4+ T cell (central memory-like)",
+      "topk_cell_types": [
+        "Naive/Mature CD4+ T cell (central memory-like)",
+        "naive CCR4-positive regulatory T cell",
+        "naive T cell",
+        "naive thymus-derived CD4-positive, alpha-beta T cell",
+        "naive thymus-derived CD8-positive, alpha-beta T cell",
+        "naive regulatory T cell"
+      ],
+      "cell_ontology_id": "CL:0000898",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The top markers include canonical T cell markers CD3E, CD3D, CD7, LAT, LCK, LTB, and CD27, which strongly indicate T cell lineage. The presence of LEF1, CCR7, SELL, MAL, and PIK3IP1 is consistent with naïve or central memory T cells (CCR7 and SELL are key homing receptors for lymph nodes, LEF1 is a Wnt pathway TF involved in T cell development and maintenance of naïve state). CD27 is a costimulatory molecule expressed on naïve and memory T cells. Importantly, there is no evidence of cytotoxic markers (e.g., GZMB, PRF1) or NK-specific markers (e.g., FCGR3A, FGFBP2), nor of CD4/CD8 lineage-defining markers, but the co-expression of LEF1 and CCR7 with CD3 is a hallmark of naïve/mature CD4+ T cells. Enrichment terms are dominated by general metabolism (e.g., hsa00910, hsa00130) and genetic information processing, which reflect cellular quiescence and homeostasis rather than activation or cytotoxicity. Thus, the identity is a CD4+ T cell subset, likely naïve or central memory.",
+      "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+      "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+      "evidence_markers_method": "CD3E; CD3D; CD7; LAT; LCK; LTB; CD27; LEF1; CCR7; SELL; MAL; PIK3IP1",
+      "evidence_terms_method": null,
+      "predicted_label": "Naive/Mature CD4+ T cell (central memory-like)",
+      "cl_id": "CL:0000898",
+      "rationale": "The top markers include canonical T cell markers CD3E, CD3D, CD7, LAT, LCK, LTB, and CD27, which strongly indicate T cell lineage. The presence of LEF1, CCR7, SELL, MAL, and PIK3IP1 is consistent with naïve or central memory T cells (CCR7 and SELL are key homing receptors for lymph nodes, LEF1 is a Wnt pathway TF involved in T cell development and maintenance of naïve state). CD27 is a costimulatory molecule expressed on naïve and memory T cells. Importantly, there is no evidence of cytotoxic markers (e.g., GZMB, PRF1) or NK-specific markers (e.g., FCGR3A, FGFBP2), nor of CD4/CD8 lineage-defining markers, but the co-expression of LEF1 and CCR7 with CD3 is a hallmark of naïve/mature CD4+ T cells. Enrichment terms are dominated by general metabolism (e.g., hsa00910, hsa00130) and genetic information processing, which reflect cellular quiescence and homeostasis rather than activation or cytotoxicity. Thus, the identity is a CD4+ T cell subset, likely naïve or central memory.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Naive/Mature CD4+ T cell (central memory-like)",
+        "canonical_label": "naive T cell",
+        "mapping_status": "parent_only",
+        "mapping_decision": "ab_parent_child",
+        "mapping_reason": "A_ancestor_of_B",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "broadened",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000898",
+        "candidate_cl_ids": [
+          "CL:0001045",
+          "CL:0000898",
+          "CL:0000895",
+          "CL:0000900",
+          "CL:0002677"
+        ],
+        "candidate_labels": [
+          "naive CCR4-positive regulatory T cell",
+          "naive T cell",
+          "naive thymus-derived CD4-positive, alpha-beta T cell",
+          "naive thymus-derived CD8-positive, alpha-beta T cell",
+          "naive regulatory T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000898",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "Naive/Mature CD4+ T cell (central memory-like)",
+      "topk_cell_types": [
+        "Naive/Mature CD4+ T cell (central memory-like)",
+        "naive CCR4-positive regulatory T cell",
+        "naive T cell",
+        "naive thymus-derived CD4-positive, alpha-beta T cell",
+        "naive thymus-derived CD8-positive, alpha-beta T cell",
+        "naive regulatory T cell"
+      ],
+      "cell_ontology_id": "CL:0000898",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The top markers include canonical T cell markers CD3E, CD3D, CD7, LAT, LCK, LTB, and CD27, which strongly indicate T cell lineage. The presence of LEF1, CCR7, SELL, MAL, and PIK3IP1 is consistent with naïve or central memory T cells (CCR7 and SELL are key homing receptors for lymph nodes, LEF1 is a Wnt pathway TF involved in T cell development and maintenance of naïve state). CD27 is a costimulatory molecule expressed on naïve and memory T cells. Importantly, there is no evidence of cytotoxic markers (e.g., GZMB, PRF1) or NK-specific markers (e.g., FCGR3A, FGFBP2), nor of CD4/CD8 lineage-defining markers, but the co-expression of LEF1 and CCR7 with CD3 is a hallmark of naïve/mature CD4+ T cells. Enrichment terms are dominated by general metabolism (e.g., hsa00910, hsa00130) and genetic information processing, which reflect cellular quiescence and homeostasis rather than activation or cytotoxicity. Thus, the identity is a CD4+ T cell subset, likely naïve or central memory.",
+      "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+      "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+      "evidence_markers_method": "CD3E; CD3D; CD7; LAT; LCK; LTB; CD27; LEF1; CCR7; SELL; MAL; PIK3IP1",
+      "evidence_terms_method": null,
+      "predicted_label": "Naive/Mature CD4+ T cell (central memory-like)",
+      "cl_id": "CL:0000898",
+      "rationale": "The top markers include canonical T cell markers CD3E, CD3D, CD7, LAT, LCK, LTB, and CD27, which strongly indicate T cell lineage. The presence of LEF1, CCR7, SELL, MAL, and PIK3IP1 is consistent with naïve or central memory T cells (CCR7 and SELL are key homing receptors for lymph nodes, LEF1 is a Wnt pathway TF involved in T cell development and maintenance of naïve state). CD27 is a costimulatory molecule expressed on naïve and memory T cells. Importantly, there is no evidence of cytotoxic markers (e.g., GZMB, PRF1) or NK-specific markers (e.g., FCGR3A, FGFBP2), nor of CD4/CD8 lineage-defining markers, but the co-expression of LEF1 and CCR7 with CD3 is a hallmark of naïve/mature CD4+ T cells. Enrichment terms are dominated by general metabolism (e.g., hsa00910, hsa00130) and genetic information processing, which reflect cellular quiescence and homeostasis rather than activation or cytotoxicity. Thus, the identity is a CD4+ T cell subset, likely naïve or central memory.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Naive/Mature CD4+ T cell (central memory-like)",
+        "canonical_label": "naive T cell",
+        "mapping_status": "parent_only",
+        "mapping_decision": "ab_parent_child",
+        "mapping_reason": "A_ancestor_of_B",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "broadened",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000898",
+        "candidate_cl_ids": [
+          "CL:0001045",
+          "CL:0000898",
+          "CL:0000895",
+          "CL:0000900",
+          "CL:0002677"
+        ],
+        "candidate_labels": [
+          "naive CCR4-positive regulatory T cell",
+          "naive T cell",
+          "naive thymus-derived CD4-positive, alpha-beta T cell",
+          "naive thymus-derived CD8-positive, alpha-beta T cell",
+          "naive regulatory T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000898",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "T lymphocyte / T cell",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": 0.9444,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "CD4+ naïve T cell, CD8+ naïve T cell, CD4+ central memory T cell (TCM)",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": 0.9444,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "T cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 0.9444,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "naive T cell",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.9444,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Naive/Mature CD4+ T cell (central memory-like)",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "naive CCR4-positive regulatory T cell",
+          "method": "enrich",
+          "rank": 2,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "naive T cell",
+          "method": "enrich",
+          "rank": 3,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "T lymphocyte / T cell",
+        "clid": "CL:0000084",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "CD4+ naïve T cell, CD8+ naïve T cell, CD4+ central memory T cell (TCM)",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "T cell",
+        "clid": "CL:0000084",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.9444,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "naive T cell",
+        "clid": "CL:0000898",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": 1,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "Naive/Mature CD4+ T cell (central memory-like)",
+        "clid": "CL:0000898",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "parent_only",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "label": "naive CCR4-positive regulatory T cell",
+        "clid": "CL:0001045",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "label": "naive T cell",
+        "clid": "CL:0000898",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": 1,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "T lymphocyte / T cell",
+      "CD4+ naïve T cell, CD8+ naïve T cell, CD4+ central memory T cell (TCM)",
+      "naive T cell",
+      "T cell",
+      "Naive/Mature CD4+ T cell (central memory-like)",
+      "naive CCR4-positive regulatory T cell",
+      "naive thymus-derived CD4-positive, alpha-beta T cell",
+      "naive thymus-derived CD8-positive, alpha-beta T cell",
+      "naive regulatory T cell",
+      "lymphocyte",
+      "T1 B cell",
+      "T2 B cell",
+      "T3 B cell"
+    ],
+    "allowed_backoff_candidates": [
+      "mature T cell",
+      "T cell",
+      "lymphocyte",
+      "mononuclear leukocyte",
+      "CD4-positive, CD25-positive, CCR4-positive, alpha-beta regulatory T cell",
+      "naive regulatory T cell",
+      "CD4-positive, CD25-positive, alpha-beta regulatory T cell",
+      "naive T cell",
+      "CD4-positive, alpha-beta T cell",
+      "mature alpha-beta T cell",
+      "CD8-positive, alpha-beta T cell",
+      "regulatory T cell",
+      "single nucleate cell",
+      "leukocyte",
+      "transitional stage B cell",
+      "B cell, CD19-positive"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "T lymphocyte / T cell",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "T lymphocyte / T cell",
+          "canonical_label": "T cell",
+          "mapping_status": "mapped_evidence",
+          "mapping_decision": "accept_after_verifier",
+          "mapping_reason": "A/B consistent; spec=exact",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000084",
+          "candidate_cl_ids": [
+            "CL:0000084",
+            "CL:0000542",
+            "CL:0000958",
+            "CL:0000959",
+            "CL:0000960"
+          ],
+          "candidate_labels": [
+            "T cell",
+            "lymphocyte",
+            "T1 B cell",
+            "T2 B cell",
+            "T3 B cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000084",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "T lymphocyte / T cell",
+          "CD4+ naïve T cell, CD8+ naïve T cell, CD4+ central memory T cell (TCM)"
+        ],
+        "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+        "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+        "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+        "evidence_markers_method": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+        "reasoning_short": "The annotation is scientifically strong and captures the major biological identity of the cluster well. It correctly recognizes the T-cell lineage from markers such as CD3E, CD3D, LCK, LAT, CD7, and LTB. More importantly, it uses the top-ranked markers appropriately: LEF1, CCR7, MAL, PIK3IP1, SELL, and CD27 are canonical naïve/resting T-cell markers, particularly in human PBMC datasets. The annotation also makes good use of supporting genes such as BTG1 and LDHB to argue for a quiescent/non-activated state, and it correctly notes the absence of effector, cytotoxic, NK, B-cell, and myeloid markers as strong negative evidence. The balanced consideration of markers is generally good. It does not over-focus on a single gene; instead, it integrates the marker list into a coherent transcriptional program. The ranking of markers is respected, especially LEF1, CCR7, MAL, and SELL, which are leading indicators of naïve T cells. The main weakness is a slight over-specificity in assigning the final subtype as “CD4+ naïve T cell” with high confidence. The marker list does not directly include CD4 or CD4-related markers, and CD8+ naïve T cells share many of the same surface/transcriptional features, including CCR7, SELL, CD27, and LEF1. The annotation does list CD8+ naïve T cells as a possible alternative, which is good, but the overall final summary is somewhat more confident than the marker evidence strictly supports. Still, this is a minor issue because the overall cluster identity as naïve/resting T cells is very clear, and CD4+ naïve T cells are indeed the most common circulating population with this exact signature in PBMC scRNA-seq references. Overall, the annotation is accurate, comprehensive, and biologically well grounded. It captures the general picture of the data excellently, with only minor over-interpretation regarding the CD4/CD8 subtype distinction."
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "T cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "T cell",
+          "canonical_label": "T cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000084",
+          "candidate_cl_ids": [
+            "CL:0000084"
+          ],
+          "candidate_labels": [
+            "T cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000084",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "naive T cell",
+          "T cell"
+        ],
+        "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+        "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+        "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+        "evidence_markers_method": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB",
+        "reasoning_short": "In-house top1=T cell; top markers=LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "Naive/Mature CD4+ T cell (central memory-like)",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "Naive/Mature CD4+ T cell (central memory-like)",
+          "canonical_label": "naive T cell",
+          "mapping_status": "parent_only",
+          "mapping_decision": "ab_parent_child",
+          "mapping_reason": "A_ancestor_of_B",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "broadened",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000898",
+          "candidate_cl_ids": [
+            "CL:0001045",
+            "CL:0000898",
+            "CL:0000895",
+            "CL:0000900",
+            "CL:0002677"
+          ],
+          "candidate_labels": [
+            "naive CCR4-positive regulatory T cell",
+            "naive T cell",
+            "naive thymus-derived CD4-positive, alpha-beta T cell",
+            "naive thymus-derived CD8-positive, alpha-beta T cell",
+            "naive regulatory T cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000898",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Naive/Mature CD4+ T cell (central memory-like)",
+          "naive CCR4-positive regulatory T cell",
+          "naive T cell",
+          "naive thymus-derived CD4-positive, alpha-beta T cell",
+          "naive thymus-derived CD8-positive, alpha-beta T cell",
+          "naive regulatory T cell"
+        ],
+        "evidence_markers_std": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+        "evidence_terms_std": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+        "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743",
+        "evidence_markers_method": "CD3E; CD3D; CD7; LAT; LCK; LTB; CD27; LEF1; CCR7; SELL; MAL; PIK3IP1",
+        "evidence_terms_method": null,
+        "reasoning_short": "The top markers include canonical T cell markers CD3E, CD3D, CD7, LAT, LCK, LTB, and CD27, which strongly indicate T cell lineage. The presence of LEF1, CCR7, SELL, MAL, and PIK3IP1 is consistent with naïve or central memory T cells (CCR7 and SELL are key homing receptors for lymph nodes, LEF1 is a Wnt pathway TF involved in T cell development and maintenance of naïve state). CD27 is a costimulatory molecule expressed on naïve and memory T cells. Importantly, there is no evidence of cytotoxic markers (e.g., GZMB, PRF1) or NK-specific markers (e.g., FCGR3A, FGFBP2), nor of CD4/CD8 lineage-defining markers, but the co-expression of LEF1 and CCR7 with CD3 is a hallmark of naïve/mature CD4+ T cells. Enrichment terms are dominated by general metabolism (e.g., hsa00910, hsa00130) and genetic information processing, which reflect cellular quiescence and homeostasis rather than activation or cytotoxicity. Thus, the identity is a CD4+ T cell subset, likely naïve or central memory."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "enrichment_terms": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+      "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_8, population: blood.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "LEF1",
+              "CCR7",
+              "MAL",
+              "PIK3IP1",
+              "SELL",
+              "CD27",
+              "GIMAP7",
+              "CD3E",
+              "NOSIP",
+              "LAT",
+              "RGS10",
+              "LDHB",
+              "LCK",
+              "BTG1",
+              "JUNB",
+              "CD7",
+              "CD3D",
+              "LTB"
+            ]
+          }
+        },
+        "scope_profile": "immune_enriched",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "basement_ecm_program": [
+              "leukocyte cell-cell adhesion",
+              "positive regulation of leukocyte cell-cell adhesion",
+              "positive regulation of cell-cell adhesion"
+            ],
+            "immune_activation": [
+              "antigen receptor-mediated signaling pathway",
+              "leukocyte cell-cell adhesion",
+              "positive regulation of leukocyte cell-cell adhesion",
+              "immune response-activating cell surface receptor signaling pathway",
+              "positive regulation of leukocyte activation",
+              "Immune System",
+              "Adaptive Immune System"
+            ],
+            "neural_differentiation": [
+              "immunological synapse",
+              "Translocation of ZAP-70 to Immunological synapse"
+            ]
+          },
+          "programs_from_markers": [],
+          "support_level": {
+            "epithelial": "none",
+            "transport": "none",
+            "secretory": "none"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 18,
+            "in_scope_count": 18,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "immune": 18,
+              "unknown": 15
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [
+              "T cell differentiation",
+              "regulation of T cell activation",
+              "lymphocyte differentiation",
+              "T cell receptor signaling pathway",
+              "antigen receptor-mediated signaling pathway",
+              "thymic T cell selection",
+              "leukocyte cell-cell adhesion",
+              "positive regulation of T cell activation",
+              "positive regulation of leukocyte cell-cell adhesion",
+              "T cell costimulation",
+              "positive regulation of cell-cell adhesion",
+              "positive regulation of lymphocyte activation",
+              "lymphocyte costimulation",
+              "immune response-activating cell surface receptor signaling pathway",
+              "positive regulation of leukocyte activation"
+            ],
+            "cellular_components": [
+              "immunological synapse",
+              "external side of plasma membrane",
+              "alpha-beta T cell receptor complex"
+            ],
+            "molecular_functions": [],
+            "kegg_pathways": [
+              "hsa05235",
+              "hsa04658",
+              "hsa04659",
+              "hsa05340",
+              "hsa04660",
+              "hsa04640",
+              "hsa04064"
+            ],
+            "reactome_pathways": [
+              "Generation of second messenger molecules",
+              "Translocation of ZAP-70 to Immunological synapse",
+              "TCR signaling",
+              "Phosphorylation of CD3 and TCR zeta chains",
+              "Co-inhibition by PD-1",
+              "Immune System",
+              "Regulation of T cell activation by CD28 family",
+              "Downstream TCR signaling",
+              "Adaptive Immune System",
+              "Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: CD3E, CD3D, LCK, CD27, LAT",
+            "disease_associations_do": "primary immunodeficiency disease",
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "36658547",
+                "36211355",
+                "24293448",
+                "39468655",
+                "38887303",
+                "36820086",
+                "31681329",
+                "34899743",
+                "38694515",
+                "33216732",
+                "21304824",
+                "37350967",
+                "20483239",
+                "32911797",
+                "33015128",
+                "35839778",
+                "33251412",
+                "41261523",
+                "33087046",
+                "29025394",
+                "35371032",
+                "36522221",
+                "29463101",
+                "35269741",
+                "35479413"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "naive T cell",
+              "T cell",
+              "CD4-positive, alpha-beta T cell",
+              "naive thymus-derived CD4-positive, alpha-beta T cell",
+              "regulatory T cell",
+              "naive thymus-derived CD8-positive, alpha-beta T cell",
+              "CD8-positive, alpha-beta T cell",
+              "natural killer cell",
+              "effector memory CD4-positive, alpha-beta T cell",
+              "CD4-positive, alpha-beta memory T cell"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000898",
+              "CL:0000084",
+              "CL:0000624",
+              "CL:0000895",
+              "CL:0000815",
+              "CL:0000900",
+              "CL:0000625",
+              "CL:0000623",
+              "CL:0000905",
+              "CL:0000897"
+            ],
+            "Final_Score": [
+              1,
+              0.9444,
+              0.8889,
+              0.8333,
+              0.8333,
+              0.7778,
+              0.7222,
+              0.7222,
+              0.6667,
+              0.6111
+            ],
+            "Top_Evidence_Genes": [
+              "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB",
+              "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, LDHB, LCK, BTG1, JUNB, CD7",
+              "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LDHB, LCK, BTG1, JUNB, CD7, CD3D",
+              "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, RGS10, LDHB, LCK, JUNB, CD3D, LTB",
+              "LEF1, CCR7, PIK3IP1, SELL, CD27, GIMAP7, CD3E, LAT, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+              "LEF1, CCR7, PIK3IP1, SELL, CD27, CD3E, NOSIP, RGS10, LDHB, LCK, JUNB, CD7, CD3D, LTB",
+              "LEF1, CCR7, MAL, SELL, CD27, CD3E, LAT, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+              "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, LDHB, LCK, BTG1, JUNB, CD7",
+              "LEF1, CCR7, MAL, GIMAP7, CD3E, NOSIP, LDHB, LCK, BTG1, JUNB, CD3D, LTB",
+              "LEF1, CCR7, MAL, SELL, CD27, CD3E, NOSIP, LDHB, JUNB, CD3D, LTB"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 37,
+        "n_degs_available": 18,
+        "top_evidence_genes_count": 18
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "LEF1, CCR7, MAL, PIK3IP1, SELL, CD27, GIMAP7, CD3E, NOSIP, LAT, RGS10, LDHB, LCK, BTG1, JUNB, CD7, CD3D, LTB",
+      "enrichment_terms": "T cell differentiation; regulation of T cell activation; lymphocyte differentiation; T cell receptor signaling pathway; antigen receptor-mediated signaling pathway; thymic T cell selection; leukocyte cell-cell adhesion; positive regulation of T cell activation; positive regulation of leukocyte cell-cell adhesion; T cell costimulation; positive regulation of cell-cell adhesion; positive regulation of lymphocyte activation; lymphocyte costimulation; immune response-activating cell surface receptor signaling pathway; positive regulation of leukocyte activation; immunological synapse; external side of plasma membrane; alpha-beta T cell receptor complex; hsa05235; hsa04658; hsa04659; hsa05340; hsa04660; hsa04640; hsa04064; Generation of second messenger molecules; Translocation of ZAP-70 to Immunological synapse; TCR signaling; Phosphorylation of CD3 and TCR zeta chains; Co-inhibition by PD-1; Immune System; Regulation of T cell activation by CD28 family; Downstream TCR signaling; Adaptive Immune System; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+      "pmids_top": "36658547, 36211355, 24293448, 39468655, 38887303, 36820086, 31681329, 34899743"
+    }
+  },
+  "cluster_id": "cluster_8"
+}

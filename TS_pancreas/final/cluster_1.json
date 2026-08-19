@@ -1,0 +1,110 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "B cell",
+    "final_cell_ontology_id": "CL:0000236",
+    "confidence_primary": 0.75
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Correctly identifies B-cell lineage from CD79A, CD79B, CD22, CD37, POU2AF1.",
+        "Explicitly rules out T/NK/myeloid and notes pancreatic contamination."
+      ],
+      "weaknesses": [
+        "Top-1 label remains broad B cell despite evidence supporting naive refinement.",
+        "Rank-2 subtype labels unmapped and include under-supported activated/mature option.",
+        "Does not resolve the IGHE signal."
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Top-1 B cell supported by canonical B-cell DEGs.",
+        "Rank-2 naive B cell (CL:0000788) is supported by TCL1A, FCER2 and IGHM."
+      ],
+      "weaknesses": [
+        "Top-1 label is less specific than the supported naive B-cell branch.",
+        "Naive subtype score is lower and pancreatic contamination/IGHE not explicitly resolved."
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "memory B cell",
+      "cell_ontology_id": "CL:0000787",
+      "strengths": [
+        "Correctly places the cluster in the B-cell lineage and excludes T/NK."
+      ],
+      "weaknesses": [
+        "No direct memory markers (CD27/AICDA) in the marker list.",
+        "TCL1A is naive-associated, and SGO2 is not a memory-specific marker.",
+        "IGHM/IGHE do not provide positive support for memory B-cell identity."
+      ],
+      "reviewer_cl_id": "CL:0000787"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "B-cell identity: CD79A, CD79B, CD22, CD37, POU2AF1, STAP1, IGHM, IGKJ5/IGHJ6.",
+      "Naive B-cell refinement: TCL1A and FCER2 (CD23) with unswitched IGHM directly support the added naive component.",
+      "Enrichment terms B cell receptor signaling pathway and immunoglobulin complex corroborate B-lineage."
+    ],
+    "conflicting": [
+      "TCL1A is a naive-associated marker, so the enrich memory-B-cell interpretation is not supported.",
+      "Pancreatic epithelial/ambient markers GATA4, KRT4, PIGR, CPA5, COL19A1 and the Reactome pancreatic ductal lineage term suggest contamination.",
+      "IGHE is inconsistent with a pure naive IgM+ population and is recorded as a minor secondary signal."
+    ],
+    "enrichment_or_literature": [
+      "B cell receptor signaling pathway",
+      "antigen receptor-mediated signaling pathway",
+      "immunoglobulin complex",
+      "IgM immunoglobulin complex",
+      "CD22 mediated BCR regulation.",
+      "PMID 39560475 allowed as B-cell context citation."
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "B cell",
+    "reference_cl_term": "B cell",
+    "reference_cl_id": "CL:0000236",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

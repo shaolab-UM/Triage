@@ -1,0 +1,874 @@
+{
+  "query_id": "cluster_3_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["34944787", "34754619", "41881500", "31366921", "35172892", "34899743", "34611893", "33927693", "36276113", "37006239", "34535569", "37350967", "33936035", "36685472", "20483239", "35839778", "41261523", "33087046", "32295833", "20562859", "36522221", "35269741", "34910940", "36703979", "40299576"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["34944787", "34754619", "41881500", "31366921", "35172892", "34899743", "34611893", "33927693", "36276113", "37006239", "34535569", "37350967", "33936035", "36685472", "20483239", "35839778", "41261523", "33087046", "32295833", "20562859", "36522221", "35269741", "34910940", "36703979", "40299576"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "Natural Killer (NK) cells",
+        "clid": "CL:0000623",
+        "canonical_label": "natural killer cell",
+        "direct_parents": [],
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "natural killer cell",
+        "clid": "CL:0000623",
+        "canonical_label": "natural killer cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "CD16-positive, CD56-dim natural killer cell, human",
+        "clid": "CL:0000939",
+        "canonical_label": "CD16-positive, CD56-dim natural killer cell, human",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "natural killer cell",
+        "clid": "CL:0000623",
+        "canonical_label": "natural killer cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": "CL:0000623",
+      "label": "natural killer cell",
+      "votes": 3,
+      "n_reviewers": 3,
+      "fraction": 1
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000623",
+        "label_a": "natural killer cell",
+        "clid_b": "CL:0000939",
+        "label_b": "CD16-positive, CD56-dim natural killer cell, human",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000623",
+        "lca_label": "natural killer cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 2
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "Natural Killer (NK) cells",
+      "topk_cell_types": [
+        "Natural Killer (NK) cells",
+        "CD56dim CD16+ mature NK cells, CD56dim CD16+ NKG2A+ NK cells, Adaptive / memory-like NK cells",
+        "natural killer cell",
+        "pro-NK cell",
+        "group 2 innate lymphoid cell",
+        "natural T-regulatory cell",
+        "natural helper lymphocyte"
+      ],
+      "cell_ontology_id": "CL:0000623",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "Natural Killer (NK) cells",
+        "canonical_label": "natural killer cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=exact",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000623",
+        "candidate_cl_ids": [
+          "CL:0000623",
+          "CL:0000825",
+          "CL:0001069",
+          "CL:0000903",
+          "CL:0002679"
+        ],
+        "candidate_labels": [
+          "natural killer cell",
+          "pro-NK cell",
+          "group 2 innate lymphoid cell",
+          "natural T-regulatory cell",
+          "natural helper lymphocyte"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000623",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "reasoning_short": "The annotation is highly accurate and demonstrates a strong understanding of the NK-cell transcriptional program. The marker list is dominated by canonical NK-cell genes, and the annotation correctly prioritizes the most informative markers rather than overinterpreting shared or ambiguous ones. Key strengths: 1. **Strong use of NK-specific core markers**: The top markers include `KLRF1` (NKp80), `KLRD1` (CD94), `KLRC1` (NKG2A), `NCR3` (NKp30), `FCGR3A` (CD16), `S1PR5`, `FGFBP2`, and `SPON2`. This combination is essentially diagnostic for peripheral blood NK cells, especially mature CD56dim CD16+ NK cells. 2. **Balanced integration of multiple marker categories**: Rather than focusing on a single gene, the annotation correctly integrates cytotoxic effectors (`PRF1`, `GZMB`, `GZMH`, `GNLY`, `NKG7`, `CTSW`, `CLIC3`), NK receptors (`KLRF1`, `KLRD1`, `KLRC1`, `NCR3`, `FCGR3A`), signaling adaptors (`TYROBP`, `FCER1G`), and NK-associated chemokines (`XCL1`, `XCL2`, `CCL3`, `CCL4`, `CCL5`). This shows good reasoning across the whole marker list. 3. **Appropriate use of negative evidence**: The annotation correctly notes the absence of T-cell markers (`CD3`, `TRAC`, `CD4`, `CD8A`), B-cell markers, and monocyte/DC markers such as `CD14`, `LYZ`, and MHC class II genes. This strengthens the conclusion and excludes major alternative cell types. 4. **Sensible subtyping**: The assignment to **CD56dim CD16+ mature NK cells** is well supported by high `FCGR3A`, `FGFBP2`, `SPON2`, `S1PR5`, `PRF1`, `GZMB`, `GZMH`, `GNLY`, and `NKG7`. The additional identification of an NKG2A+ state is also justified by co-expression of `KLRC1` and `KLRD1`. The CD56bright subtype is appropriately ruled out due to the absence of `KIT`, `IL7R`, and `GZMK`. Minor caveats: - Some markers such as `CD160`, `GZMB`, `GNLY`, and `KLRB1` can also appear on cytotoxic T cells, but the overwhelming co-expression of NK-specific receptors like `KLRF1`, `NCR3`, `S1PR5`, and `FGFBP2` makes NK cells the clear interpretation. - The inclusion of \"adaptive / memory-like NK cells\" as a possible subtype is reasonable but less strongly supported, since `KLRC2`/NKG2C and `B3GAT1`/CD57 are absent. However, the annotation correctly labels this as less likely and does not overstate it. - The marker ranking was appropriately respected: the top markers are strongly NK-defining, and the annotation did not over-rely on lower-ranked or less specific genes. Overall, this is a scientifically accurate, well-balanced, and compre...",
+      "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+      "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+      "evidence_markers_method": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "Natural Killer (NK) cells",
+        "predicted_sub": "CD56dim CD16+ mature NK cells, CD56dim CD16+ NKG2A+ NK cells, Adaptive / memory-like NK cells",
+        "possible_mixed": null,
+        "score": 96
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "natural killer cell",
+      "topk_cell_types": [
+        "natural killer cell",
+        "CD16-positive, CD56-dim natural killer cell, human"
+      ],
+      "cell_ontology_id": "CL:0000623",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "natural killer cell",
+        "canonical_label": "natural killer cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000623",
+        "candidate_cl_ids": [
+          "CL:0000623"
+        ],
+        "candidate_labels": [
+          "natural killer cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000623",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "reasoning_short": "In-house top1=natural killer cell; top markers=KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+      "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+      "evidence_markers_method": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1",
+      "raw_inputs": {
+        "main_pred": "natural killer cell",
+        "subtype1_pred": "CD16-positive, CD56-dim natural killer cell, human",
+        "subtype2_core_pred": "CD16-positive, CD56-dim natural killer cell, human",
+        "candidate_score_main": 1,
+        "candidate_score_sub1": 0.75,
+        "candidate_score_sub2": 0.75
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "natural killer cell",
+      "topk_cell_types": [
+        "natural killer cell",
+        "CD16-positive, CD56-dim natural killer cell, human"
+      ],
+      "cell_ontology_id": "CL:0000623",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "natural killer cell",
+        "canonical_label": "natural killer cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000623",
+        "candidate_cl_ids": [
+          "CL:0000623"
+        ],
+        "candidate_labels": [
+          "natural killer cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000623",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "reasoning_short": "In-house top1=natural killer cell; top markers=KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+      "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+      "evidence_markers_method": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "natural killer cell",
+      "topk_cell_types": [
+        "natural killer cell"
+      ],
+      "cell_ontology_id": "CL:0000623",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker list is overwhelmingly NK-cell specific, with KLRF1, CD160, KLRD1, KLRC1, NCR3, FGFBP2, FCGR3A (CD16), GNLY, NKG7, PRF1, GZMB, GZMA, and S1PR5 all strongly supporting NK cell identity. Critically, T-cell markers (CD3D, CD3E, CD4, CD8A) are entirely absent, which distinguishes NK cells from cytotoxic T cells. Shared cytotoxic genes (GZMB, PRF1, GNLY) with CD8+ T cells are present, but the presence of NK-specific receptors (KLRD1, KLRC1, NCR3, CD160) and the absence of T-cell receptor complex markers confirms NK identity. Pathway enrichment shows broad metabolic activity and viral information processing, consistent with activated cytotoxic lymphocytes, but does not override the marker-based assignment.",
+      "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+      "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+      "evidence_markers_method": "KLRF1 (NKp80); CD160; KLRD1 (CD94); KLRC1 (NKG2A); NCR3 (NKp30); FGFBP2; FCGR3A (CD16); GNLY; NKG7; PRF1; GZMB; GZMA; S1PR5; XCL1/XCL2",
+      "evidence_terms_method": null,
+      "predicted_label": "natural killer cell",
+      "cl_id": "CL:0000623",
+      "rationale": "The marker list is overwhelmingly NK-cell specific, with KLRF1, CD160, KLRD1, KLRC1, NCR3, FGFBP2, FCGR3A (CD16), GNLY, NKG7, PRF1, GZMB, GZMA, and S1PR5 all strongly supporting NK cell identity. Critically, T-cell markers (CD3D, CD3E, CD4, CD8A) are entirely absent, which distinguishes NK cells from cytotoxic T cells. Shared cytotoxic genes (GZMB, PRF1, GNLY) with CD8+ T cells are present, but the presence of NK-specific receptors (KLRD1, KLRC1, NCR3, CD160) and the absence of T-cell receptor complex markers confirms NK identity. Pathway enrichment shows broad metabolic activity and viral information processing, consistent with activated cytotoxic lymphocytes, but does not override the marker-based assignment.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "natural killer cell",
+        "canonical_label": "natural killer cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000623",
+        "candidate_cl_ids": [
+          "CL:0000623"
+        ],
+        "candidate_labels": [
+          "natural killer cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000623",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "natural killer cell",
+      "topk_cell_types": [
+        "natural killer cell"
+      ],
+      "cell_ontology_id": "CL:0000623",
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker list is overwhelmingly NK-cell specific, with KLRF1, CD160, KLRD1, KLRC1, NCR3, FGFBP2, FCGR3A (CD16), GNLY, NKG7, PRF1, GZMB, GZMA, and S1PR5 all strongly supporting NK cell identity. Critically, T-cell markers (CD3D, CD3E, CD4, CD8A) are entirely absent, which distinguishes NK cells from cytotoxic T cells. Shared cytotoxic genes (GZMB, PRF1, GNLY) with CD8+ T cells are present, but the presence of NK-specific receptors (KLRD1, KLRC1, NCR3, CD160) and the absence of T-cell receptor complex markers confirms NK identity. Pathway enrichment shows broad metabolic activity and viral information processing, consistent with activated cytotoxic lymphocytes, but does not override the marker-based assignment.",
+      "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+      "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+      "evidence_markers_method": "KLRF1 (NKp80); CD160; KLRD1 (CD94); KLRC1 (NKG2A); NCR3 (NKp30); FGFBP2; FCGR3A (CD16); GNLY; NKG7; PRF1; GZMB; GZMA; S1PR5; XCL1/XCL2",
+      "evidence_terms_method": null,
+      "predicted_label": "natural killer cell",
+      "cl_id": "CL:0000623",
+      "rationale": "The marker list is overwhelmingly NK-cell specific, with KLRF1, CD160, KLRD1, KLRC1, NCR3, FGFBP2, FCGR3A (CD16), GNLY, NKG7, PRF1, GZMB, GZMA, and S1PR5 all strongly supporting NK cell identity. Critically, T-cell markers (CD3D, CD3E, CD4, CD8A) are entirely absent, which distinguishes NK cells from cytotoxic T cells. Shared cytotoxic genes (GZMB, PRF1, GNLY) with CD8+ T cells are present, but the presence of NK-specific receptors (KLRD1, KLRC1, NCR3, CD160) and the absence of T-cell receptor complex markers confirms NK identity. Pathway enrichment shows broad metabolic activity and viral information processing, consistent with activated cytotoxic lymphocytes, but does not override the marker-based assignment.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "natural killer cell",
+        "canonical_label": "natural killer cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000623",
+        "candidate_cl_ids": [
+          "CL:0000623"
+        ],
+        "candidate_labels": [
+          "natural killer cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000623",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "Natural Killer (NK) cells",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "CD56dim CD16+ mature NK cells, CD56dim CD16+ NKG2A+ NK cells, Adaptive / memory-like NK cells",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "natural killer cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "CD16-positive, CD56-dim natural killer cell, human",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "natural killer cell",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": 1,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "Natural Killer (NK) cells",
+        "clid": "CL:0000623",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "CD56dim CD16+ mature NK cells, CD56dim CD16+ NKG2A+ NK cells, Adaptive / memory-like NK cells",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "natural killer cell",
+        "clid": "CL:0000623",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 1,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "CD16-positive, CD56-dim natural killer cell, human",
+        "clid": "CL:0000939",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": 0.75,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "natural killer cell",
+        "clid": "CL:0000623",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 1,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "Natural Killer (NK) cells",
+      "CD56dim CD16+ mature NK cells, CD56dim CD16+ NKG2A+ NK cells, Adaptive / memory-like NK cells",
+      "natural killer cell",
+      "CD16-positive, CD56-dim natural killer cell, human",
+      "pro-NK cell",
+      "group 2 innate lymphoid cell",
+      "natural T-regulatory cell",
+      "natural helper lymphocyte"
+    ],
+    "allowed_backoff_candidates": [
+      "group 1 innate lymphoid cell",
+      "innate lymphoid cell",
+      "mature natural killer cell",
+      "natural killer cell",
+      "lymphoid lineage restricted progenitor cell",
+      "hematopoietic lineage restricted progenitor cell",
+      "lymphocyte",
+      "CD4-positive, CD25-positive, alpha-beta regulatory T cell",
+      "CD4-positive, alpha-beta T cell",
+      "regulatory T cell",
+      "mononuclear leukocyte"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "Natural Killer (NK) cells",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "Natural Killer (NK) cells",
+          "canonical_label": "natural killer cell",
+          "mapping_status": "mapped_evidence",
+          "mapping_decision": "accept_after_verifier",
+          "mapping_reason": "A/B consistent; spec=exact",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000623",
+          "candidate_cl_ids": [
+            "CL:0000623",
+            "CL:0000825",
+            "CL:0001069",
+            "CL:0000903",
+            "CL:0002679"
+          ],
+          "candidate_labels": [
+            "natural killer cell",
+            "pro-NK cell",
+            "group 2 innate lymphoid cell",
+            "natural T-regulatory cell",
+            "natural helper lymphocyte"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000623",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Natural Killer (NK) cells",
+          "CD56dim CD16+ mature NK cells, CD56dim CD16+ NKG2A+ NK cells, Adaptive / memory-like NK cells"
+        ],
+        "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+        "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+        "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+        "evidence_markers_method": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+        "reasoning_short": "The annotation is highly accurate and demonstrates a strong understanding of the NK-cell transcriptional program. The marker list is dominated by canonical NK-cell genes, and the annotation correctly prioritizes the most informative markers rather than overinterpreting shared or ambiguous ones. Key strengths: 1. **Strong use of NK-specific core markers**: The top markers include `KLRF1` (NKp80), `KLRD1` (CD94), `KLRC1` (NKG2A), `NCR3` (NKp30), `FCGR3A` (CD16), `S1PR5`, `FGFBP2`, and `SPON2`. This combination is essentially diagnostic for peripheral blood NK cells, especially mature CD56dim CD16+ NK cells. 2. **Balanced integration of multiple marker categories**: Rather than focusing on a single gene, the annotation correctly integrates cytotoxic effectors (`PRF1`, `GZMB`, `GZMH`, `GNLY`, `NKG7`, `CTSW`, `CLIC3`), NK receptors (`KLRF1`, `KLRD1`, `KLRC1`, `NCR3`, `FCGR3A`), signaling adaptors (`TYROBP`, `FCER1G`), and NK-associated chemokines (`XCL1`, `XCL2`, `CCL3`, `CCL4`, `CCL5`). This shows good reasoning across the whole marker list. 3. **Appropriate use of negative evidence**: The annotation correctly notes the absence of T-cell markers (`CD3`, `TRAC`, `CD4`, `CD8A`), B-cell markers, and monocyte/DC markers such as `CD14`, `LYZ`, and MHC class II genes. This strengthens the conclusion and excludes major alternative cell types. 4. **Sensible subtyping**: The assignment to **CD56dim CD16+ mature NK cells** is well supported by high `FCGR3A`, `FGFBP2`, `SPON2`, `S1PR5`, `PRF1`, `GZMB`, `GZMH`, `GNLY`, and `NKG7`. The additional identification of an NKG2A+ state is also justified by co-expression of `KLRC1` and `KLRD1`. The CD56bright subtype is appropriately ruled out due to the absence of `KIT`, `IL7R`, and `GZMK`. Minor caveats: - Some markers such as `CD160`, `GZMB`, `GNLY`, and `KLRB1` can also appear on cytotoxic T cells, but the overwhelming co-expression of NK-specific receptors like `KLRF1`, `NCR3`, `S1PR5`, and `FGFBP2` makes NK cells the clear interpretation. - The inclusion of \"adaptive / memory-like NK cells\" as a possible subtype is reasonable but less strongly supported, since `KLRC2`/NKG2C and `B3GAT1`/CD57 are absent. However, the annotation correctly labels this as less likely and does not overstate it. - The marker ranking was appropriately respected: the top markers are strongly NK-defining, and the annotation did not over-rely on lower-ranked or less specific genes. Overall, this is a scientifically accurate, well-balanced, and compre..."
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "natural killer cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "natural killer cell",
+          "canonical_label": "natural killer cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000623",
+          "candidate_cl_ids": [
+            "CL:0000623"
+          ],
+          "candidate_labels": [
+            "natural killer cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000623",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "natural killer cell",
+          "CD16-positive, CD56-dim natural killer cell, human"
+        ],
+        "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+        "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+        "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+        "evidence_markers_method": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1",
+        "reasoning_short": "In-house top1=natural killer cell; top markers=KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "natural killer cell",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "natural killer cell",
+          "canonical_label": "natural killer cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000623",
+          "candidate_cl_ids": [
+            "CL:0000623"
+          ],
+          "candidate_labels": [
+            "natural killer cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000623",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "natural killer cell"
+        ],
+        "evidence_markers_std": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+        "evidence_terms_std": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+        "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693",
+        "evidence_markers_method": "KLRF1 (NKp80); CD160; KLRD1 (CD94); KLRC1 (NKG2A); NCR3 (NKp30); FGFBP2; FCGR3A (CD16); GNLY; NKG7; PRF1; GZMB; GZMA; S1PR5; XCL1/XCL2",
+        "evidence_terms_method": null,
+        "reasoning_short": "The marker list is overwhelmingly NK-cell specific, with KLRF1, CD160, KLRD1, KLRC1, NCR3, FGFBP2, FCGR3A (CD16), GNLY, NKG7, PRF1, GZMB, GZMA, and S1PR5 all strongly supporting NK cell identity. Critically, T-cell markers (CD3D, CD3E, CD4, CD8A) are entirely absent, which distinguishes NK cells from cytotoxic T cells. Shared cytotoxic genes (GZMB, PRF1, GNLY) with CD8+ T cells are present, but the presence of NK-specific receptors (KLRD1, KLRC1, NCR3, CD160) and the absence of T-cell receptor complex markers confirms NK identity. Pathway enrichment shows broad metabolic activity and viral information processing, consistent with activated cytotoxic lymphocytes, but does not override the marker-based assignment."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "enrichment_terms": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+      "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_3, population: blood.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "KLRF1",
+              "CD160",
+              "GZMB",
+              "FCGR3A",
+              "XCL2",
+              "PRSS23",
+              "KLRD1",
+              "GNLY",
+              "KLRC1",
+              "FGFBP2",
+              "XCL1",
+              "S1PR5",
+              "CCL4",
+              "CLIC3",
+              "PRF1",
+              "SPON2",
+              "NKG7",
+              "KLRB1",
+              "C1orf21",
+              "CST7",
+              "GZMA",
+              "GZMH",
+              "CCL3",
+              "IL2RB",
+              "FCER1G",
+              "EFHD2",
+              "AKR1C3",
+              "HOPX",
+              "CD300A",
+              "IGFBP7",
+              "MATK",
+              "RHOC",
+              "SNORD3B-2",
+              "PLEK",
+              "TYROBP",
+              "ABI3",
+              "CMC1",
+              "FGR",
+              "PYHIN1",
+              "CTSW",
+              "CCL5",
+              "SAMD3",
+              "APMAP",
+              "NCR3",
+              "PLAC8",
+              "ABHD17A",
+              "TPST2",
+              "APOBEC3G",
+              "MBP",
+              "GNG2"
+            ]
+          }
+        },
+        "scope_profile": "immune_enriched",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "basement_ecm_program": "anti-basement membrane glomerulonephritis",
+            "immune_activation": [
+              "leukocyte mediated immunity",
+              "leukocyte mediated cytotoxicity",
+              "regulation of leukocyte mediated cytotoxicity",
+              "immune receptor activity",
+              "Immune System",
+              "Adaptive Immune System",
+              "Innate Immune System"
+            ],
+            "neural_differentiation": "immunological synapse"
+          },
+          "programs_from_markers": [],
+          "support_level": {
+            "epithelial": "none",
+            "transport": "none",
+            "secretory": "none"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 98,
+            "in_scope_count": 98,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "unknown": 95,
+              "immune": 23
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [
+              "cell killing",
+              "leukocyte mediated immunity",
+              "leukocyte mediated cytotoxicity",
+              "natural killer cell mediated cytotoxicity",
+              "lymphocyte mediated immunity",
+              "natural killer cell mediated immunity",
+              "regulation of cell killing",
+              "natural killer cell chemotaxis",
+              "killing of cells of another organism",
+              "disruption of cell in another organism",
+              "disruption of anatomical structure in another organism",
+              "granzyme-mediated programmed cell death signaling pathway",
+              "positive regulation of cell killing",
+              "regulation of leukocyte mediated cytotoxicity",
+              "natural killer cell activation"
+            ],
+            "cellular_components": [
+              "cytolytic granule",
+              "immunological synapse"
+            ],
+            "molecular_functions": [
+              "immune receptor activity",
+              "chemokine activity",
+              "CCR chemokine receptor binding"
+            ],
+            "kegg_pathways": [
+              "hsa04650",
+              "hsa04061",
+              "hsa05332",
+              "hsa04060",
+              "hsa04062"
+            ],
+            "reactome_pathways": [
+              "Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell",
+              "Immune System",
+              "Adaptive Immune System",
+              "Chemokine receptors bind chemokines",
+              "Class A/1 (Rhodopsin-like receptors)",
+              "Peptide ligand-binding receptors",
+              "Signal Transduction",
+              "GPCR ligand binding",
+              "Signaling by GPCR",
+              "Innate Immune System"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: KLRB1, CD247, CCL5, KLRD1, TYROBP",
+            "disease_associations_do": [
+              "anti-basement membrane glomerulonephritis",
+              "Goodpasture syndrome",
+              "human immunodeficiency virus infectious disease",
+              "COVID-19",
+              "viral infectious disease"
+            ],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "34944787",
+                "34754619",
+                "41881500",
+                "31366921",
+                "35172892",
+                "34899743",
+                "34611893",
+                "33927693",
+                "36276113",
+                "37006239",
+                "34535569",
+                "37350967",
+                "33936035",
+                "36685472",
+                "20483239",
+                "35839778",
+                "41261523",
+                "33087046",
+                "32295833",
+                "20562859",
+                "36522221",
+                "35269741",
+                "34910940",
+                "36703979",
+                "40299576"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "natural killer cell",
+              "CD16-positive, CD56-dim natural killer cell, human",
+              "mature NK T cell",
+              "regulatory T cell",
+              "innate lymphoid cell",
+              "effector memory CD8-positive, alpha-beta T cell",
+              "gamma-delta T cell",
+              "T cell",
+              "CD16-negative, CD56-bright natural killer cell, human",
+              "CD4-positive, alpha-beta cytotoxic T cell"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000623",
+              "CL:0000939",
+              "CL:0000814",
+              "CL:0000815",
+              "CL:0001065",
+              "CL:0000913",
+              "CL:0000798",
+              "CL:0000084",
+              "CL:0000938",
+              "CL:0000934"
+            ],
+            "Final_Score": [
+              1,
+              0.75,
+              0.75,
+              0.675,
+              0.675,
+              0.65,
+              0.65,
+              0.625,
+              0.55,
+              0.55
+            ],
+            "Top_Evidence_Genes": [
+              "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1",
+              "KLRF1, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2",
+              "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1",
+              "KLRF1, CD160, GZMB, FCGR3A, XCL2, KLRD1, GNLY, KLRC1, XCL1, S1PR5, CCL4, PRF1, SPON2, NKG7, KLRB1",
+              "KLRF1, CD160, GZMB, FCGR3A, XCL2, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2",
+              "KLRF1, GZMB, FCGR3A, PRSS23, KLRD1, GNLY, FGFBP2, XCL1, S1PR5, CCL4, PRF1, SPON2, NKG7, C1orf21, CST7",
+              "KLRF1, CD160, GZMB, FCGR3A, XCL2, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2",
+              "KLRF1, CD160, GZMB, FCGR3A, XCL2, KLRD1, GNLY, KLRC1, FGFBP2, CCL4, PRF1, NKG7, KLRB1, CST7, GZMA",
+              "KLRF1, CD160, XCL2, KLRD1, GNLY, KLRC1, XCL1, CCL4, CLIC3, PRF1, NKG7, KLRB1, CST7, GZMA, CCL3",
+              "GZMB, FCGR3A, PRSS23, GNLY, FGFBP2, S1PR5, CCL4, PRF1, SPON2, NKG7, C1orf21, CST7, GZMA, GZMH, EFHD2"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 41,
+        "n_degs_available": 50,
+        "top_evidence_genes_count": 24
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "KLRF1, CD160, GZMB, FCGR3A, XCL2, PRSS23, KLRD1, GNLY, KLRC1, FGFBP2, XCL1, S1PR5, CCL4, CLIC3, PRF1, SPON2, NKG7, KLRB1, C1orf21, CST7, GZMA, GZMH, CCL3, IL2RB, FCER1G, EFHD2, AKR1C3, HOPX, CD300A, IGFBP7, MATK, RHOC, SNORD3B-2, PLEK, TYROBP, ABI3, CMC1, FGR, PYHIN1, CTSW, CCL5, SAMD3, APMAP, NCR3, PLAC8, ABHD17A, TPST2, APOBEC3G, MBP, GNG2",
+      "enrichment_terms": "cell killing; leukocyte mediated immunity; leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; lymphocyte mediated immunity; natural killer cell mediated immunity; regulation of cell killing; natural killer cell chemotaxis; killing of cells of another organism; disruption of cell in another organism; disruption of anatomical structure in another organism; granzyme-mediated programmed cell death signaling pathway; positive regulation of cell killing; regulation of leukocyte mediated cytotoxicity; natural killer cell activation; cytolytic granule; immunological synapse; hsa04650; hsa04061; hsa05332; hsa04060; hsa04062; Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell; Immune System; Adaptive Immune System; Chemokine receptors bind chemokines; Class A/1 (Rhodopsin-like receptors); Peptide ligand-binding receptors; Signal Transduction; GPCR ligand binding; Signaling by GPCR; Innate Immune System",
+      "pmids_top": "34944787, 34754619, 41881500, 31366921, 35172892, 34899743, 34611893, 33927693"
+    }
+  },
+  "cluster_id": "cluster_3"
+}

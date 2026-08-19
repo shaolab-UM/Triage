@@ -1,0 +1,108 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zheng_blood",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "B cell",
+    "final_cell_ontology_id": "CL:0000236",
+    "confidence_primary": 0.88
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Comprehensive B-cell marker support (MS4A1, CD79A, CD79B, BANK1, BLK, CD37)",
+        "Correctly identifies FCER2 and TCL1A as naive B-cell state markers",
+        "Distinguishes B-cell MHC class II expression from dendritic-cell identity"
+      ],
+      "weaknesses": [
+        "Structured top1 remains parent-level B cell (CL:0000236); naive state appears only in topk/reasoning",
+        "CD27 negativity inferred from absence among top markers rather than direct measurement"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "B cell",
+      "cell_ontology_id": "CL:0000236",
+      "strengths": [
+        "Clean deterministic top1 B cell (CL:0000236)",
+        "Top2 naive B cell (CL:0000788) provides exact supported descendant"
+      ],
+      "weaknesses": [
+        "No biological reasoning provided",
+        "Naive B-cell hypothesis is down-weighted as rank2, not the final top1"
+      ],
+      "reviewer_cl_id": "CL:0000236"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Mature naïve B cell",
+      "cell_ontology_id": "CL:0000785",
+      "strengths": [
+        "Top label captures mature naive B-cell state",
+        "Highlights canonical mature B-cell markers and absence of T/NK/plasma markers"
+      ],
+      "weaknesses": [
+        "Mapped to parent CL:0000785 instead of exact naive B cell CL:0000788",
+        "Lower-ranked NK/T candidates (CL:0000824, CL:0002419) are unsupported by DEGs"
+      ],
+      "reviewer_cl_id": "CL:0000785"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Top DEGs MS4A1, CD79A, CD79B, BANK1, BLK, CD37, VPREB3 and IGLL5 support B-cell lineage.",
+      "FCER2 and TCL1A are top positive DEGs supporting the added naive component (CD23+/TCL1A+ naive mature B-cell phenotype).",
+      "Absence of CD27, MZB1, XBP1, SDC1 and JCHAIN among top DEGs supports non-memory/non-plasma mature B-cell identity.",
+      "MHC class II antigen presentation enrichment (HLA-DRA, HLA-DQA1, HLA-DRB1, CD74) is consistent with B-cell antigen-presenting function",
+      "PMID 34680286 supports B-cell marker interpretation."
+    ],
+    "conflicting": [
+      "No conflicting lineage DEGs",
+      "T-cell (CD3D/CD3E), NK-cell (FCGR3A/FGFBP2) and plasma-cell (MZB1/XBP1/SDC1/JCHAIN) markers are absent.",
+      "TCR/ZAP-70 and CD3-related enrichment terms are generic immune pathway overlaps and are not supported by positive T-cell lineage markers."
+    ],
+    "enrichment_or_literature": [
+      "MHC class II antigen processing/presentation and adaptive immune system enrichment are consistent with B-cell identity.",
+      "PMID 34680286 is cited for B-cell marker interpretation."
+    ],
+    "cited_pmids": [
+      "34680286"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "B cell",
+    "reference_cl_term": "B cell",
+    "reference_cl_id": "CL:0000236",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

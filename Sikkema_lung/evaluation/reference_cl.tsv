@@ -1,0 +1,12 @@
+cluster_id	published_reference_annotation	reference_cl_term	reference_cl_id
+cluster_1	T cell	T cell	CL:0000084
+cluster_10	pulmonary alveolar type 2 cell	pulmonary alveolar type 2 cell	CL:0002063
+cluster_11	secretory cell	secretory cell	CL:0000151
+cluster_2	basal cell	basal cell	CL:0000646
+cluster_3	capillary endothelial cell	capillary endothelial cell	CL:0002144
+cluster_4	ciliated cell	ciliated cell	CL:0000064
+cluster_5	fibroblast	fibroblast	CL:0000057
+cluster_6	macrophage	macrophage	CL:0000235
+cluster_7	mast cell	mast cell	CL:0000097
+cluster_8	monocyte	monocyte	CL:0000576
+cluster_9	natural killer cell	natural killer cell	CL:0000623

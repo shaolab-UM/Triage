@@ -1,0 +1,844 @@
+{
+  "query_id": "cluster_10_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["37397988", "39560475", "39758026", "35957916", "31840817", "35359458", "34575035", "19132093", "31401395", "41248607", "36899442", "41514864", "26156633", "34025578", "39003281", "35839778", "35662458", "33087046", "38556552", "20562859", "30399196", "35038894", "36246626", "28314945", "40196253"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["37397988", "39560475", "39758026", "35957916", "31840817", "35359458", "34575035", "19132093", "31401395", "41248607", "36899442", "41514864", "26156633", "34025578", "39003281", "35839778", "35662458", "33087046", "38556552", "20562859", "30399196", "35038894", "36246626", "28314945", "40196253"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "enrich",
+        "rank": 1,
+        "submitted_label": "pancreatic A cell",
+        "clid": "CL:0000171",
+        "canonical_label": "pancreatic A cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": null,
+      "label": null,
+      "votes": 1,
+      "n_reviewers": 1,
+      "fraction": 1
+    },
+    "pairwise_relations": []
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+      "topk_cell_types": [
+        "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+        "Immature / developing beta-cell-committed endocrine cell, Pancreatic endocrine progenitor / immature polyhormonal endocrine precursor, Alpha-cell-committed precursor / immature alpha cell",
+        "Pancreatic endocrine cell with beta-cell commitment and residual alpha-lineage priming / multilineage priming",
+        "pancreatic endocrine cell",
+        "pancreatic epsilon cell",
+        "progenitor cell of endocrine pancreas",
+        "pancreatic A cell",
+        "pancreatic D cell"
+      ],
+      "cell_ontology_id": null,
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+        "canonical_label": null,
+        "mapping_status": "ambiguous",
+        "mapping_decision": "ab_consistent_ambiguous",
+        "mapping_reason": "Mapper A/B consistently returned ambiguous",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "potentially_over_specific",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0008024",
+          "CL:0005019",
+          "CL:0002351",
+          "CL:0000171",
+          "CL:0000173"
+        ],
+        "candidate_labels": [
+          "pancreatic endocrine cell",
+          "pancreatic epsilon cell",
+          "progenitor cell of endocrine pancreas",
+          "pancreatic A cell",
+          "pancreatic D cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": null,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "reasoning_short": null,
+      "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+      "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+      "evidence_markers_method": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+        "predicted_sub": "Immature / developing beta-cell-committed endocrine cell, Pancreatic endocrine progenitor / immature polyhormonal endocrine precursor, Alpha-cell-committed precursor / immature alpha cell",
+        "possible_mixed": "Pancreatic endocrine cell with beta-cell commitment and residual alpha-lineage priming / multilineage priming",
+        "score": "NA"
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "neural_glial cell",
+      "topk_cell_types": [
+        "neural_glial cell",
+        "glial cell",
+        "neural cell",
+        "myelinating Schwann cell",
+        "neuroplacodal cell",
+        "neural progenitor cell"
+      ],
+      "cell_ontology_id": null,
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "neural_glial cell",
+        "canonical_label": null,
+        "mapping_status": "ambiguous",
+        "mapping_decision": "ab_consistent_ambiguous",
+        "mapping_reason": "Mapper A/B consistently returned ambiguous",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "exact",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0000125",
+          "CL:0002319",
+          "CL:0000218",
+          "CL:0000032",
+          "CL:0011020"
+        ],
+        "candidate_labels": [
+          "glial cell",
+          "neural cell",
+          "myelinating Schwann cell",
+          "neuroplacodal cell",
+          "neural progenitor cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": null,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "reasoning_short": "In-house top1=neural_glial cell; top markers=DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+      "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+      "evidence_markers_method": "CHGA, ATRAID, SCG3, ARX, PCSK1N, STMN2, KCNK16, CHGB, PTPRN, NOL4, CRYBA2, PAX6, DTX3, SMPD4, RBMX",
+      "raw_inputs": {
+        "main_pred": "neural_glial cell",
+        "subtype1_pred": "neural_glial cell",
+        "subtype2_core_pred": "neural_glial cell",
+        "candidate_score_main": "NA",
+        "candidate_score_sub1": "NA",
+        "candidate_score_sub2": "NA"
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "neural_glial cell",
+      "topk_cell_types": [
+        "neural_glial cell",
+        "glial cell",
+        "neural cell",
+        "myelinating Schwann cell",
+        "neuroplacodal cell",
+        "neural progenitor cell"
+      ],
+      "cell_ontology_id": null,
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "neural_glial cell",
+        "canonical_label": null,
+        "mapping_status": "ambiguous",
+        "mapping_decision": "ab_consistent_ambiguous",
+        "mapping_reason": "Mapper A/B consistently returned ambiguous",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "exact",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0000125",
+          "CL:0002319",
+          "CL:0000218",
+          "CL:0000032",
+          "CL:0011020"
+        ],
+        "candidate_labels": [
+          "glial cell",
+          "neural cell",
+          "myelinating Schwann cell",
+          "neuroplacodal cell",
+          "neural progenitor cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": null,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "reasoning_short": "In-house top1=neural_glial cell; top markers=DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+      "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+      "evidence_markers_method": "CHGA, ATRAID, SCG3, ARX, PCSK1N, STMN2, KCNK16, CHGB, PTPRN, NOL4, CRYBA2, PAX6, DTX3, SMPD4, RBMX"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "pancreatic A cell",
+      "topk_cell_types": [
+        "pancreatic A cell"
+      ],
+      "cell_ontology_id": "CL:0000171",
+      "score": 0.7,
+      "confidence": 0.7,
+      "reasoning_short": "The marker list includes definitive alpha cell markers: ARX (alpha cell master TF), IRX5 (alpha cell TF), KCNK16 (alpha cell-specific potassium channel), PCSK1N (proprotein convertase, highly expressed in alpha cells), CHGA, CHGB, SCG3, PTPRN (secretory granule markers shared by endocrine cells), and PAX6 (pan-endocrine TF). However, the presence of KCNJ8, ROBO2, GFRA4, and STMN2 hints at a possible chromaffin/neuronal-like state, and the enriched pathways are dominated by general metabolism (energy, glycan, lipid, amino acid) rather than a clear hormone-specific pathway. The absence of glucagon (GCG) in the top markers is notable, but ARX and IRX5 strongly commit this cluster to the alpha cell lineage. The metabolic enrichment likely reflects a highly active secretory state. The output is Medium confidence because GCG itself is missing, and the mixed chromaffin-like markers (KCNJ8, GFRA4) suggest potential contamination or a rare alpha subtype.",
+      "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+      "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+      "evidence_markers_method": "ARX; IRX5; KCNK16; PCSK1N; CHGA; CHGB; SCG3; PTPRN; PAX6",
+      "evidence_terms_method": null,
+      "predicted_label": "pancreatic A cell",
+      "cl_id": "CL:0000171",
+      "rationale": "The marker list includes definitive alpha cell markers: ARX (alpha cell master TF), IRX5 (alpha cell TF), KCNK16 (alpha cell-specific potassium channel), PCSK1N (proprotein convertase, highly expressed in alpha cells), CHGA, CHGB, SCG3, PTPRN (secretory granule markers shared by endocrine cells), and PAX6 (pan-endocrine TF). However, the presence of KCNJ8, ROBO2, GFRA4, and STMN2 hints at a possible chromaffin/neuronal-like state, and the enriched pathways are dominated by general metabolism (energy, glycan, lipid, amino acid) rather than a clear hormone-specific pathway. The absence of glucagon (GCG) in the top markers is notable, but ARX and IRX5 strongly commit this cluster to the alpha cell lineage. The metabolic enrichment likely reflects a highly active secretory state. The output is Medium confidence because GCG itself is missing, and the mixed chromaffin-like markers (KCNJ8, GFRA4) suggest potential contamination or a rare alpha subtype.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "pancreatic A cell",
+        "canonical_label": "pancreatic A cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000171",
+        "candidate_cl_ids": [
+          "CL:0000171"
+        ],
+        "candidate_labels": [
+          "pancreatic A cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000171",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "pancreatic A cell",
+      "topk_cell_types": [
+        "pancreatic A cell"
+      ],
+      "cell_ontology_id": "CL:0000171",
+      "score": 0.7,
+      "confidence": 0.7,
+      "reasoning_short": "The marker list includes definitive alpha cell markers: ARX (alpha cell master TF), IRX5 (alpha cell TF), KCNK16 (alpha cell-specific potassium channel), PCSK1N (proprotein convertase, highly expressed in alpha cells), CHGA, CHGB, SCG3, PTPRN (secretory granule markers shared by endocrine cells), and PAX6 (pan-endocrine TF). However, the presence of KCNJ8, ROBO2, GFRA4, and STMN2 hints at a possible chromaffin/neuronal-like state, and the enriched pathways are dominated by general metabolism (energy, glycan, lipid, amino acid) rather than a clear hormone-specific pathway. The absence of glucagon (GCG) in the top markers is notable, but ARX and IRX5 strongly commit this cluster to the alpha cell lineage. The metabolic enrichment likely reflects a highly active secretory state. The output is Medium confidence because GCG itself is missing, and the mixed chromaffin-like markers (KCNJ8, GFRA4) suggest potential contamination or a rare alpha subtype.",
+      "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+      "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+      "evidence_markers_method": "ARX; IRX5; KCNK16; PCSK1N; CHGA; CHGB; SCG3; PTPRN; PAX6",
+      "evidence_terms_method": null,
+      "predicted_label": "pancreatic A cell",
+      "cl_id": "CL:0000171",
+      "rationale": "The marker list includes definitive alpha cell markers: ARX (alpha cell master TF), IRX5 (alpha cell TF), KCNK16 (alpha cell-specific potassium channel), PCSK1N (proprotein convertase, highly expressed in alpha cells), CHGA, CHGB, SCG3, PTPRN (secretory granule markers shared by endocrine cells), and PAX6 (pan-endocrine TF). However, the presence of KCNJ8, ROBO2, GFRA4, and STMN2 hints at a possible chromaffin/neuronal-like state, and the enriched pathways are dominated by general metabolism (energy, glycan, lipid, amino acid) rather than a clear hormone-specific pathway. The absence of glucagon (GCG) in the top markers is notable, but ARX and IRX5 strongly commit this cluster to the alpha cell lineage. The metabolic enrichment likely reflects a highly active secretory state. The output is Medium confidence because GCG itself is missing, and the mixed chromaffin-like markers (KCNJ8, GFRA4) suggest potential contamination or a rare alpha subtype.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "pancreatic A cell",
+        "canonical_label": "pancreatic A cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000171",
+        "candidate_cl_ids": [
+          "CL:0000171"
+        ],
+        "candidate_labels": [
+          "pancreatic A cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000171",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "Immature / developing beta-cell-committed endocrine cell, Pancreatic endocrine progenitor / immature polyhormonal endocrine precursor, Alpha-cell-committed precursor / immature alpha cell",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "Pancreatic endocrine cell with beta-cell commitment and residual alpha-lineage priming / multilineage priming",
+          "method": "cassia",
+          "rank": 3,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "neural_glial cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "pancreatic A cell",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": 0.3,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "Immature / developing beta-cell-committed endocrine cell, Pancreatic endocrine progenitor / immature polyhormonal endocrine precursor, Alpha-cell-committed precursor / immature alpha cell",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 3,
+        "label": "Pancreatic endocrine cell with beta-cell commitment and residual alpha-lineage priming / multilineage priming",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "neural_glial cell",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "pancreatic A cell",
+        "clid": "CL:0000171",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.3,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+      "Immature / developing beta-cell-committed endocrine cell, Pancreatic endocrine progenitor / immature polyhormonal endocrine precursor, Alpha-cell-committed precursor / immature alpha cell",
+      "Pancreatic endocrine cell with beta-cell commitment and residual alpha-lineage priming / multilineage priming",
+      "neural_glial cell",
+      "pancreatic A cell",
+      "pancreatic endocrine cell",
+      "pancreatic epsilon cell",
+      "progenitor cell of endocrine pancreas",
+      "pancreatic D cell",
+      "glial cell",
+      "neural cell",
+      "myelinating Schwann cell",
+      "neuroplacodal cell",
+      "neural progenitor cell"
+    ],
+    "allowed_backoff_candidates": [
+      "type A enteroendocrine cell",
+      "pancreatic endocrine cell",
+      "enteroendocrine cell",
+      "glucagon secreting cell",
+      "epithelial cell of pancreas",
+      "endo-epithelial cell",
+      "endocrine cell",
+      "secretory epithelial cell",
+      "ghrelin secreting cell",
+      "peptide hormone secreting cell",
+      "type D enteroendocrine cell",
+      "neuroendocrine cell",
+      "somatostatin secreting cell",
+      "neuron associated cell",
+      "eukaryotic cell",
+      "Schwann cell",
+      "myelinating glial cell",
+      "glial cell",
+      "embryonic cell (metazoa)"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+          "canonical_label": null,
+          "mapping_status": "ambiguous",
+          "mapping_decision": "ab_consistent_ambiguous",
+          "mapping_reason": "Mapper A/B consistently returned ambiguous",
+          "mapping_method": "evidence_llm_abstain",
+          "specificity_relation": "potentially_over_specific",
+          "editor_input_type": "candidate_set",
+          "single_cl_ready": false,
+          "adjudication_ready": true,
+          "evaluation_ready": false,
+          "cell_ontology_id": null,
+          "candidate_cl_ids": [
+            "CL:0008024",
+            "CL:0005019",
+            "CL:0002351",
+            "CL:0000171",
+            "CL:0000173"
+          ],
+          "candidate_labels": [
+            "pancreatic endocrine cell",
+            "pancreatic epsilon cell",
+            "progenitor cell of endocrine pancreas",
+            "pancreatic A cell",
+            "pancreatic D cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": null,
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+          "Immature / developing beta-cell-committed endocrine cell, Pancreatic endocrine progenitor / immature polyhormonal endocrine precursor, Alpha-cell-committed precursor / immature alpha cell",
+          "Pancreatic endocrine cell with beta-cell commitment and residual alpha-lineage priming / multilineage priming"
+        ],
+        "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+        "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+        "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+        "evidence_markers_method": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+        "reasoning_short": null
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "neural_glial cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "neural_glial cell",
+          "canonical_label": null,
+          "mapping_status": "ambiguous",
+          "mapping_decision": "ab_consistent_ambiguous",
+          "mapping_reason": "Mapper A/B consistently returned ambiguous",
+          "mapping_method": "evidence_llm_abstain",
+          "specificity_relation": "exact",
+          "editor_input_type": "candidate_set",
+          "single_cl_ready": false,
+          "adjudication_ready": true,
+          "evaluation_ready": false,
+          "cell_ontology_id": null,
+          "candidate_cl_ids": [
+            "CL:0000125",
+            "CL:0002319",
+            "CL:0000218",
+            "CL:0000032",
+            "CL:0011020"
+          ],
+          "candidate_labels": [
+            "glial cell",
+            "neural cell",
+            "myelinating Schwann cell",
+            "neuroplacodal cell",
+            "neural progenitor cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": null,
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "neural_glial cell"
+        ],
+        "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+        "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+        "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+        "evidence_markers_method": "CHGA, ATRAID, SCG3, ARX, PCSK1N, STMN2, KCNK16, CHGB, PTPRN, NOL4, CRYBA2, PAX6, DTX3, SMPD4, RBMX",
+        "reasoning_short": "In-house top1=neural_glial cell; top markers=DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "pancreatic A cell",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "pancreatic A cell",
+          "canonical_label": "pancreatic A cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000171",
+          "candidate_cl_ids": [
+            "CL:0000171"
+          ],
+          "candidate_labels": [
+            "pancreatic A cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000171",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "pancreatic A cell"
+        ],
+        "evidence_markers_std": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+        "evidence_terms_std": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+        "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093",
+        "evidence_markers_method": "ARX; IRX5; KCNK16; PCSK1N; CHGA; CHGB; SCG3; PTPRN; PAX6",
+        "evidence_terms_method": null,
+        "reasoning_short": "The marker list includes definitive alpha cell markers: ARX (alpha cell master TF), IRX5 (alpha cell TF), KCNK16 (alpha cell-specific potassium channel), PCSK1N (proprotein convertase, highly expressed in alpha cells), CHGA, CHGB, SCG3, PTPRN (secretory granule markers shared by endocrine cells), and PAX6 (pan-endocrine TF). However, the presence of KCNJ8, ROBO2, GFRA4, and STMN2 hints at a possible chromaffin/neuronal-like state, and the enriched pathways are dominated by general metabolism (energy, glycan, lipid, amino acid) rather than a clear hormone-specific pathway. The absence of glucagon (GCG) in the top markers is notable, but ARX and IRX5 strongly commit this cluster to the alpha cell lineage. The metabolic enrichment likely reflects a highly active secretory state. The output is Medium confidence because GCG itself is missing, and the mixed chromaffin-like markers (KCNJ8, GFRA4) suggest potential contamination or a rare alpha subtype."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "enrichment_terms": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+      "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_10, population: pancreas.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "DTX3",
+              "TRIM55",
+              "B4GALT6",
+              "KCNJ8",
+              "CHGA",
+              "IHH",
+              "ATRAID",
+              "SCG3",
+              "ARX",
+              "ROBO2",
+              "ATPAF2",
+              "PCSK1N",
+              "SMPD4",
+              "MEP1B",
+              "CFAP53P1",
+              "RNF26",
+              "RBMX",
+              "DAB1",
+              "GFRA4",
+              "GZMA",
+              "STMN2",
+              "DTD1",
+              "ABHD17A",
+              "KCNK16",
+              "CHGB",
+              "CLHC1",
+              "PTPRN",
+              "MATN3",
+              "NOL4",
+              "COX6B1",
+              "ZNF75D",
+              "PDK1",
+              "PPP1R27",
+              "CRYBA2",
+              "PAX6",
+              "DSEL",
+              "MED30",
+              "ABI1",
+              "PLA1A",
+              "GOLGA8VP",
+              "SLC14A2",
+              "PXDNL",
+              "FUOM",
+              "IRX5",
+              "ABCC8",
+              "MTHFD1P1",
+              "ALDH4A1",
+              "NGRN",
+              "SLC38A6",
+              "KCMF1"
+            ]
+          }
+        },
+        "scope_profile": "whole_tissue",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "epithelial_polarity_transport": [
+              "Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)",
+              "TWIK-related alkaline pH activated K+ channel (TALK)",
+              "Potassium Channels"
+            ]
+          },
+          "programs_from_markers": {
+            "transport_program_markers": [
+              "SLC14A2",
+              "ABCC8",
+              "SLC38A6"
+            ]
+          },
+          "support_level": {
+            "epithelial": "none",
+            "transport": "strong",
+            "secretory": "none"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 92,
+            "in_scope_count": 92,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "unknown": 89,
+              "neural_glial": 17
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [],
+            "cellular_components": [],
+            "molecular_functions": [],
+            "kegg_pathways": [],
+            "reactome_pathways": [
+              "Post-translational protein phosphorylation",
+              "Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)",
+              "RND1 GTPase cycle",
+              "Glycosphingolipid metabolism",
+              "Metabolism",
+              "Developmental Biology",
+              "TWIK-related alkaline pH activated K+ channel (TALK)",
+              "Metabolism of lipids",
+              "Potassium Channels",
+              "Sphingolipid metabolism"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: CHGA, SCG3, CHGB, PDK1, ATPAF2",
+            "disease_associations_do": [],
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "37397988",
+                "39560475",
+                "39758026",
+                "35957916",
+                "31840817",
+                "35359458",
+                "34575035",
+                "19132093",
+                "31401395",
+                "41248607",
+                "36899442",
+                "41514864",
+                "26156633",
+                "34025578",
+                "39003281",
+                "35839778",
+                "35662458",
+                "33087046",
+                "38556552",
+                "20562859",
+                "30399196",
+                "35038894",
+                "36246626",
+                "28314945",
+                "40196253"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "pancreatic A cell",
+              "natural killer cell",
+              "neural progenitor cell",
+              "dopaminergic neuron",
+              "glutamatergic neuron",
+              "type B pancreatic cell",
+              "astrocyte",
+              "enteroendocrine cell",
+              "neuroendocrine cell",
+              "serotonergic neuron"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000171",
+              "CL:0000623",
+              "CL:0011020",
+              "CL:0000700",
+              "CL:0000679",
+              "CL:0000169",
+              "CL:0000127",
+              "CL:0000164",
+              "CL:0000165",
+              "CL:0000850"
+            ],
+            "Final_Score": [
+              0.3,
+              0.25,
+              0.225,
+              0.2,
+              0.2,
+              0.2,
+              0.175,
+              0.175,
+              0.175,
+              0.175
+            ],
+            "Top_Evidence_Genes": [
+              "CHGA, ATRAID, SCG3, ARX, PCSK1N, STMN2, KCNK16, CHGB, PTPRN, NOL4, CRYBA2, PAX6",
+              "DTX3, ATRAID, SMPD4, RBMX, GZMA, DTD1, ABHD17A, COX6B1, MED30, ABI1",
+              "CHGA, SCG3, ROBO2, PCSK1N, RBMX, STMN2, DTD1, NOL4, PAX6",
+              "B4GALT6, CHGA, SCG3, ROBO2, PCSK1N, STMN2, NOL4, PAX6",
+              "CHGA, SCG3, ROBO2, PCSK1N, DAB1, STMN2, CHGB, DSEL",
+              "DTX3, SCG3, ROBO2, PCSK1N, STMN2, KCNK16, PTPRN, PAX6",
+              "CHGA, ATRAID, SCG3, ARX, ROBO2, CHGB, PAX6",
+              "CHGA, SCG3, PCSK1N, STMN2, CHGB, PTPRN, CRYBA2",
+              "CHGA, SCG3, PCSK1N, STMN2, CHGB, PTPRN, NOL4",
+              "CHGA, ROBO2, PCSK1N, STMN2, ABHD17A, CHGB, NOL4"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 11,
+        "n_degs_available": 50,
+        "top_evidence_genes_count": 25
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "DTX3, TRIM55, B4GALT6, KCNJ8, CHGA, IHH, ATRAID, SCG3, ARX, ROBO2, ATPAF2, PCSK1N, SMPD4, MEP1B, CFAP53P1, RNF26, RBMX, DAB1, GFRA4, GZMA, STMN2, DTD1, ABHD17A, KCNK16, CHGB, CLHC1, PTPRN, MATN3, NOL4, COX6B1, ZNF75D, PDK1, PPP1R27, CRYBA2, PAX6, DSEL, MED30, ABI1, PLA1A, GOLGA8VP, SLC14A2, PXDNL, FUOM, IRX5, ABCC8, MTHFD1P1, ALDH4A1, NGRN, SLC38A6, KCMF1",
+      "enrichment_terms": "Post-translational protein phosphorylation; Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs); RND1 GTPase cycle; Glycosphingolipid metabolism; Metabolism; Developmental Biology; TWIK-related alkaline pH activated K+ channel (TALK); Metabolism of lipids; Potassium Channels; Sphingolipid metabolism",
+      "pmids_top": "37397988, 39560475, 39758026, 35957916, 31840817, 35359458, 34575035, 19132093"
+    }
+  },
+  "cluster_id": "cluster_10"
+}

@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_10",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "pancreatic A cell",
+    "final_cell_ontology_id": "CL:0000171",
+    "confidence_primary": 0.74
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Pancreatic endocrine / islet endocrine lineage cell (immature endocrine cell with strong beta-cell commitment)",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes pancreatic endocrine lineage using CHGA, SCG3, CHGB, PCSK1N, PTPRN and PAX6.",
+        "Patient candidate set includes pancreatic A cell as a possible mapping target."
+      ],
+      "weaknesses": [
+        "Beta-cell commitment is not directly supported by the ORIGINAL marker list; INS, PDX1, NKX6-1, MAFA and IAPP are absent.",
+        "Label is over-specific for beta and misses the stronger alpha-cell evidence from ARX, IRX5 and KCNK16.",
+        "Mapping remained ambiguous/unmapped."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "neural_glial cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "None of the provided markers constitute positive glial evidence."
+      ],
+      "weaknesses": [
+        "No glial markers such as SOX10, PLP1, MBP, S100B or GFAP appear in the DEG list.",
+        "Neural/glial label is unsupported by the dominant pancreatic endocrine markers CHGA, SCG3, CHGB, PCSK1N, ARX and PAX6."
+      ],
+      "reviewer_cl_id": null
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "pancreatic A cell",
+      "cell_ontology_id": "CL:0000171",
+      "strengths": [
+        "Direct positive alpha-cell lineage markers ARX, IRX5 and KCNK16 are present in the ORIGINAL DEGs.",
+        "Pan-endocrine/secretory granule markers CHGA, CHGB, SCG3, PCSK1N, PTPRN and PAX6 support islet endocrine identity.",
+        "Mapping to CL:0000171 is deterministic and valid."
+      ],
+      "weaknesses": [
+        "GCG is not among the top DEGs, so confidence is moderate.",
+        "Minor neural/chromaffin-like markers (KCNJ8, ROBO2, GFRA4, STMN2) create slight ambiguity."
+      ],
+      "reviewer_cl_id": "CL:0000171"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "ARX is an alpha-cell master transcription factor present in the ORIGINAL DEGs.",
+      "IRX5 is an alpha-cell lineage transcription factor present in the ORIGINAL DEGs.",
+      "KCNK16 (TALK-1) is an alpha-cell-enriched potassium channel present in the ORIGINAL DEGs.",
+      "CHGA, CHGB, SCG3, PCSK1N, PTPRN and PAX6 support pancreatic islet endocrine identity.",
+      "PMID 37397988 was retrieved in the evidence set and is cited as supporting literature context."
+    ],
+    "conflicting": [
+      "GCG is not detected among the top DEGs, leaving the alpha assignment medium-confidence.",
+      "CASSIA's beta-cell commitment lacks direct ORIGINAL support (no INS/PDX1/NKX6-1/MAFA).",
+      "In-house neural_glial prediction lacks glial-specific markers.",
+      "KCNJ8, ROBO2, GFRA4 and STMN2 introduce a minor neural/chromaffin-like signal."
+    ],
+    "enrichment_or_literature": [
+      "Reactome terms such as 'Potassium Channels', 'Metabolism' and 'Sphingolipid metabolism' are consistent with an active islet endocrine secretory state.",
+      "PMID 37397988 is used as supporting literature context."
+    ],
+    "cited_pmids": [
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "type B pancreatic cell",
+    "reference_cl_term": "type B pancreatic cell",
+    "reference_cl_id": "CL:0000169",
+    "cl_similarity": 77.9644896778336
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_10_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

@@ -1,0 +1,11 @@
+cluster,cluster_anon
+B cell,cluster_1
+"CD8-positive, alpha-beta T cell",cluster_2
+classical monocyte,cluster_3
+endothelial cell,cluster_4
+fibroblast,cluster_5
+macrophage,cluster_6
+pancreatic acinar cell,cluster_7
+pancreatic ductal cell,cluster_8
+pancreatic stellate cell,cluster_9
+type B pancreatic cell,cluster_10

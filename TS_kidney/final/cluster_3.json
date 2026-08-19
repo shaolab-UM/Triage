@@ -1,0 +1,101 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_kidney",
+  "cluster_id": "cluster_3",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "epithelial cell of proximal tubule",
+    "final_cell_ontology_id": "CL:0002306",
+    "confidence_primary": 0.82
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Proximal tubular epithelial cell (PT / PTEC)",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes the proximal tubule lineage from the dominant marker block (SLC13A1, PDZK1IP1, ALDOB, GLYAT, BHMT, NAT8).",
+        "Concordant with the downstream S3 segment refinement present in the same marker set."
+      ],
+      "weaknesses": [
+        "The raw top label could not be mapped to a CLID (status_mismatch_ambiguous_unmapped).",
+        "No ontology-resolved component/subtype is provided despite the S3-like marker signal."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Deterministically mapped to CL:0000066 and supported by epithelial markers PAX8 and KRT8.",
+        "Second candidate, epithelial cell of proximal tubule (CL:0002306), is an ontology-valid descendant with direct marker support."
+      ],
+      "weaknesses": [
+        "The top1 label is too generic and discards the proximal tubule-specific information in the DEGs.",
+        "Low top1 candidate score (0.15) while proximal tubule subtype candidates score higher (0.45)."
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "epithelial cell of proximal tubule segment 3",
+      "cell_ontology_id": "CL:4030011",
+      "strengths": [
+        "Selects the most specific ontology-valid node supported by the original DEGs.",
+        "Uses S3-associated markers observed in the cluster (SLC13A1, SLC16A12, BHMT, BHMT2, HOGA1) and amino acid/sulfur metabolic enrichment.",
+        "Correctly excludes podocyte and lymphatic endothelial branches using absence of NPHS1/NPHS2 and LYVE1/PECAM1 signals."
+      ],
+      "weaknesses": [
+        "S3-precision depends on interpretation of segment-associated markers rather than a dedicated CLID majority.",
+        "Some supporting genes (PAX8, KRT8, CA2, KCNJ16) are not S3-exclusive."
+      ],
+      "reviewer_cl_id": "CL:4030011"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "Cluster DEGs include PAX8 and KRT8, establishing an epithelial identity.",
+      "Proximal tubule identity is supported by SLC13A1, PDZK1IP1, TINAG, ALDOB, PAH, GLYAT, NAT8, and S100A1.",
+      "S3 segment refinement is supported by observed SLC13A1, SLC16A12, BHMT, BHMT2, HOGA1 and choline/amino-acid metabolic programs (PMID 35364009)."
+    ],
+    "conflicting": [],
+    "enrichment_or_literature": [
+      "Amino acid metabolic process, sulfur compound metabolic process, and KEGG hsa00260/hsa00670 are consistent with high metabolic activity of proximal tubule S3.",
+      "PMID 35364009 supports the proximal tubule segment marker interpretation."
+    ],
+    "cited_pmids": [
+      "35364009"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "kidney epithelial cell",
+    "reference_cl_term": "kidney epithelial cell",
+    "reference_cl_id": "CL:0002518",
+    "cl_similarity": 77.4812116275862
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_3_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

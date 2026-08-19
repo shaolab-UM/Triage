@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_11",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "epithelial cell",
+    "final_cell_ontology_id": "CL:0000066",
+    "confidence_primary": 0.78
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "mesothelial cell",
+      "cell_ontology_id": "CL:0000077",
+      "strengths": [
+        "Direct positive support from MSLN, a canonical mesothelial marker",
+        "Additional epithelial-supporting markers CEACAM5, CEACAM6, WFDC2, ANPEP",
+        "Maps cleanly to CL:0000077, a descendant of epithelial cell"
+      ],
+      "weaknesses": [
+        "Marker list also contains immune/myeloid genes (EPX, LCN2, C5AR2, FCAMR)",
+        "CASSIA's own possible_mixed list included immune and neuroendocrine-like cells",
+        "Enrichment terms are generic/immune and do not provide mesothelial-specific pathway support"
+      ],
+      "reviewer_cl_id": "CL:0000077"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Supported by broad epithelial markers such as CEACAM5, CEACAM6, WFDC2, ANPEP",
+        "Conservative ancestor-level label avoids over-specificity"
+      ],
+      "weaknesses": [
+        "Does not incorporate the positive MSLN signal that supports the mesothelial subtype",
+        "Ancestor-level label is less informative than the supported descendant CL:0000077"
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Unknown/Ambiguous - likely epithelial with possible myeloid contamination",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognized an epithelial identity",
+        "Appropriately flagged EPX/LCN2 as possible immune contamination"
+      ],
+      "weaknesses": [
+        "Abstained as Unknown/Ambiguous even though MSLN provides positive mesothelial identity evidence",
+        "Proposed candidates such as transit amplifying cell of small intestine and type-5 epithelial cell of thymus lack any small-intestine or thymus-specific positive markers"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "MSLN is among cluster DEGs and provides direct positive evidence for mesothelial identity over generic epithelial cell",
+      "Epithelial-supporting DEGs CEACAM5, CEACAM6, WFDC2, ANPEP support the epithelial lineage",
+      "ontology confirms mesothelial cell (CL:0000077) is a descendant of epithelial cell (CL:0000066)",
+      "Retrieved RAG evidence includes allowed PMID 39560475"
+    ],
+    "conflicting": [
+      "EPX, LCN2, C5AR2, FCAMR, LAIR2 suggest possible immune/myeloid ambient contamination",
+      "TH suggests a weak neuroendocrine-like signal",
+      "Enrichment candidates transit amplifying cell of small intestine (CL:0009012) and type-5 epithelial cell of thymus (CL:0002298) lack positive intestinal/thymus-specific marker evidence"
+    ],
+    "enrichment_or_literature": [
+      "Observed Reactome terms (Innate Immune System, Neutrophil degranulation, Iron uptake and transport) are generic/immune-related and do not distinguish mesothelial from other epithelial branches",
+      "Provided RAG literature set includes PMID 39560475 and other allowed PMIDs, but no mesothelial-specific pathway term was returned"
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "secretory cell",
+    "reference_cl_term": "secretory cell",
+    "reference_cl_id": "CL:0000151",
+    "cl_similarity": 4.94236691571295
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_11_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

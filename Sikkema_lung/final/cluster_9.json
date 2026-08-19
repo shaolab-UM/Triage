@@ -1,0 +1,106 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_9",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "natural killer cell",
+    "final_cell_ontology_id": "CL:0000623",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Cytotoxic αβ T lymphocyte / type-1 effector T cell",
+      "cell_ontology_id": "CL:0000910",
+      "strengths": [
+        "Correctly resolves the T-cell branch with T-lineage support (TRBV28, TXK, BTN3A2)",
+        "Cytotoxic effector genes GZMB, GZMH, NKG7, CST7 directly support refinement to cytotoxic T cell"
+      ],
+      "weaknesses": [
+        "Raw label's αβ/type-1 specificity is not independently supported by the DEG list (CD8A/CD4 not observed)",
+        "Top-k NK candidates reflect shared NK/CTL programs"
+      ],
+      "reviewer_cl_id": "CL:0000910"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Correctly identifies the T-cell lineage (TRBV28, TXK, BTN3A2)",
+        "Safe ancestor-level call matching the ontology anchor"
+      ],
+      "weaknesses": [
+        "Under-specific; omits the directly supported cytotoxic effector component (GZMB, GZMH, NKG7, CST7)"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "CD16-positive, CD56-dim natural killer cell, human",
+      "cell_ontology_id": "CL:0000939",
+      "strengths": [
+        "Recognizes the dominant cytotoxic effector program (NKG7, GZMB, GZMH, CST7) and cytotoxic enrichment terms"
+      ],
+      "weaknesses": [
+        "No NK-specific markers (FCGR3A, NCAM1, KIR, NCR1) in original DEGs; cited markers are all shared with cytotoxic T cells",
+        "Ignores T-lineage evidence TRBV28/TXK; absence of CD3 transcripts is not decisive against T cells"
+      ],
+      "reviewer_cl_id": "CL:0000939"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "NKG7, KLRC1, KLRB1, GZMB, GZMH, CST7, IFNG and TBX21, together with enrichment for natural killer cell mediated cytotoxicity and cell killing, support a cytotoxic NK-like program."
+    ],
+    "conflicting": [
+      "TRBV28 and TXK provide T-cell-associated signal, and the observed cytotoxic markers are shared between NK and cytotoxic T cells",
+      "the evidence retains T/NK ambiguity at finer subtype resolution."
+    ],
+    "enrichment_or_literature": [
+      "Lymphocyte mediated immunity",
+      "leukocyte mediated cytotoxicity",
+      "natural killer cell mediated cytotoxicity",
+      "cell killing",
+      "cytolytic granule",
+      "KEGG hsa04650",
+      "Reactome Adaptive Immune System",
+      "PMID 39560475."
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "natural killer cell",
+    "reference_cl_term": "natural killer cell",
+    "reference_cl_id": "CL:0000623",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_9_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

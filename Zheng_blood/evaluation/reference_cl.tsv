@@ -1,0 +1,10 @@
+cluster_id	published_reference_annotation	reference_cl_term	reference_cl_id
+cluster_1	B cell	B cell	CL:0000236
+cluster_2	CD14-positive monocyte	CD14-positive monocyte	CL:0001054
+cluster_3	CD16-negative, CD56-bright natural killer cell, human	CD16-negative, CD56-bright natural killer cell, human	CL:0000938
+cluster_4	CD4-positive, CD25-positive, alpha-beta regulatory T cell	CD4-positive, CD25-positive, alpha-beta regulatory T cell	CL:0000792
+cluster_5	CD8-positive, alpha-beta cytotoxic T cell	CD8-positive, alpha-beta cytotoxic T cell	CL:0000794
+cluster_6	effector memory CD4-positive, alpha-beta T cell	effector memory CD4-positive, alpha-beta T cell	CL:0000905
+cluster_7	hematopoietic stem cell	hematopoietic stem cell	CL:0000037
+cluster_8	naive thymus-derived CD4-positive, alpha-beta T cell	naive thymus-derived CD4-positive, alpha-beta T cell	CL:0000895
+cluster_9	naive thymus-derived CD8-positive, alpha-beta T cell	naive thymus-derived CD8-positive, alpha-beta T cell	CL:0000900

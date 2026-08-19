@@ -1,0 +1,104 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zheng_blood",
+  "cluster_id": "cluster_9",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "T cell",
+    "final_cell_ontology_id": "CL:0000084",
+    "confidence_primary": 0.84
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "CD8+ T cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identified CD8+ T-cell lineage from CD8A, CD8B, CD3D, CD3E, and CD7.",
+        "Correctly noted that absence of GZMB, PRF1, GNLY, and NKG7 argues against a terminally differentiated effector phenotype.",
+        "Acknowledged naive/central/stem-cell memory ambiguity rather than over-committing to a subset."
+      ],
+      "weaknesses": [
+        "Top label 'CD8+ T cell' lacks a resolvable Cell Ontology mapping (ab_mismatch).",
+        "No single ontology-ready subtype selected despite available CD8+ alpha-beta support."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Provided an exact, valid ontology ID (CL:0000084).",
+        "Correctly identified T-cell lineage from CD3D, CD3E, CD7, and TCR-related enrichment terms."
+      ],
+      "weaknesses": [
+        "Stopped at the broad T-cell level and missed the supported CD8+ alpha-beta specificity (CD8A, CD8B)."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "stem cell memory CD8-positive, alpha-beta T cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly emphasized the CD8+ T-cell lineage and excluded NK identity based on absence of FCGR3A, FGFBP2, and KLRC1.",
+        "Recognized CCR7, LEF1, and CD27 as consistent with an early/resting memory-like program."
+      ],
+      "weaknesses": [
+        "The 'stem cell memory' subset label is not directly supported; CCR7, LEF1, and CD27 are shared with naive and central memory CD8 T cells.",
+        "No reliable Cell Ontology ID was assigned to the top label."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CD8A and CD8B are positive DEGs, together with CD3D/CD3E/CD7, directly supporting the CD8-positive T-cell lineage.",
+      "Enrichment term 'alpha-beta T cell receptor complex' and TCR signaling terms support the alpha-beta T-cell component.",
+      "PMID 24293448 provides literature support for T-cell lineage interpretation."
+    ],
+    "conflicting": [
+      "Enrichment-derived 'stem cell memory' label lacks direct support because CCR7, LEF1, and CD27 do not distinguish naive, central memory, or stem cell memory CD8 T cells.",
+      "No SELL, IL7R, TCF7, CD45RA, or CD95 markers are available to resolve the naive vs memory state."
+    ],
+    "enrichment_or_literature": [
+      "T cell receptor signaling pathway",
+      "T cell differentiation",
+      "alpha-beta T cell receptor complex.",
+      "PMID 24293448 (allowed citation)."
+    ],
+    "cited_pmids": [
+      "24293448"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 2
+  },
+  "evaluation": {
+    "published_reference_annotation": "naive thymus-derived CD8-positive, alpha-beta T cell",
+    "reference_cl_term": "naive thymus-derived CD8-positive, alpha-beta T cell",
+    "reference_cl_id": "CL:0000900",
+    "cl_similarity": 54.2335604293762
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_9_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

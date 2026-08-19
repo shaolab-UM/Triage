@@ -1,0 +1,112 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "T cell",
+    "final_cell_ontology_id": "CL:0000084",
+    "confidence_primary": 0.85
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "alpha-beta T cell",
+      "cell_ontology_id": "CL:0000789",
+      "strengths": [
+        "TRAV3 and TRBV28 provide direct positive support for the alpha-beta TCR component",
+        "T-cell markers (PTPRC, FYN, ICAM3, CORO1A, IL32, CD69) and TCR signaling enrichment support T lineage",
+        "Most specific ontology-valid descendant with positive support"
+      ],
+      "weaknesses": [
+        "Marker list includes some noisy/ambient genes (COL1A2, VIL1, GRHL3)",
+        "No CD4/CD8 subset resolution attempted"
+      ],
+      "reviewer_cl_id": "CL:0000789"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Correctly identifies the broad T-cell lineage from TRBV28/TRAV3 and T-cell markers",
+        "Consistent with the ancestor of the supported alpha-beta T cell"
+      ],
+      "weaknesses": [
+        "Under-specific: misses the alpha-beta TCR evidence directly supported by TRAV3/TRBV28",
+        "Top1 label is only the ancestor and does not capture available specificity"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "cytotoxic T cell",
+      "cell_ontology_id": "CL:0000910",
+      "strengths": [
+        "Recognizes activation/cytotoxicity-associated genes (IL32, CD69, CLEC2D, KLRB1, CST7)",
+        "Correctly notes TRBV28 as T-cell evidence"
+      ],
+      "weaknesses": [
+        "No direct cluster evidence for a cytotoxic CD8 T-cell branch: CD8A, GZMB, PRF1, and NK-specific markers are absent",
+        "KLRB1/CD161 and CLEC2D are shared with innate-like/activated T cells and do not distinguish the cytotoxic branch",
+        "NK candidate (CD16+ CD56-dim NK cell) is unsupported by FCGR3A/FGFBP2 absence"
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "TRAV3 and TRBV28 directly support the alpha-beta TCR component added to the T-cell ancestor",
+      "T-cell lineage supported by PTPRC, FYN, ICAM3, CORO1A, IL32, CD69, and TCR signaling enrichment",
+      "CASSIA label CL:0000789 is the most specific supported descendant of CL:0000084"
+    ],
+    "conflicting": [
+      "NK/cytotoxicity enrichment terms (natural killer cell mediated cytotoxicity/immunity) and CLEC2D/KLRB1/CST7 are shared across T/NK/innate-like populations and do not establish a separate NK or cytotoxic branch",
+      "Weak COL1A2/VIL1/GRHL3 signal is inconsistent with the dominant T-cell identity and likely ambient"
+    ],
+    "enrichment_or_literature": [
+      "Observed enrichment: TCR signaling, Adaptive Immune System, leukocyte mediated cytotoxicity",
+      "Supporting literature PMIDs: 37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687"
+    ],
+    "cited_pmids": [
+      "37397988",
+      "38092774",
+      "39560475",
+      "34793451",
+      "31840817",
+      "40795179",
+      "35359458",
+      "35672687"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "T cell",
+    "reference_cl_term": "T cell",
+    "reference_cl_id": "CL:0000084",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_1_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

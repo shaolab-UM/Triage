@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "endothelial cell",
+    "final_cell_ontology_id": "CL:0000115",
+    "confidence_primary": 0.8
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "endothelial cell",
+      "cell_ontology_id": "CL:0000115",
+      "strengths": [
+        "Correctly identifies canonical endothelial lineage via VWF, FLT1, TIE1, ROBO3, AOC2.",
+        "Exact deterministic mapping to CL:0000115."
+      ],
+      "weaknesses": [
+        "Stops at generic endothelial cell; does not propose a supported vascular subtype.",
+        "Top-k includes concatenated multi-label candidates without usable CLIDs."
+      ],
+      "reviewer_cl_id": "CL:0000115"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "endothelial cell",
+      "cell_ontology_id": "CL:0000115",
+      "strengths": [
+        "Top1 CL:0000115 is supported by VWF, FLT1, TIE1, ROBO3, AOC2.",
+        "Top2 CL:0002139 (endothelial cell of vascular tree) is supported by vascular endothelial markers and enables valid hierarchical refinement.",
+        "Avoids over-specific hepatic sinusoid assignment that lacks positive zonation evidence."
+      ],
+      "weaknesses": [
+        "Top1 label is generic; the more specific vascular-tree refinement is only rank2."
+      ],
+      "reviewer_cl_id": "CL:0000115"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Endothelial cell (vascular/lymphatic) with potential pericyte contamination",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes endothelial identity from VWF, FLT1, TIE1, ROBO3, AOC2.",
+        "Flags hepatocyte/acinar-like contamination signals ASGR2, SERPINA1, SERPINA12."
+      ],
+      "weaknesses": [
+        "Pericyte contamination claim is unsupported: no pericyte-specific markers (e.g., RGS5, PDGFRB, ACTA2) are present in the original evidence.",
+        "Hepatic sinusoid zonation subtypes (CL:0019021/CL:0019022) lack positive liver-specific or zonation evidence.",
+        "Top1 label is unmapped mixed-signal and cannot be released as a clean ontology label."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "VWF, FLT1, TIE1, ROBO3, AOC2 are positive vascular endothelial markers supporting CL:0002139 (endothelial cell of vascular tree) over generic CL:0000115.",
+      "Original Reactome term 'VEGF ligand-receptor interactions' is consistent with endothelial identity.",
+      "PMID 39560475 was retrieved in the original evidence dossier and used for endothelial marker interpretation."
+    ],
+    "conflicting": [
+      "ASGR2, SERPINA1, SERPINA12 are hepatocyte/pancreatic acinar-type markers and represent a minor ambient contamination signal.",
+      "No pericyte-specific markers support the clusterProfiler reviewer's pericyte contamination claim.",
+      "No positive liver zonation-specific evidence supports CL:0019021 or CL:0019022."
+    ],
+    "enrichment_or_literature": [
+      "VEGF ligand-receptor interactions, Neurophilin interactions with VEGF and VEGFR, and Ion channel transport (original Reactome terms) are consistent with endothelial identity.",
+      "PMID 39560475 is included as an allowed citation from the original retrieval."
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "endothelial cell",
+    "reference_cl_term": "endothelial cell",
+    "reference_cl_id": "CL:0000115",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

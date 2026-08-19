@@ -1,0 +1,997 @@
+{
+  "query_id": "cluster_1_head_editor",
+  "analysis_type": "Head Editor: Final adjudication between three reviewers",
+  "llm_prompt": {
+    "system": "SPECIES: human\nROLE: You are the Handling Editor for a scientific single-cell annotation review.\nINPUTS: three reviewer reports plus the ORIGINAL biological dossier and frozen ontology_context. Reviewer labels/top-k are hypotheses, not ground truth.\nDECISION ORDER (authoritative):\n1) Establish the dominant biological lineage/identity from ORIGINAL cluster observations. Minor contamination/activation does not by itself make a cluster mixed.\n2) HIERARCHICAL REFINEMENT: ancestor and descendant are not competing hypotheses. Choose the most specific ontology-valid descendant for which every ADDED biological component has direct positive support. Preserve supported components; remove only unsupported orthogonal components.\n3) NON-HIERARCHICAL BRANCH CHOICE: require ORIGINAL cluster-level positive evidence that meaningfully favors the selected branch. Shared/general programs do not distinguish branches.\n4) EVIDENCE PROVENANCE: markers/DEGs, assay-derived programs, and enrichment/pathway observations may support identity. Tissue context, reviewer votes, candidate availability, literature, or elimination of alternatives cannot create missing specificity. Literature may only interpret an actually observed feature.\n5) PRIMARY VS SECONDARY: an ontology-valid supported modifier may belong in the primary identity; use secondary_signals only for orthogonal/transient/contaminating programs not represented in the selected identity.\nONTOLOGY / STABILITY:\n- ontology_context is authoritative for same/ancestor/descendant/non_hierarchical relations; never infer ontology relations from wording.\n- An exact reviewer CLID majority is a branch anchor, not a granularity lock. Hierarchical refinement is allowed with positive support for added components. A non-hierarchical majority override requires clear branch-specific ORIGINAL evidence; otherwise keep the majority branch or route unresolved conflict to QC/manual review.\n- direct_parents are navigation aids only, never biological evidence.\nREVIEWER AUDIT:\n- Apply the same evidence rubric to CASSIA, in-house, and enrichment. Explicitly mark each reviewer supported/unsupported from ORIGINAL observations.\n- If all three are unsupported, use third_party_adjudication; otherwise do not invent an unnecessary fourth label.\nCLUSTER STATE / RELEASE:\n- Default cluster_state='clean'. Use mixed/doublet/contaminated/transitional only for strong unresolved evidence. Keep one primary identity and record minor secondary signals separately.\n- needs_manual_review is last-resort for unresolved release blockers, not ordinary reviewer disagreement.\nOUTPUT REQUIREMENTS:\n- decision_category must be one of: cassia_better | in_house_better | enrich_better | tie | third_party_override.\n- primary_cell_type must not contain: mixed, unresolved, artifact, ambiguous, unknown, other, doublet, multiplet, triplet.\n- Cite only allowed PMIDs/enrichment terms supplied in citation_requirements; one valid citation is sufficient when citation is required.\n- If needs_manual_review=false, manual_review_plan must be priority=null, goals=[], actions=[].\n- evidence.supporting must name the positive observation supporting any hierarchical ADDED component or non-hierarchical branch choice.\nReturn ONLY one JSON object matching this schema exactly:\n{\n  \"cluster_id\": \"CLUSTER_0\",\n  \"cluster_state\": \"clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state\",\n\n  \"final_decision\": {\n    \"primary_cell_type\": \"ONE primary label (free text, no mixed/doublet words)\",\n    \"secondary_signals\": [\"list secondary lineages/contamination signals\"],\n    \"mixture_explanation\": \"short text explaining mixed/doublet/contamination if present\",\n    \"final_cell_ontology_id\": \"CL:.... or null\",\n    \"decision_category\": \"cassia_better | in_house_better | enrich_better | tie | third_party_override\",\n    \"confidence_primary\": 0.0\n  },\n\n  \"method_verdict\": {\n    \"cassia\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"our_method\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    },\n    \"enrich\": {\n      \"predicted_cell_type\": \"string or null\",\n      \"cell_ontology_id\": \"CL:.... or null\",\n      \"strengths\": [\"string\"],\n      \"weaknesses\": [\"string\"]\n    }\n  },\n\n  \"audit_report\": {\n    \"reviewer_support\": {\n      \"cassia_supported\": true,\n      \"our_supported\": false,\n      \"enrich_supported\": false\n    },\n    \"flags\": [\"reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other\"],\n    \"notes\": \"Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence.\"\n  },\n\n  \"third_party_adjudication\": {\n    \"primary_cell_type\": \"string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)\",\n    \"confidence\": 0.0,\n    \"evidence_pointers\": [\n      {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n    ],\n    \"why_reviewers_failed\": \"Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable).\"\n  },\n\n  \"evidence\": {\n    \"supporting\": [\"string (must mention concrete genes/pmids/terms when available)\"],\n    \"conflicting\": [\"string\"],\n    \"enrichment_or_literature\": [\"string\"],\n    \"cited_pmids\": [\"1234567\"],\n    \"cited_enrichment_terms\": [\"TERM_X\"]\n  },\n\n  \"post_issues\": {\n    \"needs_manual_review\": false,\n    \"flags\": [\"mixed_signature\"],\n    \"notes\": \"string\"\n  },\n\n  \"manual_review_plan\": {\n    \"priority\": \"low | medium | high\",\n    \"goals\": [\"what uncertainty to resolve\"],\n    \"actions\": [\n      {\n        \"action_type\": \"subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other\",\n        \"why\": \"Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).\",\n        \"how\": \"Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).\",\n        \"expected_outcomes\": \"If outcome A then ..., if outcome B then ...\",\n        \"evidence_pointers\": [\n          {\"type\": \"gene | pmid | term\", \"value\": \"GENE_X | 1234567 | TERM_X\"}\n        ]\n      }\n    ]\n  }\n}\nUse JSON null, never the string \"null\". Do not add extra top-level keys or prose outside JSON.",
+    "species_value": "human",
+    "instruction": "Return ONLY the adjudication JSON."
+  },
+  "citation_requirements": {
+    "require_any": true,
+    "allowed_pmids": ["37397988", "38092774", "39560475", "34793451", "31840817", "40795179", "35359458", "35672687", "32606425", "36835153", "30151880", "25340282", "41882276", "24307629", "37045617", "35839778", "33087046", "35662458", "32295833", "29025394", "36431212", "21990131", "32576952", "36768419", "37635986"],
+    "allowed_enrichment_terms": [],
+    "preferred_pmids": ["37397988", "38092774", "39560475", "34793451", "31840817", "40795179", "35359458", "35672687", "32606425", "36835153", "30151880", "25340282", "41882276", "24307629", "37045617", "35839778", "33087046", "35662458", "32295833", "29025394", "36431212", "21990131", "32576952", "36768419", "37635986"],
+    "preferred_enrichment_terms": [],
+    "auto_fill_when_missing": false
+  },
+  "ontology_context": {
+    "status": "ok",
+    "ontology_source": "frozen_CL_graph",
+    "ontology_rule": "Ontology relations in this object are authoritative. Do not infer equivalence, ancestry, or subtype relations from wording similarity. Reviewer majority is contextual evidence only and does not determine the final identity. direct_parents are ontology navigation aids only; they are not reviewer votes or biological evidence.",
+    "reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "submitted_label": "T lymphocyte (αβ T cell)",
+        "clid": "CL:0000789",
+        "canonical_label": "alpha-beta T cell",
+        "direct_parents": [],
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "submitted_label": "T cell",
+        "clid": "CL:0000084",
+        "canonical_label": "T cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 3
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "submitted_label": "alpha-beta T cell",
+        "clid": "CL:0000789",
+        "canonical_label": "alpha-beta T cell",
+        "direct_parents": [],
+        "mapping_status": "mapped",
+        "map_quality": 2
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "submitted_label": "cytotoxic T cell",
+        "clid": "CL:0000910",
+        "canonical_label": "cytotoxic T cell",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "submitted_label": "CD16-positive, CD56-dim natural killer cell, human",
+        "clid": "CL:0000939",
+        "canonical_label": "CD16-positive, CD56-dim natural killer cell, human",
+        "direct_parents": [],
+        "mapping_status": "registry_candidate",
+        "map_quality": 3
+      }
+    ],
+    "direct_top1_majority": {
+      "clid": null,
+      "label": null,
+      "votes": 1,
+      "n_reviewers": 2,
+      "fraction": 0.5
+    },
+    "pairwise_relations": [
+      {
+        "clid_a": "CL:0000789",
+        "label_a": "alpha-beta T cell",
+        "clid_b": "CL:0000084",
+        "label_b": "T cell",
+        "relation": "b_is_ancestor_of_a",
+        "lca_clid": "CL:0000084",
+        "lca_label": "T cell",
+        "a_distance_to_lca": 1,
+        "b_distance_to_lca": 0
+      },
+      {
+        "clid_a": "CL:0000789",
+        "label_a": "alpha-beta T cell",
+        "clid_b": "CL:0000910",
+        "label_b": "cytotoxic T cell",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000084",
+        "lca_label": "T cell",
+        "a_distance_to_lca": 1,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0000789",
+        "label_a": "alpha-beta T cell",
+        "clid_b": "CL:0000939",
+        "label_b": "CD16-positive, CD56-dim natural killer cell, human",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000542",
+        "lca_label": "lymphocyte",
+        "a_distance_to_lca": 2,
+        "b_distance_to_lca": 5
+      },
+      {
+        "clid_a": "CL:0000084",
+        "label_a": "T cell",
+        "clid_b": "CL:0000910",
+        "label_b": "cytotoxic T cell",
+        "relation": "a_is_ancestor_of_b",
+        "lca_clid": "CL:0000084",
+        "lca_label": "T cell",
+        "a_distance_to_lca": 0,
+        "b_distance_to_lca": 3
+      },
+      {
+        "clid_a": "CL:0000084",
+        "label_a": "T cell",
+        "clid_b": "CL:0000939",
+        "label_b": "CD16-positive, CD56-dim natural killer cell, human",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000542",
+        "lca_label": "lymphocyte",
+        "a_distance_to_lca": 1,
+        "b_distance_to_lca": 5
+      },
+      {
+        "clid_a": "CL:0000910",
+        "label_a": "cytotoxic T cell",
+        "clid_b": "CL:0000939",
+        "label_b": "CD16-positive, CD56-dim natural killer cell, human",
+        "relation": "non_hierarchical",
+        "lca_clid": "CL:0000542",
+        "lca_label": "lymphocyte",
+        "a_distance_to_lca": 4,
+        "b_distance_to_lca": 5
+      }
+    ]
+  },
+  "inputs": {
+    "cassia_summary": {
+      "top1_cell_type": "T lymphocyte (αβ T cell)",
+      "topk_cell_types": [
+        "T lymphocyte (αβ T cell)",
+        "MAIT cells (Mucosal-Associated Invariant T cells), CD161+ Th17-like T cells, Tissue-resident memory T cells (TRM)",
+        "T cell",
+        "alpha-beta T cell",
+        "epithelial cell of thymus",
+        "T1 B cell",
+        "T2 B cell"
+      ],
+      "cell_ontology_id": "CL:0000789",
+      "mapping": {
+        "reviewer": "cassia",
+        "raw_label": "T lymphocyte (αβ T cell)",
+        "canonical_label": "alpha-beta T cell",
+        "mapping_status": "mapped_evidence",
+        "mapping_decision": "accept_after_verifier",
+        "mapping_reason": "A/B consistent; spec=exact",
+        "mapping_method": "evidence_llm",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000789",
+        "candidate_cl_ids": [
+          "CL:0000084",
+          "CL:0000789",
+          "CL:0002293",
+          "CL:0000958",
+          "CL:0000959"
+        ],
+        "candidate_labels": [
+          "T cell",
+          "alpha-beta T cell",
+          "epithelial cell of thymus",
+          "T1 B cell",
+          "T2 B cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000789",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "reasoning_short": null,
+      "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+      "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+      "evidence_markers_method": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "cassia_limitations": "Automated annotation; mapping uncertainty is preserved from the frozen registry.",
+      "raw_inputs": {
+        "predicted_main": "T lymphocyte (αβ T cell)",
+        "predicted_sub": "MAIT cells (Mucosal-Associated Invariant T cells), CD161+ Th17-like T cells, Tissue-resident memory T cells (TRM)",
+        "possible_mixed": "Epithelial/tuft/ciliated/fibroblast cells (possible ambient RNA, dissociation artefacts, or heterotypic doublets)",
+        "score": "NA"
+      }
+    },
+    "in_house_summary": {
+      "top1_cell_type": "T cell",
+      "topk_cell_types": [
+        "T cell",
+        "alpha-beta T cell"
+      ],
+      "cell_ontology_id": "CL:0000084",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "T cell",
+        "canonical_label": "T cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000084",
+        "candidate_cl_ids": [
+          "CL:0000084"
+        ],
+        "candidate_labels": [
+          "T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000084",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "reasoning_short": "In-house top1=T cell; top markers=TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+      "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+      "evidence_markers_method": "CLEC2D, KLRB1, ACAP1, ARHGAP15, TRAF3IP3, CNP, RGS1, IL32, TMEM208, CD69, RORA, SART1, SPOCK2, PIK3R1, FYN",
+      "raw_inputs": {
+        "main_pred": "T cell",
+        "subtype1_pred": "alpha-beta T cell",
+        "subtype2_core_pred": "alpha-beta T cell",
+        "candidate_score_main": 0.325,
+        "candidate_score_sub1": "NA",
+        "candidate_score_sub2": "NA"
+      }
+    },
+    "our_summary": {
+      "top1_cell_type": "T cell",
+      "topk_cell_types": [
+        "T cell",
+        "alpha-beta T cell"
+      ],
+      "cell_ontology_id": "CL:0000084",
+      "mapping": {
+        "reviewer": "in_house",
+        "raw_label": "T cell",
+        "canonical_label": "T cell",
+        "mapping_status": "mapped",
+        "mapping_decision": "deterministic",
+        "mapping_reason": "deterministic",
+        "mapping_method": "provided_valid_clid",
+        "specificity_relation": "exact",
+        "editor_input_type": "single_cl_id",
+        "single_cl_ready": true,
+        "adjudication_ready": true,
+        "evaluation_ready": true,
+        "cell_ontology_id": "CL:0000084",
+        "candidate_cl_ids": [
+          "CL:0000084"
+        ],
+        "candidate_labels": [
+          "T cell"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000084",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      },
+      "evidence_markers": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "reasoning_short": "In-house top1=T cell; top markers=TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+      "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+      "evidence_markers_method": "CLEC2D, KLRB1, ACAP1, ARHGAP15, TRAF3IP3, CNP, RGS1, IL32, TMEM208, CD69, RORA, SART1, SPOCK2, PIK3R1, FYN"
+    },
+    "enrich_summary": {
+      "top1_cell_type": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+      "topk_cell_types": [
+        "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+        "cytotoxic T cell",
+        "CD16-positive, CD56-dim natural killer cell, human",
+        "central memory CD4-positive, alpha-beta T cell",
+        "central memory CD8-positive, alpha-beta T cell",
+        "type-6 epithelial cell of thymus"
+      ],
+      "cell_ontology_id": null,
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker list shows strong T-cell and cytotoxic features: IL32, CD69, RORA, FYN, PTPRC (CD45), ICAM3, CORO1A, FYB1, and ARHGAP15 are T-cell signaling/adhesion genes; CST7 (cystatin F) and CLEC2D (LLT1) are associated with cytotoxic lymphocytes and NK/T cells. KLRB1 (CD161) marks innate-like T cells or activated T cells. Importantly, no B-cell (CD19, MS4A1), NK-cell-specific (FCGR3A, FGFBP2), or classical cytotoxic granule markers (GZMB, PRF1) are present, but the presence of TRBV28 (TCR beta variable gene) confirms T-cell identity. The enriched pathway 'Information processing in viruses' (hsa03265, hsa03273) and 'Replication and repair' (hsa03450) suggest active proliferation/antiviral response, consistent with activated T cells. The absence of CD4 or CD8 markers in the top list makes subset assignment cautious, but high expression of IL32 and CD69 supports activated T-cell state.",
+      "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+      "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+      "evidence_markers_method": "IL32; CD69; KLRB1; CST7; CLEC2D; TRBV28; PTPRC; RORA; FYN; TRAF3IP3; ACAP1",
+      "evidence_terms_method": null,
+      "predicted_label": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+      "cl_id": null,
+      "rationale": "The marker list shows strong T-cell and cytotoxic features: IL32, CD69, RORA, FYN, PTPRC (CD45), ICAM3, CORO1A, FYB1, and ARHGAP15 are T-cell signaling/adhesion genes; CST7 (cystatin F) and CLEC2D (LLT1) are associated with cytotoxic lymphocytes and NK/T cells. KLRB1 (CD161) marks innate-like T cells or activated T cells. Importantly, no B-cell (CD19, MS4A1), NK-cell-specific (FCGR3A, FGFBP2), or classical cytotoxic granule markers (GZMB, PRF1) are present, but the presence of TRBV28 (TCR beta variable gene) confirms T-cell identity. The enriched pathway 'Information processing in viruses' (hsa03265, hsa03273) and 'Replication and repair' (hsa03450) suggest active proliferation/antiviral response, consistent with activated T cells. The absence of CD4 or CD8 markers in the top list makes subset assignment cautious, but high expression of IL32 and CD69 supports activated T-cell state.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+        "canonical_label": null,
+        "mapping_status": "review",
+        "mapping_decision": "specificity_mismatch",
+        "mapping_reason": "A spec=exact; B spec=broadened",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "exact",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0000910",
+          "CL:0000939",
+          "CL:0000904",
+          "CL:0000907",
+          "CL:0002295"
+        ],
+        "candidate_labels": [
+          "cytotoxic T cell",
+          "CD16-positive, CD56-dim natural killer cell, human",
+          "central memory CD4-positive, alpha-beta T cell",
+          "central memory CD8-positive, alpha-beta T cell",
+          "type-6 epithelial cell of thymus"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000910",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "inter_summary": {
+      "top1_cell_type": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+      "topk_cell_types": [
+        "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+        "cytotoxic T cell",
+        "CD16-positive, CD56-dim natural killer cell, human",
+        "central memory CD4-positive, alpha-beta T cell",
+        "central memory CD8-positive, alpha-beta T cell",
+        "type-6 epithelial cell of thymus"
+      ],
+      "cell_ontology_id": null,
+      "score": 0.9,
+      "confidence": 0.9,
+      "reasoning_short": "The marker list shows strong T-cell and cytotoxic features: IL32, CD69, RORA, FYN, PTPRC (CD45), ICAM3, CORO1A, FYB1, and ARHGAP15 are T-cell signaling/adhesion genes; CST7 (cystatin F) and CLEC2D (LLT1) are associated with cytotoxic lymphocytes and NK/T cells. KLRB1 (CD161) marks innate-like T cells or activated T cells. Importantly, no B-cell (CD19, MS4A1), NK-cell-specific (FCGR3A, FGFBP2), or classical cytotoxic granule markers (GZMB, PRF1) are present, but the presence of TRBV28 (TCR beta variable gene) confirms T-cell identity. The enriched pathway 'Information processing in viruses' (hsa03265, hsa03273) and 'Replication and repair' (hsa03450) suggest active proliferation/antiviral response, consistent with activated T cells. The absence of CD4 or CD8 markers in the top list makes subset assignment cautious, but high expression of IL32 and CD69 supports activated T-cell state.",
+      "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+      "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+      "evidence_markers_method": "IL32; CD69; KLRB1; CST7; CLEC2D; TRBV28; PTPRC; RORA; FYN; TRAF3IP3; ACAP1",
+      "evidence_terms_method": null,
+      "predicted_label": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+      "cl_id": null,
+      "rationale": "The marker list shows strong T-cell and cytotoxic features: IL32, CD69, RORA, FYN, PTPRC (CD45), ICAM3, CORO1A, FYB1, and ARHGAP15 are T-cell signaling/adhesion genes; CST7 (cystatin F) and CLEC2D (LLT1) are associated with cytotoxic lymphocytes and NK/T cells. KLRB1 (CD161) marks innate-like T cells or activated T cells. Importantly, no B-cell (CD19, MS4A1), NK-cell-specific (FCGR3A, FGFBP2), or classical cytotoxic granule markers (GZMB, PRF1) are present, but the presence of TRBV28 (TCR beta variable gene) confirms T-cell identity. The enriched pathway 'Information processing in viruses' (hsa03265, hsa03273) and 'Replication and repair' (hsa03450) suggest active proliferation/antiviral response, consistent with activated T cells. The absence of CD4 or CD8 markers in the top list makes subset assignment cautious, but high expression of IL32 and CD69 supports activated T-cell state.",
+      "mapping": {
+        "reviewer": "enrichment",
+        "raw_label": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+        "canonical_label": null,
+        "mapping_status": "review",
+        "mapping_decision": "specificity_mismatch",
+        "mapping_reason": "A spec=exact; B spec=broadened",
+        "mapping_method": "evidence_llm_abstain",
+        "specificity_relation": "exact",
+        "editor_input_type": "candidate_set",
+        "single_cl_ready": false,
+        "adjudication_ready": true,
+        "evaluation_ready": false,
+        "cell_ontology_id": null,
+        "candidate_cl_ids": [
+          "CL:0000910",
+          "CL:0000939",
+          "CL:0000904",
+          "CL:0000907",
+          "CL:0002295"
+        ],
+        "candidate_labels": [
+          "cytotoxic T cell",
+          "CD16-positive, CD56-dim natural killer cell, human",
+          "central memory CD4-positive, alpha-beta T cell",
+          "central memory CD8-positive, alpha-beta T cell",
+          "type-6 epithelial cell of thymus"
+        ],
+        "component_cl_ids": [],
+        "component_labels": [],
+        "proposed_cl_id": "CL:0000910",
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+        "registry_pipeline_version": "registry_v1.1"
+      }
+    },
+    "candidate_details": {
+      "entries": [
+        {
+          "label": "T lymphocyte (αβ T cell)",
+          "method": "cassia",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "MAIT cells (Mucosal-Associated Invariant T cells), CD161+ Th17-like T cells, Tissue-resident memory T cells (TRM)",
+          "method": "cassia",
+          "rank": 2,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "T cell",
+          "method": "our",
+          "rank": 1,
+          "candidate_score": 0.325,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "alpha-beta T cell",
+          "method": "our",
+          "rank": 2,
+          "candidate_score": 0.325,
+          "candidate_score_available": true,
+          "candidate_score_source": "step1_exact_clid"
+        },
+        {
+          "label": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+          "method": "enrich",
+          "rank": 1,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "cytotoxic T cell",
+          "method": "enrich",
+          "rank": 2,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        },
+        {
+          "label": "CD16-positive, CD56-dim natural killer cell, human",
+          "method": "enrich",
+          "rank": 3,
+          "candidate_score": "NA",
+          "candidate_score_available": false,
+          "candidate_score_source": "unavailable"
+        }
+      ]
+    },
+    "frozen_reviewer_candidates": [
+      {
+        "method": "cassia",
+        "rank": 1,
+        "label": "T lymphocyte (αβ T cell)",
+        "clid": "CL:0000789",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped_evidence",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "cassia",
+        "rank": 2,
+        "label": "MAIT cells (Mucosal-Associated Invariant T cells), CD161+ Th17-like T cells, Tissue-resident memory T cells (TRM)",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 1,
+        "label": "T cell",
+        "clid": "CL:0000084",
+        "mapping_source": "frozen_registry_top1",
+        "mapping_status": "mapped",
+        "map_quality": 3,
+        "candidate_score": 0.325,
+        "candidate_score_available": true,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "our",
+        "rank": 2,
+        "label": "alpha-beta T cell",
+        "clid": "CL:0000789",
+        "mapping_source": "step08_cl_link:canonical_exact",
+        "mapping_status": "mapped",
+        "map_quality": 2,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 1,
+        "label": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+        "clid": null,
+        "mapping_source": "step08_unmapped",
+        "mapping_status": "unmapped",
+        "map_quality": 0,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 2,
+        "label": "cytotoxic T cell",
+        "clid": "CL:0000910",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      },
+      {
+        "method": "enrich",
+        "rank": 3,
+        "label": "CD16-positive, CD56-dim natural killer cell, human",
+        "clid": "CL:0000939",
+        "mapping_source": "frozen_registry_candidate",
+        "mapping_status": "registry_candidate",
+        "map_quality": 3,
+        "candidate_score": null,
+        "candidate_score_available": false,
+        "ontology_version": "2025-07-30",
+        "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b"
+      }
+    ],
+    "allowed_greedy_candidates": [
+      "T lymphocyte (αβ T cell)",
+      "MAIT cells (Mucosal-Associated Invariant T cells), CD161+ Th17-like T cells, Tissue-resident memory T cells (TRM)",
+      "T cell",
+      "alpha-beta T cell",
+      "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+      "cytotoxic T cell",
+      "CD16-positive, CD56-dim natural killer cell, human",
+      "central memory CD4-positive, alpha-beta T cell",
+      "central memory CD8-positive, alpha-beta T cell",
+      "type-6 epithelial cell of thymus",
+      "epithelial cell of thymus",
+      "T1 B cell",
+      "T2 B cell"
+    ],
+    "allowed_backoff_candidates": [
+      "lymphocyte",
+      "mononuclear leukocyte",
+      "T cell",
+      "effector T cell",
+      "mature T cell",
+      "mature natural killer cell",
+      "natural killer cell",
+      "CD4-positive, alpha-beta memory T cell, CD45RO-positive",
+      "CD4-positive, alpha-beta memory T cell",
+      "CD8-positive, alpha-beta memory T cell, CD45RO-positive",
+      "CD8-positive, alpha-beta memory T cell",
+      "transitional stage B cell",
+      "B cell, CD19-positive"
+    ],
+    "reviewer_reports": [
+      {
+        "reviewer_role": "cassia",
+        "top1_cell_type": "T lymphocyte (αβ T cell)",
+        "mapping": {
+          "reviewer": "cassia",
+          "raw_label": "T lymphocyte (αβ T cell)",
+          "canonical_label": "alpha-beta T cell",
+          "mapping_status": "mapped_evidence",
+          "mapping_decision": "accept_after_verifier",
+          "mapping_reason": "A/B consistent; spec=exact",
+          "mapping_method": "evidence_llm",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000789",
+          "candidate_cl_ids": [
+            "CL:0000084",
+            "CL:0000789",
+            "CL:0002293",
+            "CL:0000958",
+            "CL:0000959"
+          ],
+          "candidate_labels": [
+            "T cell",
+            "alpha-beta T cell",
+            "epithelial cell of thymus",
+            "T1 B cell",
+            "T2 B cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000789",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "T lymphocyte (αβ T cell)",
+          "MAIT cells (Mucosal-Associated Invariant T cells), CD161+ Th17-like T cells, Tissue-resident memory T cells (TRM)"
+        ],
+        "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+        "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+        "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+        "evidence_markers_method": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+        "reasoning_short": null
+      },
+      {
+        "reviewer_role": "in_house",
+        "top1_cell_type": "T cell",
+        "mapping": {
+          "reviewer": "in_house",
+          "raw_label": "T cell",
+          "canonical_label": "T cell",
+          "mapping_status": "mapped",
+          "mapping_decision": "deterministic",
+          "mapping_reason": "deterministic",
+          "mapping_method": "provided_valid_clid",
+          "specificity_relation": "exact",
+          "editor_input_type": "single_cl_id",
+          "single_cl_ready": true,
+          "adjudication_ready": true,
+          "evaluation_ready": true,
+          "cell_ontology_id": "CL:0000084",
+          "candidate_cl_ids": [
+            "CL:0000084"
+          ],
+          "candidate_labels": [
+            "T cell"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000084",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "T cell",
+          "alpha-beta T cell"
+        ],
+        "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+        "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+        "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+        "evidence_markers_method": "CLEC2D, KLRB1, ACAP1, ARHGAP15, TRAF3IP3, CNP, RGS1, IL32, TMEM208, CD69, RORA, SART1, SPOCK2, PIK3R1, FYN",
+        "reasoning_short": "In-house top1=T cell; top markers=TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3"
+      },
+      {
+        "reviewer_role": "enrichment",
+        "top1_cell_type": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+        "mapping": {
+          "reviewer": "enrichment",
+          "raw_label": "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+          "canonical_label": null,
+          "mapping_status": "review",
+          "mapping_decision": "specificity_mismatch",
+          "mapping_reason": "A spec=exact; B spec=broadened",
+          "mapping_method": "evidence_llm_abstain",
+          "specificity_relation": "exact",
+          "editor_input_type": "candidate_set",
+          "single_cl_ready": false,
+          "adjudication_ready": true,
+          "evaluation_ready": false,
+          "cell_ontology_id": null,
+          "candidate_cl_ids": [
+            "CL:0000910",
+            "CL:0000939",
+            "CL:0000904",
+            "CL:0000907",
+            "CL:0002295"
+          ],
+          "candidate_labels": [
+            "cytotoxic T cell",
+            "CD16-positive, CD56-dim natural killer cell, human",
+            "central memory CD4-positive, alpha-beta T cell",
+            "central memory CD8-positive, alpha-beta T cell",
+            "type-6 epithelial cell of thymus"
+          ],
+          "component_cl_ids": [],
+          "component_labels": [],
+          "proposed_cl_id": "CL:0000910",
+          "ontology_version": "2025-07-30",
+          "ontology_checksum": "d1f01acb10bb3de97917f294d4a52b6b",
+          "registry_pipeline_version": "registry_v1.1"
+        },
+        "topk_cell_types": [
+          "Cytotoxic T lymphocyte (CTL), possibly activated/exhausted CD8+ T cell",
+          "cytotoxic T cell",
+          "CD16-positive, CD56-dim natural killer cell, human",
+          "central memory CD4-positive, alpha-beta T cell",
+          "central memory CD8-positive, alpha-beta T cell",
+          "type-6 epithelial cell of thymus"
+        ],
+        "evidence_markers_std": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+        "evidence_terms_std": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+        "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687",
+        "evidence_markers_method": "IL32; CD69; KLRB1; CST7; CLEC2D; TRBV28; PTPRC; RORA; FYN; TRAF3IP3; ACAP1",
+        "evidence_terms_method": null,
+        "reasoning_short": "The marker list shows strong T-cell and cytotoxic features: IL32, CD69, RORA, FYN, PTPRC (CD45), ICAM3, CORO1A, FYB1, and ARHGAP15 are T-cell signaling/adhesion genes; CST7 (cystatin F) and CLEC2D (LLT1) are associated with cytotoxic lymphocytes and NK/T cells. KLRB1 (CD161) marks innate-like T cells or activated T cells. Importantly, no B-cell (CD19, MS4A1), NK-cell-specific (FCGR3A, FGFBP2), or classical cytotoxic granule markers (GZMB, PRF1) are present, but the presence of TRBV28 (TCR beta variable gene) confirms T-cell identity. The enriched pathway 'Information processing in viruses' (hsa03265, hsa03273) and 'Replication and repair' (hsa03450) suggest active proliferation/antiviral response, consistent with activated T cells. The absence of CD4 or CD8 markers in the top list makes subset assignment cautious, but high expression of IL32 and CD69 supports activated T-cell state."
+      }
+    ],
+    "dossier": {
+      "marker_genes": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "enrichment_terms": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+      "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687"
+    },
+    "original_evidence": {
+      "step1_report_query": {
+        "context": "Analysis of Cluster cluster_1, population: lung.\n\n Notes on inputs (in priority order):\n  - PRIMARY: 'degs' contains top positive DEGs (avg_log2FC > 0) and is the primary evidence for lineage assignment (Main/Sub1).\n  - SCOPE-AWARE RULE: in_scope_top_genes are the primary tier; if they are weak/contaminated, you MUST consult ranks_16_50_in_scope (recovery tier) to choose the best-supported in-scope lineage. out_of_scope_top_genes are contamination-only and must NOT influence core identity.\n- SECONDARY: 'program_evidence' summarizes structured secondary programs for refinement.\n - SUPPORTING: 'bioinfo' (enrichment) and 'evidence' (RAG) should be used for phenotype/state description and for consistency checking.\n - retrieval_tier: litsense (strict|relaxed|empty)\n - WEAK PRIOR (LAST): 'candidates_for_evaluation' is a weak/noisy prior. Use it only AFTER forming an independent hypothesis.\n - WEAK PRIOR (LAST): 'Top_Evidence_Genes' inside candidates are hints ONLY; do NOT treat them as primary evidence.\n  - Evidence routing: in_scope_top_genes and ranks_16_50_in_scope are for core identity. out_of_scope_top_genes are contamination-only. unknown_top_genes may be used as weak evidence when in-scope evidence is sparse, but must be weighted lower.\n - We are not asking the model to ignore evidence; we are reclassifying evidence into in-scope vs contamination channels. The LLM must remain evidence-based but only in-scope evidence can affect typing.",
+        "degs": {
+          "description": "Representative in-scope markers for lineage inference. Use ONLY in_scope_top_genes/ranks_16_50_in_scope for Main/Sub1 lineage; out_of_scope_top_genes and unknown_top_genes are contamination-only.",
+          "data": {
+            "geneSymbol": [
+              "TBC1D16",
+              "TTF2",
+              "GOLGA6L22",
+              "S100A1",
+              "RUSC2",
+              "SLC25A27",
+              "TRAV3",
+              "SLC2A1-DT",
+              "LIX1L",
+              "TRBV28",
+              "GALNT9",
+              "CLEC2D",
+              "KLRB1",
+              "ACAP1",
+              "ZRANB3",
+              "ARHGAP15",
+              "TRAF3IP3",
+              "IQUB",
+              "CNP",
+              "RGS1",
+              "KLHL30",
+              "IL32",
+              "TMEM208",
+              "CD69",
+              "RORA",
+              "GCNA",
+              "SART1",
+              "SPOCK2",
+              "PIK3R1",
+              "FYN",
+              "ADGRL2",
+              "CORO1A",
+              "PTPRC",
+              "ICAM3",
+              "TMEM255A",
+              "COL1A2",
+              "CREM",
+              "STK4",
+              "FYB1",
+              "ACVR1",
+              "THEM5",
+              "PAN3",
+              "ORC2",
+              "LRRIQ1",
+              "BRIP1",
+              "RNF133",
+              "BIN2",
+              "VIL1",
+              "CST7",
+              "GRHL3"
+            ]
+          }
+        },
+        "scope_profile": "whole_tissue",
+        "degs_state_support": {
+          "description": null,
+          "data": null
+        },
+        "program_evidence": {
+          "description": "Structured secondary program evidence derived from enrichment terms and marker-family patterns.",
+          "programs_from_terms": {
+            "immune_activation": [
+              "leukocyte mediated cytotoxicity",
+              "Adaptive Immune System"
+            ]
+          },
+          "programs_from_markers": {
+            "epithelial_program_markers": "COL1A2",
+            "transport_program_markers": [
+              "SLC25A27",
+              "SLC2A1-DT"
+            ]
+          },
+          "support_level": {
+            "epithelial": "weak",
+            "transport": "moderate",
+            "secretory": "none"
+          }
+        },
+        "global_summary": {
+          "description": "Global summary derived from top-ranked genes/enrichments for consistency checking only.",
+          "evidence_lineage_summary": {
+            "total_genes": 100,
+            "in_scope_count": 100,
+            "out_of_scope_count": 0,
+            "in_scope_ratio": 1,
+            "lineage_counts": {
+              "unknown": 98,
+              "immune": 18,
+              "neural_glial": 9
+            }
+          }
+        },
+        "bioinfo": {
+          "description": "Bioinformatics analysis.",
+          "analysis_results": {
+            "biological_processes": [
+              "leukocyte mediated cytotoxicity",
+              "natural killer cell mediated cytotoxicity",
+              "natural killer cell mediated immunity",
+              "cell killing"
+            ],
+            "cellular_components": [],
+            "molecular_functions": [],
+            "kegg_pathways": [],
+            "reactome_pathways": [
+              "RAC3 GTPase cycle",
+              "Adaptive Immune System",
+              "G alpha (q) signalling events",
+              "Signaling by ALK in cancer",
+              "Signaling by ALK fusions and activated point mutants",
+              "TCR signaling",
+              "Activation, myristolyation of BID and translocation to mitochondria",
+              "RHO GTPase cycle",
+              "Free fatty acid receptors",
+              "The fatty acid cycling model"
+            ],
+            "regulatory_mechanisms": [],
+            "protein_interaction_hubs": "Top hub genes: CD69, KLRB1, LRRIQ1, CLEC2D, ARHGAP15",
+            "disease_associations_do": "combined immunodeficiency",
+            "disease_associations_disgenet": []
+          }
+        },
+        "evidence": {
+          "description": "Literature evidence (RAG).",
+          "retrieved_articles": {
+            "articles_db": {
+              "pmid": [
+                "37397988",
+                "38092774",
+                "39560475",
+                "34793451",
+                "31840817",
+                "40795179",
+                "35359458",
+                "35672687",
+                "32606425",
+                "36835153",
+                "30151880",
+                "25340282",
+                "41882276",
+                "24307629",
+                "37045617",
+                "35839778",
+                "33087046",
+                "35662458",
+                "32295833",
+                "29025394",
+                "36431212",
+                "21990131",
+                "32576952",
+                "36768419",
+                "37635986"
+              ]
+            }
+          }
+        },
+        "candidates_for_evaluation": {
+          "description": "Weak prior candidates (marker-library-based). Use only for post-hoc consistency checks. Prominent modules: NA.",
+          "data": {
+            "Candidate_Cell_Type": [
+              "natural killer cell",
+              "regulatory T cell",
+              "naive T cell",
+              "T cell",
+              "effector memory CD4-positive, alpha-beta T cell",
+              "CD4-positive, alpha-beta T cell",
+              "monocyte",
+              "microglial cell",
+              "leukocyte",
+              "lymphocyte"
+            ],
+            "Cell_Ontology_ID": [
+              "CL:0000623",
+              "CL:0000815",
+              "CL:0000898",
+              "CL:0000084",
+              "CL:0000905",
+              "CL:0000624",
+              "CL:0000576",
+              "CL:0000129",
+              "CL:0000738",
+              "CL:0000542"
+            ],
+            "Final_Score": [
+              0.55,
+              0.35,
+              0.35,
+              0.325,
+              0.3,
+              0.225,
+              0.225,
+              0.225,
+              0.2,
+              0.2
+            ],
+            "Top_Evidence_Genes": [
+              "CLEC2D, KLRB1, ACAP1, ARHGAP15, TRAF3IP3, CNP, RGS1, IL32, TMEM208, CD69, RORA, SART1, SPOCK2, PIK3R1, FYN",
+              "CLEC2D, KLRB1, RGS1, IL32, CD69, RORA, SPOCK2, PIK3R1, FYN, CORO1A, PTPRC, CREM, STK4, FYB1",
+              "CLEC2D, ACAP1, ARHGAP15, TRAF3IP3, IL32, CD69, RORA, SPOCK2, PIK3R1, PTPRC, ICAM3, CREM, STK4, FYB1",
+              "CLEC2D, KLRB1, RGS1, IL32, CD69, RORA, SPOCK2, FYN, CORO1A, PTPRC, ICAM3, CREM, FYB1",
+              "CLEC2D, KLRB1, ARHGAP15, TRAF3IP3, RGS1, IL32, CD69, RORA, SPOCK2, CORO1A, PTPRC, ICAM3",
+              "KLRB1, RGS1, IL32, CD69, RORA, SPOCK2, CORO1A, PTPRC, CREM",
+              "KLRB1, RGS1, IL32, SPOCK2, CORO1A, PTPRC, ICAM3, CREM, FYB1",
+              "RGS1, CD69, PIK3R1, FYN, CORO1A, PTPRC, ICAM3, CREM, FYB1",
+              "KLRB1, ARHGAP15, RGS1, CD69, CORO1A, PTPRC, ICAM3, FYB1",
+              "KLRB1, ACAP1, RGS1, IL32, CD69, RORA, CORO1A, PTPRC"
+            ]
+          }
+        }
+      }
+    },
+    "original_evidence_summary": {
+      "evidence_provenance": {
+        "n_pmids": 25,
+        "n_enrichment_terms": 16,
+        "n_degs_available": 50,
+        "top_evidence_genes_count": 21
+      },
+      "signals": {
+        "top_gene_prefix_counts": {
+          "MT-": 0,
+          "RPL": 0,
+          "RPS": 0,
+          "HSP": 0,
+          "IGH": 0,
+          "IGK": 0,
+          "IGL": 0,
+          "ALB": 0,
+          "HBB": 0,
+          "HBA": 0
+        }
+      }
+    },
+    "evidence_summary": {
+      "marker_panels": null,
+      "marker_genes": "TBC1D16, TTF2, GOLGA6L22, S100A1, RUSC2, SLC25A27, TRAV3, SLC2A1-DT, LIX1L, TRBV28, GALNT9, CLEC2D, KLRB1, ACAP1, ZRANB3, ARHGAP15, TRAF3IP3, IQUB, CNP, RGS1, KLHL30, IL32, TMEM208, CD69, RORA, GCNA, SART1, SPOCK2, PIK3R1, FYN, ADGRL2, CORO1A, PTPRC, ICAM3, TMEM255A, COL1A2, CREM, STK4, FYB1, ACVR1, THEM5, PAN3, ORC2, LRRIQ1, BRIP1, RNF133, BIN2, VIL1, CST7, GRHL3",
+      "enrichment_terms": "leukocyte mediated cytotoxicity; natural killer cell mediated cytotoxicity; natural killer cell mediated immunity; cell killing; RAC3 GTPase cycle; Adaptive Immune System; G alpha (q) signalling events; Signaling by ALK in cancer; Signaling by ALK fusions and activated point mutants; TCR signaling; Activation, myristolyation of BID and translocation to mitochondria; RHO GTPase cycle; Free fatty acid receptors; The fatty acid cycling model",
+      "pmids_top": "37397988, 38092774, 39560475, 34793451, 31840817, 40795179, 35359458, 35672687"
+    }
+  },
+  "cluster_id": "cluster_1"
+}

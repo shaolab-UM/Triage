@@ -1,0 +1,113 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Sikkema_lung",
+  "cluster_id": "cluster_10",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "pulmonary alveolar type 2 cell",
+    "final_cell_ontology_id": "CL:0002063",
+    "confidence_primary": 0.9
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "pulmonary alveolar type 2 cell",
+      "cell_ontology_id": "CL:0002063",
+      "strengths": [
+        "Correctly identifies AT2 using canonical markers SFTPC, LAMP3, HPN, CPB2, PGC and CLDN18",
+        "Recognizes NEUROG3/FEV and ECM/cartilage markers as secondary rather than overriding the AT2 identity",
+        "Maps to the exact CL:0002063"
+      ],
+      "weaknesses": [
+        "Includes speculative AT2-to-AT1 transitional/PNEC alternatives that lack direct positive support (no AQP5, HOPX, AGER, PDPN, KRT8; no CHGA, CHGB, SYP, INSM1)",
+        "Somewhat underplays the neuroendocrine-like signal in the top marker list"
+      ],
+      "reviewer_cl_id": "CL:0002063"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Correctly captures the broad epithelial lineage consistent with CLDN18 and the overall AT2 epithelial context",
+        "Includes pulmonary alveolar type 2 cell as a secondary candidate"
+      ],
+      "weaknesses": [
+        "Top1 is the ancestor rather than the most specific supported cell type",
+        "Does not leverage strong AT2-positive evidence (SFTPC, LAMP3, HPN, CPB2) to refine the label"
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "pulmonary alveolar type 2 cell",
+      "cell_ontology_id": "CL:0002063",
+      "strengths": [
+        "Directly assigns AT2 based on canonical markers SFTPC, LAMP3, HPN and CPB2",
+        "Uses lipid/surfactant-related enrichment consistent with AT2 biology",
+        "Maps to the exact CL:0002063"
+      ],
+      "weaknesses": [
+        "Does not explicitly address the NEUROG3/FEV neuroendocrine-like signal or VSIG4/CD93 ambient/immune signal",
+        "Pathway evidence is only partially reflected in the original reactome terms"
+      ],
+      "reviewer_cl_id": "CL:0002063"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "AT2 specificity is directly supported by cluster DEGs SFTPC, LAMP3, HPN, CPB2, PGC, CLDN18",
+      "Enrichment term 'Defective pro-SFTPC causes SMDP2 and RDS' supports surfactant/AT2 biology",
+      "Retrieved lung literature PMID 39560475 supports the AT2/alveolar epithelial interpretation"
+    ],
+    "conflicting": [
+      "NEUROG3, FEV, ROS1, RASGRF1, CACNA2D2 suggest a neuroendocrine/PNEC-like signal, but canonical PNEC markers CHGA, CHGB, CALCA, SYP, INSM1 are absent",
+      "VSIG4, CD93, ADAMDEC1 and C4BPB suggest minor immune/endothelial ambient contamination",
+      "ACAN, CRTAC1, CHI3L2, CYTL1 and P3H2 suggest ECM/cartilage-related gene expression, but SOX9 and collagen genes are absent"
+    ],
+    "enrichment_or_literature": [
+      "Reactome: Defective pro-SFTPC causes SMDP2 and RDS",
+      "Reactome: Plasma lipoprotein assembly, remodeling, and clearance",
+      "Reactome: Collagen formation",
+      "Reactome: Regulation of gene expression in endocrine-committed (NEUROG3+) progenitor cells",
+      "PMID 39560475 retrieved as lung/Alveolar evidence"
+    ],
+    "cited_pmids": [
+      "39560475"
+    ],
+    "cited_enrichment_terms": [
+      "Defective pro-SFTPC causes SMDP2 and RDS",
+      "Plasma lipoprotein assembly, remodeling, and clearance"
+    ]
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "pulmonary alveolar type 2 cell",
+    "reference_cl_term": "pulmonary alveolar type 2 cell",
+    "reference_cl_id": "CL:0002063",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_10_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

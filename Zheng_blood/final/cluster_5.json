@@ -1,0 +1,115 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zheng_blood",
+  "cluster_id": "cluster_5",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "CD8-positive, alpha-beta T cell",
+    "final_cell_ontology_id": "CL:0000625",
+    "confidence_primary": 0.9
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "CD8-positive, alpha-beta cytotoxic T cell",
+      "cell_ontology_id": "CL:0000794",
+      "strengths": [
+        "Correctly captures CD8 lineage via CD8A/CD8B",
+        "Strongly supported by cytotoxic effector markers GZMK, GZMH, GZMA, GZMM, NKG7, GNLY, CST7, CTSW, CCL5 and cell-killing enrichments",
+        "Balances NK-like markers (NCR3, GNLY, NKG7, HCST) with CD3D/CD3G/CD2 to avoid NK misannotation",
+        "Most specific ontology-valid supported label among the three reviewers"
+      ],
+      "weaknesses": [
+        "Top-k includes unmapped NKT-like/effector-memory descriptors, but the core CL:0000794 label remains well supported",
+        "Alpha-beta specificity is supported by CD3/TCR/activation terms rather than direct TRAC/TRBC marker evidence",
+        "Does not place the GZMK+ effector-memory state into the primary label"
+      ],
+      "reviewer_cl_id": "CL:0000794"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Correctly identifies the broad T-cell lineage using CD3D, CD3G, CD2, and TCR-related signals",
+        "Robust and safe general call"
+      ],
+      "weaknesses": [
+        "Under-specified: fails to reflect the strong CD8A/CD8B and cytotoxic granzyme/NKG7/GNLY signal",
+        "Ranked subtype alternatives (CD8-positive, alpha-beta T cell; effector memory CD8-positive, alpha-beta T cell) are more informative but not the primary call"
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "cytotoxic T cell",
+      "cell_ontology_id": "CL:0000910",
+      "strengths": [
+        "Correctly recognizes the dominant cytotoxic program (granzymes, NKG7, GNLY, CST7, CTSW)",
+        "Properly excludes NK cells using CD3/CD8 lineage evidence and absence of canonical NK-specific receptors"
+      ],
+      "weaknesses": [
+        "Omits the CD8-positive lineage component supported by CD8A and CD8B",
+        "CL:0000910 is non-hierarchical to and less precise than CL:0000794 for this cluster"
+      ],
+      "reviewer_cl_id": "CL:0000910"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CD8A and CD8B directly support the CD8-positive T-cell lineage added relative to the T-cell ancestor CL:0000084",
+      "GZMK, GZMH, GZMA, GZMM, NKG7, GNLY, CST7, CTSW, CCL5 support the cytotoxic effector program",
+      "CD3D, CD3G, CD2, TCR signaling, and the observed alpha-beta T cell activation term support the T-cell/alpha-beta lineage",
+      "IL7R, S100A4, HOPX, ID2, DUSP2 support the GZMK+ effector-memory-like secondary state",
+      "PMID 36703979, 40624003, 38678059, 28005906, 41277843, 36276113, 31554271, 33927693 provide supporting T-cell/cytotoxic literature context"
+    ],
+    "conflicting": [
+      "NK-associated genes NCR3, GNLY, NKG7, and HCST could suggest an NK/NKT-like interpretation, but CD3D/CD3G/CD8A/CD8B and TCR signaling place them within the CD8+ cytotoxic T-cell program"
+    ],
+    "enrichment_or_literature": [
+      "Original GO/Reactome/KEGG enrichments (cell killing, granzyme-mediated programmed cell death, cytolytic granule, TCR signaling) support cytotoxic CD8+ T-cell identity",
+      "Allowed PMIDs 36703979, 40624003, 38678059, 28005906, 41277843, 36276113, 31554271, 33927693"
+    ],
+    "cited_pmids": [
+      "36703979",
+      "40624003",
+      "38678059",
+      "28005906",
+      "41277843",
+      "36276113",
+      "31554271",
+      "33927693"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "CD8-positive, alpha-beta cytotoxic T cell",
+    "reference_cl_term": "CD8-positive, alpha-beta cytotoxic T cell",
+    "reference_cl_id": "CL:0000794",
+    "cl_similarity": 74.5821753099092
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_5_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

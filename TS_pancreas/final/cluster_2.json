@@ -1,0 +1,107 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_2",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "T cell",
+    "final_cell_ontology_id": "CL:0000084",
+    "confidence_primary": 0.72
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Immune cell — cytotoxic lymphocyte / NK-lineage cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly identifies a cytotoxic lymphocyte program via GZMB, GZMH, KLRB1, KLRC1, CST7, IL2RB.",
+        "Avoids over-committing by leaving the label unmapped."
+      ],
+      "weaknesses": [
+        "Label is not ontology-resolvable and confounds NK-lineage with T-cell evidence.",
+        "Discards or ignores branch-specific TCR evidence (TRBV27, TRAV2).",
+        "Fallback candidate CLIDs include biologically implausible non-immune cell types."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Maps exactly to CL:0000084.",
+        "Supported by cluster-level TCR variable gene evidence TRBV27 and TRAV2.",
+        "Adaptive immune pathway enrichment (Class I MHC antigen processing/presentation) is consistent with T-cell identity.",
+        "Cytotoxic markers can be interpreted as an effector T-cell state rather than requiring NK identity."
+      ],
+      "weaknesses": [
+        "The top2 refinement to effector CD8-positive alpha-beta T cell lacks direct positive CD8A/CD8B evidence.",
+        "Overall marker list is noisy with many non-canonical genes, and the in-house scores are low."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "natural killer cell",
+      "cell_ontology_id": "CL:0000623",
+      "strengths": [
+        "Detects the cytotoxic/NK-associated markers GZMB, GZMH, KLRB1, KLRC1, CST7, IL2RB."
+      ],
+      "weaknesses": [
+        "Ignores positive TCR variable gene evidence (TRBV27, TRAV2) that favors T-cell over NK identity.",
+        "Overstates the discriminatory power of KLRB1/KLRC1, which are also expressed by T-cell subsets.",
+        "Reliance on absence of CD3/CD8 from a 50-gene top DEG list is not positive evidence for NK identity."
+      ],
+      "reviewer_cl_id": "CL:0000623"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "TRBV27 and TRAV2 are TCR variable genes present in the cluster DEG list and provide positive branch-specific evidence for T-cell over NK-cell identity.",
+      "GZMB, GZMH, KLRB1, KLRC1, CST7, IL2RB, and IFI16 support a cytotoxic effector lymphocyte phenotype consistent with effector T cells.",
+      "Reactome adaptive immune pathway enrichment (Adaptive Immune System",
+      "Class I MHC mediated antigen processing & presentation) supports adaptive T-cell identity (PMID 37397988)."
+    ],
+    "conflicting": [
+      "The top DEG list lacks classic CD3D/CD3E/CD8A/CD8B markers, which can be used to argue against conventional T cells but is not conclusive in a 50-gene top list.",
+      "KLRB1, KLRC1, GZMB, and GZMH are traditionally emphasized as NK markers and motivated the NK hypothesis, but they do not discriminate NK cells from cytotoxic T cells.",
+      "Several top DEGs (e.g., S100A1, SPX, TAS2R20, FSHR) are not canonical T/NK markers, adding noise to the cluster signature."
+    ],
+    "enrichment_or_literature": [
+      "Reactome pathways from the dossier include Adaptive Immune System, Immune System, Interleukin receptor SHC signaling, and Class I MHC mediated antigen processing & presentation, consistent with an adaptive/cytotoxic lymphocyte identity."
+    ],
+    "cited_pmids": [
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "CD8-positive, alpha-beta T cell",
+    "reference_cl_term": "CD8-positive, alpha-beta T cell",
+    "reference_cl_id": "CL:0000625",
+    "cl_similarity": 76.972652108066
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_2_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

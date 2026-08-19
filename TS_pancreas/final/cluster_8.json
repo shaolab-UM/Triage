@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "TS_pancreas",
+  "cluster_id": "cluster_8",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "pancreatic ductal cell",
+    "final_cell_ontology_id": "CL:0002079",
+    "confidence_primary": 0.9
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "Pancreatic ductal epithelial cell",
+      "cell_ontology_id": "CL:0002079",
+      "strengths": [
+        "Exact CL:0002079 match",
+        "Ductal markers CFTR, SLC4A4, SLC15A1, SCTR, AMBP, KRT15 directly support pancreatic ductal identity",
+        "Supported by 'Developmental Lineage of Pancreatic Ductal Cells' enrichment and PMID 37397988"
+      ],
+      "weaknesses": [
+        "Automated annotation; top-2 includes an unmapped composite fetal/progenitor/centroacinar label"
+      ],
+      "reviewer_cl_id": "CL:0002079"
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "epithelial cell",
+      "cell_ontology_id": "CL:0000066",
+      "strengths": [
+        "Epithelial markers KRT15 and KRT1 support broad epithelial lineage",
+        "Top-2 includes pancreatic ductal cell (CL:0002079)"
+      ],
+      "weaknesses": [
+        "Top-1 is too broad; misses ductal-specific CFTR, SLC4A4, SLC15A1, SCTR, AMBP support"
+      ],
+      "reviewer_cl_id": "CL:0000066"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "Pancreatic ductal epithelial cell (with potential reactive/regenerative state)",
+      "cell_ontology_id": "CL:0002079",
+      "strengths": [
+        "Same exact CL:0002079 as CASSIA",
+        "Highlights reactive/ECM program (VTN, TFPI2, MMP20/13, CRABP1, RBPMS2)"
+      ],
+      "weaknesses": [
+        "Reactive/regenerative modifier is a state, not a separate ontology lineage; not needed for primary identity"
+      ],
+      "reviewer_cl_id": "CL:0002079"
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "CFTR, SLC4A4, SLC15A1, SCTR, AMBP, KRT15, KRT1 support pancreatic ductal epithelial identity",
+      "Enrichment term 'Developmental Lineage of Pancreatic Ductal Cells' and PMID 37397988 support ductal lineage",
+      "Epithelial marker support (KRT15, KRT1) permits hierarchical refinement from epithelial cell to pancreatic ductal cell"
+    ],
+    "conflicting": [
+      "Pancreatic D cell (CL:0000173) is not supported",
+      "no somatostatin/endocrine markers observed",
+      "Reactive/ECM genes (VTN, TFPI2, MMP20, MMP13, CRABP1, RBPMS2) represent state, not a second lineage"
+    ],
+    "enrichment_or_literature": [
+      "Enrichment: Developmental Lineage of Pancreatic Ductal Cells",
+      "Developmental Cell Lineages of the Exocrine Pancreas",
+      "Disorders of transmembrane transporters",
+      "Extracellular matrix organization"
+    ],
+    "cited_pmids": [
+      "37397988"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "pancreatic ductal cell",
+    "reference_cl_term": "pancreatic ductal cell",
+    "reference_cl_id": "CL:0002079",
+    "cl_similarity": 100
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_8_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}

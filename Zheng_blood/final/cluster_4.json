@@ -1,0 +1,103 @@
+{
+  "schema_version": "triage_public_adjudication_v1",
+  "dataset": "Zheng_blood",
+  "cluster_id": "cluster_4",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "alpha-beta T cell",
+    "final_cell_ontology_id": "CL:0000789",
+    "confidence_primary": 0.78
+  },
+  "reviewers": {
+    "cassia": {
+      "source_method_key": "cassia",
+      "predicted_cell_type": "CD4+ T cell, with a memory/activated phenotype",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly recognizes T cell lineage from CD2, CD3D, CD3E, LCK, LAT.",
+        "Captures the activation-associated signature (FOS, JUNB, DUSP1, ZFP36)."
+      ],
+      "weaknesses": [
+        "CD4+ identity is not supported by any CD4 marker in the ORIGINAL DEGs.",
+        "Memory/activated phenotype is over-specified relative to available evidence.",
+        "Mapping remains unresolved/under review."
+      ],
+      "reviewer_cl_id": null
+    },
+    "in_house": {
+      "source_method_key": "in_house",
+      "predicted_cell_type": "T cell",
+      "cell_ontology_id": "CL:0000084",
+      "strengths": [
+        "Conservative T cell anchor is directly supported by canonical markers CD2, CD3D, CD3E, LCK, LAT, IL7R, IL2RG, SIT1, LTB.",
+        "Avoids unsupported CD4/CD8 and memory-state claims."
+      ],
+      "weaknesses": [
+        "Stops at the T cell level; the enrichment term 'alpha-beta T cell activation' permits a supported hierarchical refinement to alpha-beta T cell."
+      ],
+      "reviewer_cl_id": "CL:0000084"
+    },
+    "clusterProfiler": {
+      "source_method_key": "enrich",
+      "predicted_cell_type": "stem cell memory CD4-positive, alpha-beta T cell",
+      "cell_ontology_id": null,
+      "strengths": [
+        "Correctly notes absence of CD8 and cytotoxic markers (GZMB, PRF1, GNLY, NKG7).",
+        "Recognizes the T cell lineage signal in the marker list."
+      ],
+      "weaknesses": [
+        "Stem cell memory and CD4+ components are not directly supported by ORIGINAL DEGs.",
+        "No CCR7, CD4, CD8, or stem cell memory markers are present to justify the over-specified label."
+      ],
+      "reviewer_cl_id": null
+    }
+  },
+  "evidence": {
+    "supporting": [
+      "T cell identity from ORIGINAL markers: CD2, CD3D, CD3E, LCK, LAT, IL7R, IL2RG, SIT1, LTB.",
+      "Alpha-beta refinement supported by ORIGINAL enrichment terms 'alpha-beta T cell activation' and 'regulation of alpha-beta T cell activation' (PMID 33932031 as associated T cell literature).",
+      "Activation-associated genes FOS, JUNB, DUSP1, ZFP36, PKM, DDIT4 explain the transient activation/metabolic state but do not change lineage."
+    ],
+    "conflicting": [
+      "No CD4, CD8A, CD8B, CCR7, SELL, FOXP3, or cytotoxic markers in the DEG list",
+      "CD4 vs CD8 and memory-state refinement are unsupported.",
+      "The GO term 'regulation of CD4-positive, alpha-beta T cell activation' alone is insufficient to choose the CD4 branch because no CD4 marker is observed."
+    ],
+    "enrichment_or_literature": [
+      "GO terms: regulation of T cell activation, T cell differentiation, alpha-beta T cell activation, TCR signaling.",
+      "PMID 33932031 included as allowed supporting literature for T cell identity."
+    ],
+    "cited_pmids": [
+      "33932031"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "qc": {
+    "needs_manual_review": false,
+    "release_state": "Released with audit note",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "evaluation": {
+    "published_reference_annotation": "CD4-positive, CD25-positive, alpha-beta regulatory T cell",
+    "reference_cl_term": "CD4-positive, CD25-positive, alpha-beta regulatory T cell",
+    "reference_cl_id": "CL:0000792",
+    "cl_similarity": 74.1530209215906
+  },
+  "execution": {
+    "pipeline_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "enabled_methods": [
+      "our"
+    ],
+    "gate_k": 2,
+    "ontology_depth_limit": 2,
+    "identity_policy": "ontology_guarded"
+  },
+  "provenance": {
+    "source_stage": "final_adjudication",
+    "source_file": "cluster_4_LLM_JUDGE_FINAL.json",
+    "publication_fields": "Supplementary Data / P3_Primary_Adjudication",
+    "note": "Publication-facing final decision, evidence, QC disposition and evaluation fields are synchronized to the submitted Supplementary Data."
+  }
+}
