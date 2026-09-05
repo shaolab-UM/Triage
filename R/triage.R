@@ -300,7 +300,8 @@ run_triage_adjudication <- function(input,
     }
     head_txt <- extract_first_json_object_stack(raw$text,
                                                 expected_cluster_id = as.character(jin$cluster_id))
-    if (is.null(head_txt)) {
+    if (is.null(head_txt) || (is.character(head_txt) &&
+        (length(head_txt) != 1 || is.na(head_txt) || !nzchar(head_txt)))) {
       stop("run_triage_adjudication: could not parse a JSON adjudication object from the model response.")
     }
     head_out <- if (is.list(head_txt)) head_txt else

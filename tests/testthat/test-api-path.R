@@ -53,6 +53,22 @@ test_that("API path sends the serialized Handling Editor query (not a nested req
   expect_equal(fin$final_decision$primary_cell_type, "classical monocyte")
 })
 
+test_that("API path fails informatively when the model returns non-JSON text", {
+  jin <- read_triage_input(test_path("fixtures", "cluster_1_round1.json"))
+  stub_non_json <- function(prompt_json_string, api_key, model = "deepseek-v4-flash",
+                            temperature = 0, timeout_seconds = 1200, max_retries = 4,
+                            retry_delay = 4, system_prompt = NULL) {
+    list(ok = TRUE, text = "no json here at all", usage = NULL, status = 200L,
+         model = model, error = NULL, retry_count = 0L, error_class = NULL)
+  }
+  testthat::local_mocked_bindings(invoke_deepseek_api = stub_non_json, .package = "Triage")
+  expect_error(
+    run_triage_adjudication(jin, use_api = TRUE, api_key = "test-key",
+                            dataset_name = "census_immune",
+                            project_root = test_path("fixtures")),
+    regexp = "could not parse a JSON adjudication object")
+})
+
 test_that("API path fails informatively without a key", {
   jin <- read_triage_input(test_path("fixtures", "cluster_1_round1.json"))
   withr::with_envvar(c(DEEPSEEK_API_KEY = "", TRIAGE_LLM_API_KEY_ENV = "DEEPSEEK_API_KEY"), {
