@@ -1,6 +1,6 @@
 Package: Triage
 Type: Package
-Title: Adjudication of Cell-Type Annotations Using Biological Evidence and Cell Ontology Constraints
+Title: Adjudication of Cell Type Annotations Using Biological Evidence and Cell Ontology Constraints
 Version: 1.0.0
 Authors@R: c(
     person(given = "Triage", family = "contributors", role = "aut",
@@ -8,17 +8,19 @@ Authors@R: c(
     person(given = "shaolab-UM", email = "linfanxiao.bio@gmail.com",
         role = "cre", comment = "Repository contact"))
 Maintainer: shaolab-UM <linfanxiao.bio@gmail.com>
-Description: Triage is a downstream adjudication workflow: it begins after
-    candidate cell-type annotations have been generated and adjudicates
-    single-cluster annotations from multiple reviewers (CASSIA, an in-house
-    marker-based annotator and enrichment-based annotation) using biological
-    evidence and Cell Ontology constraints. The package provides the CL-Linker
-    deterministic lexical Cell Ontology label mapper, and the deterministic
-    adjudication core (normalization, release policy, consensus rules and the
-    local validation gate), which runs fully offline. The Handling Editor stage
-    can optionally be called through a DeepSeek-compatible LLM API from the
-    package; Chief QC and final release-state assignment run only in the batch
-    pipeline scripts, not in the package API.
+Description: Triage is a downstream workflow for adjudicating cell type
+    annotations: candidate cell type annotations are generated upstream by
+    separate annotation methods, and Triage evaluates those candidate
+    annotations together with reviewer assignments, differential expression,
+    enrichment evidence and Cell Ontology relationships to determine the
+    supported cell identity and an appropriate level of specificity.
+    CL-Linker maps free-text reviewer labels to Cell Ontology terms. The
+    package provides deterministic postprocessing of Handling Editor
+    adjudication outputs (normalization, release policy, consensus rules and
+    the local validation gate); optional external LLM execution applies to
+    the Handling Editor stage only. Chief QC and final release-state
+    assignment are executed only by the batch pipeline scripts, not by the
+    package API.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

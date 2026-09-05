@@ -10,7 +10,7 @@ build_adjudication_input(cluster_id, reviewers, deg = NULL, dossier = NULL)
 \item{cluster_id}{Cluster identifier string.}
 
 \item{reviewers}{Named list of reviewer records (see
-\code{\link[=build_reviewer_summary]{build_reviewer_summary()}}).}
+\code{build_reviewer_summary()}).}
 
 \item{deg}{Optional DEG data frame (read with the internal \code{read_deg}
 reader, columns: cluster, gene, avg_log2FC, p_val, p_val_adj, pct.1, pct.2).}

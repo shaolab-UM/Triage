@@ -11,7 +11,7 @@
 #' package. The environment variable `CL_LOCAL_JSON` overrides it.
 #'
 #' @return Character path to a Cell Ontology JSON file.
-#' @export
+#' @noRd
 default_ontology_path <- function() {
   env <- Sys.getenv("CL_LOCAL_JSON", unset = "")
   if (nzchar(env)) return(env)
@@ -28,7 +28,7 @@ default_ontology_path <- function() {
 #' ontology JSON is used.
 #'
 #' @param ontology_path Path to a Cell Ontology JSON file. Defaults to
-#'   [default_ontology_path()].
+#'   \code{default_ontology_path()}.
 #' @param cache_dir Directory for ontology graph caches.
 #'
 #' @return A list with elements `cfg` (ontology configuration) and `graph`
@@ -93,7 +93,7 @@ read_triage_input <- function(x) {
 #' @param min_best,min_delta Matching thresholds (see internal `coerce_clid`).
 #'
 #' @return The mapped value (a `CL:` identifier) or NA when unmapped.
-#' @export
+#' @noRd
 map_cell_ontology <- function(label,
                               provided_clid = NULL,
                               ontology = NULL,
@@ -135,7 +135,7 @@ run_cl_linker <- function(labels,
 #' @param cl Only for internal validation messages.
 #'
 #' @return A named list with normalized reviewer summaries.
-#' @export
+#' @noRd
 build_reviewer_summary <- function(reviewers, cl = NULL) {
   if (!is.list(reviewers) || length(reviewers) == 0) {
     stop("build_reviewer_summary: 'reviewers' must be a non-empty named list.")
@@ -171,7 +171,7 @@ build_reviewer_summary <- function(reviewers, cl = NULL) {
 #'
 #' @param cluster_id Cluster identifier string.
 #' @param reviewers Named list of reviewer records (see
-#'   [build_reviewer_summary()]).
+#'   \code{build_reviewer_summary()}).
 #' @param deg Optional DEG data frame (read with the internal \code{read_deg}
 #'   reader, columns: cluster, gene, avg_log2FC, p_val, p_val_adj, pct.1, pct.2).
 #' @param dossier Optional list of dossier evidence (marker genes,
@@ -214,22 +214,21 @@ build_adjudication_input <- function(cluster_id, reviewers,
 #'
 #' Runs the deterministic adjudication core for one cluster. Two modes:
 #' \itemize{
-#'   \item Deterministic (default, `use_api = FALSE`): post-processes and
-#'     validates a precomputed head-editor adjudication draft through the
-#'     release policy, normalization and local gate. Requires `head_output`
-#'     (a path to JSON, a JSON string, or a parsed list). No network access.
-#'   \item API-backed (`use_api = TRUE`): builds the Handling Editor prompt
-#'     and calls the DeepSeek-compatible endpoint. Requires `DEEPSEEK_API_KEY`
-#'     (or an explicit `api_key`) and `LLM_API_BASE_URL`. Fails with a clear
-#'     message when credentials are missing; the package loads fine without
-#'     them.
+#'   \item `use_api = TRUE` invokes the Handling Editor stage and then runs
+#'     the deterministic downstream processing (release policy, CL
+#'     normalization, citation gates, local validation gate). Requires
+#'     `DEEPSEEK_API_KEY` (or an explicit `api_key`) and `LLM_API_BASE_URL`;
+#'     fails with a clear message when credentials are missing.
+#'   \item `use_api = FALSE` requires a precomputed Handling Editor output
+#'     (`head_output`: a path to JSON, a JSON string, or a parsed list) and
+#'     executes only the deterministic downstream processing. No network
+#'     access.
 #' }
 #'
-#' In both modes the package invokes the Handling Editor stage only.
-#' Chief QC and final release-state assignment run only in the batch
-#' pipeline script (`reproducibility/scripts/pipeline/09_run_judge.R`),
-#' not in this package.
-#'
+#' Chief QC is NOT executed by this function. The full publication
+#' benchmark orchestration, including Chief QC and final release-state
+#' assignment, remains under `reproducibility/scripts/`.
+#
 #' @param input Triage adjudication input (from [read_triage_input()] or
 #'   [build_adjudication_input()]).
 #' @param ontology Ontology handle from [load_triage_ontology()]; loaded

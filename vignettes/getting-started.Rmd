@@ -53,65 +53,64 @@ local; OLS web queries are never required.
 
 ```{r ontology}
 ontology <- load_triage_ontology()
-default_ontology_path()   # honors the CL_LOCAL_JSON env override
 ```
 
 ## 3. Reading reviewer inputs
 
+Reviewer input dossiers for the released benchmark are assembled by the
+stage-08 pipeline script (`reproducibility/scripts/pipeline/08_build_judge_inputs.R`);
+the package-side reader parses and validates them:
+
 ```{r input}
-jin <- read_triage_input("reproducibility/primary/Census_immune/handling_editor_round1_inputs/cluster_1_round1.json")
+jin <- read_triage_input("examples/census_immune_cluster1/cluster_1_round1.json")
 ```
 
 `read_triage_input()` accepts a file path, a JSON string, or a parsed
 list, and validates the required `cluster_id` / `inputs` fields.
 
-## 4. Mapping labels to the Cell Ontology
+## 4. CL-Linker: deterministic label mapping
 
-```{r mapping}
-map_cell_ontology("monocyte", ontology = ontology)
-```
-
-## 5. CL-Linker: deterministic label mapping
+CL-Linker maps free-text reviewer labels to Cell Ontology terms:
 
 ```{r cl_linker}
 run_cl_linker(c("macrophage", "T cell"), c("", "CL:0000084"))
 ```
 
-## 6. Reviewer summaries and adjudication inputs
+## 5. Assembling an adjudication input
 
 ```{r build}
-rs <- build_reviewer_summary(list(
-  cassia = list(top1_cell_type = "classical monocyte",
-                topk_cell_types = c("classical monocyte",
-                                    "intermediate monocyte")),
-  in_house = list(top1_cell_type = "monocyte",
-                  cell_ontology_id = "CL:0000576")
-))
-
 ain <- build_adjudication_input(
   cluster_id = "cluster_1",
-  reviewers = rs
+  reviewers = list(
+    cassia = list(top1_cell_type = "classical monocyte",
+                  topk_cell_types = c("classical monocyte",
+                                      "intermediate monocyte")),
+    in_house = list(top1_cell_type = "monocyte",
+                    cell_ontology_id = "CL:0000576"))
 )
 ```
 
-## 7. Running an adjudication
+## 6. Running an adjudication
 
 Two modes:
 
-- **No API (deterministic):** supply a precomputed head-editor output;
-  Triage runs the full deterministic post-processing chain
-  (release policy, CL normalization, local gate).
-- **API:** set `use_api = TRUE` with `DEEPSEEK_API_KEY` and
-  (optionally) `LLM_API_BASE_URL`; the head editor model is called
-  first, then the same deterministic chain runs.
+- **Deterministic postprocessing:** set `use_api = FALSE` and supply a
+  precomputed Handling Editor output; the package executes only the
+  deterministic downstream chain (release policy, CL normalization,
+  local gate). The Handling Editor is NOT executed.
+- **Handling Editor API:** set `use_api = TRUE` with `DEEPSEEK_API_KEY`
+  and (optionally) `LLM_API_BASE_URL`; the Handling Editor is called,
+  then the same deterministic chain runs. Chief QC is not executed by
+  this function; full benchmark orchestration including Chief QC is
+  handled by `reproducibility/scripts/`.
 
 ```{r adjudication}
-# Deterministic example (see examples/census_immune_cluster1_demo/):
+# Deterministic example (see examples/census_immune_cluster1/):
 fin <- run_triage_adjudication(
   jin,
   ontology = ontology,
   use_api = FALSE,
-  head_output = "examples/census_immune_cluster1_demo/head_round1.json",
+  head_output = "examples/census_immune_cluster1/head_round1.json",
   dataset_name = "census_immune",
   project_root = "reproducibility/primary"
 )
@@ -123,7 +122,7 @@ attr(fin, "gate")$ok
 #          temperature = 0, prompt_profile = "compact")
 ```
 
-## 8. Validating results
+## 7. Validating results
 
 ```{r validate}
 validate_triage_result(fin, jin)
@@ -133,9 +132,10 @@ validate_triage_result(fin, jin)
 (schema, banned tokens, citation policy, reviewer-support logic) and
 stops with the failing reasons if anything is wrong.
 
-## 9. Reproducing the manuscript
+## 8. Reproducing the manuscript
 
-See `README.md` ("Reproducing the manuscript analyses") and
-`docs/SELECTOR_REPRODUCTION.md`, `docs/CL_LINKER_EVALUATION.md`,
-`docs/CELLMARKERDB_SENSITIVITY.md`. All release validation scripts are
-deterministic (no LLM calls) and live in `reproducibility/scripts/`.
+See `reproducibility/README.md` and `docs/SELECTOR_REPRODUCTION.md`,
+`docs/CL_LINKER_EVALUATION.md`, `docs/CELLMARKERDB_SENSITIVITY.md`.
+All release validation scripts are deterministic (no LLM calls) and live
+in `reproducibility/scripts/`; full benchmark orchestration (including
+Chief QC) is separate from the package API.

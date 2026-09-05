@@ -11,7 +11,7 @@ load_triage_ontology(
 }
 \arguments{
 \item{ontology_path}{Path to a Cell Ontology JSON file. Defaults to
-\code{\link[=default_ontology_path]{default_ontology_path()}}.}
+\code{default_ontology_path()}.}
 
 \item{cache_dir}{Directory for ontology graph caches.}
 }

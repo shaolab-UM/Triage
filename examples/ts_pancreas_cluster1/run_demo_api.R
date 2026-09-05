@@ -1,4 +1,4 @@
-# ts_pancreas_cluster1_demo: Handling Editor API call for one TS_pancreas
+# ts_pancreas_cluster1: Handling Editor API call for one TS_pancreas
 # cluster. Requires DEEPSEEK_API_KEY (and optionally LLM_API_BASE_URL).
 # This script makes real LLM calls; it is NOT part of the test suite.
 # Chief QC is not invoked by the package.
@@ -12,7 +12,7 @@ if (!nzchar(Sys.getenv("DEEPSEEK_API_KEY"))) {
 ontology <- load_triage_ontology()
 
 jin <- read_triage_input(
-  file.path("examples", "ts_pancreas_cluster1_demo", "cluster_1_round1.json"))
+  file.path("examples", "ts_pancreas_cluster1", "cluster_1_round1.json"))
 
 fin <- run_triage_adjudication(
   jin,

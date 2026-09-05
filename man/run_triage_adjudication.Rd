@@ -59,20 +59,19 @@ The final adjudication record (list), with attribute
 \description{
 Runs the deterministic adjudication core for one cluster. Two modes:
 \itemize{
-\item Deterministic (default, \code{use_api = FALSE}): post-processes and
-validates a precomputed head-editor adjudication draft through the
-release policy, normalization and local gate. Requires \code{head_output}
-(a path to JSON, a JSON string, or a parsed list). No network access.
-\item API-backed (\code{use_api = TRUE}): builds the Handling Editor prompt
-and calls the DeepSeek-compatible endpoint. Requires \code{DEEPSEEK_API_KEY}
-(or an explicit \code{api_key}) and \code{LLM_API_BASE_URL}. Fails with a clear
-message when credentials are missing; the package loads fine without
-them.
+\item \code{use_api = TRUE} invokes the Handling Editor stage and then runs
+the deterministic downstream processing (release policy, CL
+normalization, citation gates, local validation gate). Requires
+\code{DEEPSEEK_API_KEY} (or an explicit \code{api_key}) and \code{LLM_API_BASE_URL};
+fails with a clear message when credentials are missing.
+\item \code{use_api = FALSE} requires a precomputed Handling Editor output
+(\code{head_output}: a path to JSON, a JSON string, or a parsed list) and
+executes only the deterministic downstream processing. No network
+access.
 }
 }
 \details{
-In both modes the package invokes the Handling Editor stage only.
-Chief QC and final release-state assignment run only in the batch
-pipeline script (\verb{reproducibility/scripts/pipeline/09_run_judge.R}),
-not in this package.
+Chief QC is NOT executed by this function. The full publication
+benchmark orchestration, including Chief QC and final release-state
+assignment, remains under \verb{reproducibility/scripts/}.
 }

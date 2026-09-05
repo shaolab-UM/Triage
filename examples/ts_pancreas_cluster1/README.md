@@ -1,4 +1,4 @@
-# ts_pancreas_cluster1_demo — Handling Editor API call (requires API access)
+# ts_pancreas_cluster1 — Handling Editor API call (requires API access)
 
 Demonstrates the API path of `run_triage_adjudication()` for `TS_pancreas`
 cluster 1 (released identity: B cell, CL:0000236): the Handling Editor
@@ -27,7 +27,7 @@ produces the final adjudication record.
 ```r
 Sys.setenv(DEEPSEEK_API_KEY = "sk-...")       # or use ~/.Renviron
 Sys.setenv(LLM_API_BASE_URL = "https://api.deepseek.com")
-source("examples/pancreas_demo/run_demo_api.R")
+source("examples/ts_pancreas_cluster1/run_demo_api.R")
 ```
 
 Note: this demo performs real LLM calls and is intentionally excluded
