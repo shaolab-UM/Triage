@@ -1,0 +1,54 @@
+{
+  "cluster_id": "cluster_1",
+  "cluster_state": "single reference-supported state",
+  "final_decision": {
+    "primary_cell_type": "classical monocyte",
+    "secondary_signals": [],
+    "mixture_explanation": "",
+    "final_cell_ontology_id": "CL:0000860",
+    "decision_category": "cassia_better",
+    "confidence_primary": 0.9
+  },
+  "method_verdict": {
+    "cassia": {
+      "predicted_cell_type": "classical monocyte",
+      "cell_ontology_id": "CL:0000860",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    "our_method": {
+      "predicted_cell_type": "",
+      "cell_ontology_id": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    "enrich": {
+      "predicted_cell_type": "",
+      "cell_ontology_id": "",
+      "strengths": "",
+      "weaknesses": ""
+    }
+  },
+  "audit_report": {
+    "reviewer_support": {
+      "cassia_supported": true,
+      "our_supported": false,
+      "enrich_supported": false
+    },
+    "flags": [],
+    "notes": ""
+  },
+  "third_party_adjudication": [],
+  "evidence": {
+    "supporting": [],
+    "conflicting": [],
+    "enrichment_or_literature": [],
+    "cited_pmids": "27569562",
+    "cited_enrichment_terms": []
+  },
+  "post_issues": {
+    "needs_manual_review": false,
+    "flags": [],
+    "notes": ""
+  }
+}
