@@ -1,6 +1,6 @@
 Package: Triage
 Type: Package
-Title: LLM-Adjudicated Cell-Type Annotation with Cell Ontology Grounding
+Title: Adjudication of Cell-Type Annotations Using Biological Evidence and Cell Ontology Constraints
 Version: 1.0.0
 Authors@R: c(
     person(given = "Triage", family = "contributors", role = "aut",
@@ -8,14 +8,17 @@ Authors@R: c(
     person(given = "shaolab-UM", email = "linfanxiao.bio@gmail.com",
         role = "cre", comment = "Repository contact"))
 Maintainer: shaolab-UM <linfanxiao.bio@gmail.com>
-Description: Triage adjudicates single-cluster cell-type annotations from
-    multiple reviewers (CASSIA, an in-house marker-based annotator and
-    enrichment-based annotation) into a single Cell Ontology grounded final
-    decision, and provides CL-Linker, a deterministic lexical Cell Ontology
-    label mapper. The deterministic adjudication core (normalization,
-    release policy, consensus rules and the local validation gate) runs
-    fully offline; Handling Editor / Chief QC adjudication can optionally be
-    executed through a DeepSeek-compatible LLM API.
+Description: Triage is a downstream adjudication workflow: it begins after
+    candidate cell-type annotations have been generated and adjudicates
+    single-cluster annotations from multiple reviewers (CASSIA, an in-house
+    marker-based annotator and enrichment-based annotation) using biological
+    evidence and Cell Ontology constraints. The package provides the CL-Linker
+    deterministic lexical Cell Ontology label mapper, and the deterministic
+    adjudication core (normalization, release policy, consensus rules and the
+    local validation gate), which runs fully offline. The Handling Editor stage
+    can optionally be called through a DeepSeek-compatible LLM API from the
+    package; Chief QC and final release-state assignment run only in the batch
+    pipeline scripts, not in the package API.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

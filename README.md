@@ -1,10 +1,12 @@
 # Triage
 
-Triage is an evidence-adjudication workflow for single-cell cell-type
-annotation. It integrates three independent reviewers (a CASSIA agent, an
-in-house marker-based annotator, and an enrichment reviewer), biological
-evidence, and Cell Ontology constraints through a deterministic
-normalization/gating chain and an LLM handling editor with chief-QC.
+Triage is a downstream adjudication workflow for single-cell cell-type
+annotation: it begins after candidate annotations have been generated and
+adjudicates them against three reviewer outputs (a CASSIA agent, an in-house
+marker-based annotator, and an enrichment reviewer), biological evidence,
+and Cell Ontology constraints, through a deterministic normalization/gating
+chain and an LLM Handling Editor. Chief QC and final release-state
+assignment run in the batch pipeline scripts.
 
 The repository has **two components**:
 
@@ -39,19 +41,20 @@ Or from GitHub: `remotes::install_github("shaolab-UM/Triage")`.
 
 ## Quick start
 
-Deterministic, no API key required (see `examples/immune_demo/`):
+Deterministic demonstration — postprocessing of a precomputed Handling
+Editor draft, no API key required (see `examples/census_immune_cluster1_demo/`):
 
 ```r
 library(Triage)
 
 ontology <- load_triage_ontology()
-jin <- read_triage_input("examples/immune_demo/cluster_1_round1.json")
+jin <- read_triage_input("examples/census_immune_cluster1_demo/cluster_1_round1.json")
 
 fin <- run_triage_adjudication(
   jin,
   ontology = ontology,
   use_api = FALSE,
-  head_output = "examples/immune_demo/head_round1.json",
+  head_output = "examples/census_immune_cluster1_demo/head_round1.json",
   dataset_name = "census_immune",
   project_root = "reproducibility/primary"
 )
@@ -75,12 +78,20 @@ For each cluster, Triage:
    CL normalization, citation/label gates, and the local validation gate
    (`run_triage_adjudication`, `validate_triage_result`).
 
+Chief QC and final release-state assignment are not part of the package
+API; they run in `reproducibility/scripts/pipeline/09_run_judge.R`.
+
 ## Example workflows
 
-- `examples/immune_demo/` — deterministic no-API adjudication of one
-  `Census_immune` cluster.
-- `examples/pancreas_demo/` — API-backed adjudication of one `TS_pancreas`
-  cluster (requires `DEEPSEEK_API_KEY`; not part of the test suite).
+- `examples/census_immune_cluster1_demo/` — deterministic no-API
+  postprocessing of a precomputed Handling Editor draft for
+  `Census_immune` cluster 1 (released identity: classical monocyte,
+  CL:0000860). The precomputed draft is supplied for demonstration; it is
+  not an archived Handling Editor round output from the original run.
+- `examples/ts_pancreas_cluster1_demo/` — Handling Editor API call for
+  `TS_pancreas` cluster 1 (released identity: B cell, CL:0000236; requires
+  `DEEPSEEK_API_KEY`; not part of the test suite). Chief QC is not invoked
+  by the package.
 
 ## Package structure
 
@@ -90,7 +101,7 @@ inst/extdata/ontology/    Cell Ontology JSON snapshot (v2025-07-30)
 inst/prompts/, inst/schemas/, inst/config/
 vignettes/getting-started.Rmd
 tests/testthat/           deterministic tests (no API calls)
-examples/                 immune_demo (no API), pancreas_demo (API)
+examples/                 census_immune_cluster1_demo (no API), ts_pancreas_cluster1_demo (API)
 ```
 
 ## Reproducing the manuscript analyses

@@ -316,6 +316,7 @@ normalize_judge_final_decision_cl <- function(final_obj, cl_cfg) {
 #' Load the CL ontology graph with ancestor/descendant relationships
 #' @param cl_cfg Configuration list with local_json_path
 #' @return Environment with cl (full ontology) and ancestor lookup
+#' @noRd
 load_cl_graph <- function(cl_cfg) {
   path <- cl_cfg$local_json_path %||% ""
   if (!nzchar(path) || !file.exists(path)) return(NULL)
@@ -328,6 +329,7 @@ load_cl_graph <- function(cl_cfg) {
 #' @param clid_b The potential descendant CL ID
 #' @param cl_graph Result from load_cl_graph()
 #' @return TRUE if clid_a is ancestor of clid_b, FALSE otherwise
+#' @noRd
 is_ancestor_of <- function(clid_a, clid_b, cl_graph) {
   if (is.null(cl_graph) || is.null(cl_graph$cl)) return(FALSE)
   if (is.na(clid_a) || is.na(clid_b) || !nzchar(clid_a) || !nzchar(clid_b)) return(FALSE)
@@ -351,6 +353,7 @@ is_ancestor_of <- function(clid_a, clid_b, cl_graph) {
 #' @param clid_b The potential ancestor CL ID
 #' @param cl_graph Result from load_cl_graph()
 #' @return TRUE if clid_a is descendant of clid_b, FALSE otherwise
+#' @noRd
 is_descendant_of <- function(clid_a, clid_b, cl_graph) {
   # a is descendant of b means b is ancestor of a
 
@@ -362,6 +365,7 @@ is_descendant_of <- function(clid_a, clid_b, cl_graph) {
 #' @param clid_b Second CL ID
 #' @param cl_graph Result from load_cl_graph()
 #' @return Integer distance (1 = direct parent/child), Inf if not related
+#' @noRd
 get_ontology_distance <- function(clid_a, clid_b, cl_graph) {
   if (is.null(cl_graph) || is.null(cl_graph$cl)) return(Inf)
   if (is.na(clid_a) || is.na(clid_b) || !nzchar(clid_a) || !nzchar(clid_b)) return(Inf)
@@ -406,6 +410,7 @@ get_ontology_distance <- function(clid_a, clid_b, cl_graph) {
 #' @param gt_clid Ground truth CL ID
 #' @param cl_graph Result from load_cl_graph()
 #' @return List with triage_type, distance, accept (boolean)
+#' @noRd
 triage_prediction <- function(pred_clid, gt_clid, cl_graph) {
   result <- list(
     triage_type = "C_WRONG_LINEAGE",
@@ -481,6 +486,7 @@ triage_prediction <- function(pred_clid, gt_clid, cl_graph) {
 #' @param step15_obj The Step 1.5 report object
 #' @param cl_cfg CL configuration
 #' @return List with final_accept, final_report, triage_info
+#' @noRd
 apply_revision_directive_triage <- function(step2_obj, step15_obj, cl_cfg) {
   result <- list(
     final_accept = FALSE,
@@ -547,6 +553,7 @@ apply_revision_directive_triage <- function(step2_obj, step15_obj, cl_cfg) {
 #' @param parent_clid The parent CL ID (optional)
 #' @param cl_cfg CL configuration
 #' @return Modified report with downgraded identity
+#' @noRd
 downgrade_report_to_parent <- function(report, parent_label, parent_clid = NULL, cl_cfg = NULL) {
   if (is.null(report) || !is.list(report)) return(report)
   

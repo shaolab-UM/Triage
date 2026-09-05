@@ -2,7 +2,7 @@
 % Please edit documentation in R/triage.R
 \name{validate_triage_result}
 \alias{validate_triage_result}
-\title{Validate a Triage adjudication result}
+\title{Validate a Triage adjudication result (package convenience)}
 \usage{
 validate_triage_result(result, input = NULL)
 }
@@ -18,4 +18,6 @@ violations when the record is invalid.
 \description{
 Deterministic validation of a final adjudication record against the
 release schema, citation policy and (optionally) the adjudication input.
+Package convenience wrapper around the deterministic local gate used by
+the release pipeline.
 }

@@ -1,7 +1,8 @@
-# pancreas_demo — API-backed adjudication (requires API access)
+# ts_pancreas_cluster1_demo — Handling Editor API call (requires API access)
 
-Demonstrates the full API path of `run_triage_adjudication()` for a
-`TS_pancreas` cluster: the head editor model is called, its raw text is
+Demonstrates the API path of `run_triage_adjudication()` for `TS_pancreas`
+cluster 1 (released identity: B cell, CL:0000236): the Handling Editor
+model is called, its raw text is
 parsed, and the deterministic post-processing/normalization chain
 produces the final adjudication record.
 

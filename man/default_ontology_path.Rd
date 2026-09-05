@@ -2,7 +2,7 @@
 % Please edit documentation in R/triage.R
 \name{default_ontology_path}
 \alias{default_ontology_path}
-\title{Default Cell Ontology JSON path}
+\title{Default Cell Ontology JSON path (package convenience)}
 \usage{
 default_ontology_path()
 }

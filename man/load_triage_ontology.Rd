@@ -2,7 +2,7 @@
 % Please edit documentation in R/triage.R
 \name{load_triage_ontology}
 \alias{load_triage_ontology}
-\title{Load the Triage Cell Ontology handle}
+\title{Load the Cell Ontology handle (package convenience)}
 \usage{
 load_triage_ontology(
   ontology_path = default_ontology_path(),

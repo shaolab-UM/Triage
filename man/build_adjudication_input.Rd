@@ -24,5 +24,7 @@ A list shaped like the stage-08 judge input JSON.
 \description{
 Assembles the adjudication (judge) input consumed by
 \code{\link[=run_triage_adjudication]{run_triage_adjudication()}} from reviewer summaries and optional DEG /
-dossier evidence. Pure data assembly; no API access.
+dossier evidence. Pure data assembly; no API access. This is a simplified
+constructor: the full stage-08 dossier assembly lives in the pipeline
+script \verb{reproducibility/scripts/pipeline/08_build_judge_inputs.R}.
 }

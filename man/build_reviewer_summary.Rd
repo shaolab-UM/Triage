@@ -2,7 +2,7 @@
 % Please edit documentation in R/triage.R
 \name{build_reviewer_summary}
 \alias{build_reviewer_summary}
-\title{Build a normalized reviewer summary block}
+\title{Build a normalized reviewer summary block (package convenience)}
 \usage{
 build_reviewer_summary(reviewers, cl = NULL)
 }

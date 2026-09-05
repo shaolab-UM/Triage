@@ -2,7 +2,7 @@
 % Please edit documentation in R/triage.R
 \name{map_cell_ontology}
 \alias{map_cell_ontology}
-\title{Map a cell-type label onto the Cell Ontology}
+\title{Map a cell-type label onto the Cell Ontology (package convenience)}
 \usage{
 map_cell_ontology(
   label,
@@ -25,5 +25,7 @@ map_cell_ontology(
 The mapped value (a \verb{CL:} identifier) or NA when unmapped.
 }
 \description{
-Deterministic label-to-CL mapping used by the adjudication core.
+Exposes the internal label-matching used by the adjudication core.
+This is a matching utility, not an annotation step: candidate annotations
+are generated upstream of Triage.
 }

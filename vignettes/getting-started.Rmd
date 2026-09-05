@@ -106,12 +106,12 @@ Two modes:
   first, then the same deterministic chain runs.
 
 ```{r adjudication}
-# Deterministic example (see examples/immune_demo/):
+# Deterministic example (see examples/census_immune_cluster1_demo/):
 fin <- run_triage_adjudication(
   jin,
   ontology = ontology,
   use_api = FALSE,
-  head_output = "examples/immune_demo/head_round1.json",
+  head_output = "examples/census_immune_cluster1_demo/head_round1.json",
   dataset_name = "census_immune",
   project_root = "reproducibility/primary"
 )

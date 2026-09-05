@@ -5,7 +5,7 @@
 # API-backed paths require credentials only when explicitly invoked.
 # =========================================================================
 
-#' Default Cell Ontology JSON path
+#' Default Cell Ontology JSON path (package convenience)
 #'
 #' Resolves the bundled Cell Ontology JSON (v2025-07-30) shipped with the
 #' package. The environment variable `CL_LOCAL_JSON` overrides it.
@@ -21,7 +21,7 @@ default_ontology_path <- function() {
   stop("Cell Ontology JSON not found. Set CL_LOCAL_JSON to a valid ontology JSON path.")
 }
 
-#' Load the Triage Cell Ontology handle
+#' Load the Cell Ontology handle (package convenience)
 #'
 #' Builds the configuration and graph objects used by ontology-aware
 #' adjudication and CL-Linker mapping. No network access: only the local
@@ -41,13 +41,15 @@ load_triage_ontology <- function(ontology_path = default_ontology_path(),
   list(cfg = cfg, graph = graph)
 }
 
-#' Read a Triage adjudication input file
+#' Read a Triage adjudication input file (package convenience)
 #'
 #' Reads (or validates, if already parsed) a Triage reviewer/adjudication
 #' input object: a named list containing at least `cluster_id` and an
 #' `inputs` block with reviewer summaries. This is the JSON schema produced
 #' by the manuscript input-construction pipeline (stage 08) and expected by
-#' the deterministic adjudication core.
+#' the deterministic adjudication core. The pipeline code that constructs
+#' these inputs (reviewer parsing, dossier assembly) is in
+#' `reproducibility/scripts/pipeline/08_build_judge_inputs.R`.
 #'
 #' @param x Path to a JSON file, a JSON string, or an already-parsed list.
 #'
@@ -79,9 +81,11 @@ read_triage_input <- function(x) {
   obj
 }
 
-#' Map a cell-type label onto the Cell Ontology
+#' Map a cell-type label onto the Cell Ontology (package convenience)
 #'
-#' Deterministic label-to-CL mapping used by the adjudication core.
+#' Exposes the internal label-matching used by the adjudication core.
+#' This is a matching utility, not an annotation step: candidate annotations
+#' are generated upstream of Triage.
 #'
 #' @param label Free-text cell-type label.
 #' @param provided_clid Optional reviewer-proposed CL identifier.
@@ -118,7 +122,7 @@ run_cl_linker <- function(labels,
   cl_link_batch(labels, provided_clids = provided_clids, idx = idx)
 }
 
-#' Build a normalized reviewer summary block
+#' Build a normalized reviewer summary block (package convenience)
 #'
 #' Validates and normalizes reviewer records (CASSIA, in-house,
 #' clusterProfiler/enrichment) into the summary schema consumed by the
@@ -161,7 +165,9 @@ build_reviewer_summary <- function(reviewers, cl = NULL) {
 #'
 #' Assembles the adjudication (judge) input consumed by
 #' [run_triage_adjudication()] from reviewer summaries and optional DEG /
-#' dossier evidence. Pure data assembly; no API access.
+#' dossier evidence. Pure data assembly; no API access. This is a simplified
+#' constructor: the full stage-08 dossier assembly lives in the pipeline
+#' script `reproducibility/scripts/pipeline/08_build_judge_inputs.R`.
 #'
 #' @param cluster_id Cluster identifier string.
 #' @param reviewers Named list of reviewer records (see
@@ -206,7 +212,7 @@ build_adjudication_input <- function(cluster_id, reviewers,
 
 #' Run Triage adjudication for one cluster
 #'
-#' Produces a final adjudication record. Two modes:
+#' Runs the deterministic adjudication core for one cluster. Two modes:
 #' \itemize{
 #'   \item Deterministic (default, `use_api = FALSE`): post-processes and
 #'     validates a precomputed head-editor adjudication draft through the
@@ -218,6 +224,11 @@ build_adjudication_input <- function(cluster_id, reviewers,
 #'     message when credentials are missing; the package loads fine without
 #'     them.
 #' }
+#'
+#' In both modes the package invokes the Handling Editor stage only.
+#' Chief QC and final release-state assignment run only in the batch
+#' pipeline script (`reproducibility/scripts/pipeline/09_run_judge.R`),
+#' not in this package.
 #'
 #' @param input Triage adjudication input (from [read_triage_input()] or
 #'   [build_adjudication_input()]).
@@ -321,10 +332,12 @@ run_triage_adjudication <- function(input,
   out
 }
 
-#' Validate a Triage adjudication result
+#' Validate a Triage adjudication result (package convenience)
 #'
 #' Deterministic validation of a final adjudication record against the
 #' release schema, citation policy and (optionally) the adjudication input.
+#' Package convenience wrapper around the deterministic local gate used by
+#' the release pipeline.
 #'
 #' @param result Adjudication record (list) or path/JSON string.
 #' @param input Optional matching adjudication input for citation checks.

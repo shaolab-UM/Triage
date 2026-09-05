@@ -2,7 +2,7 @@
 % Please edit documentation in R/triage.R
 \name{read_triage_input}
 \alias{read_triage_input}
-\title{Read a Triage adjudication input file}
+\title{Read a Triage adjudication input file (package convenience)}
 \usage{
 read_triage_input(x)
 }
@@ -17,5 +17,7 @@ Reads (or validates, if already parsed) a Triage reviewer/adjudication
 input object: a named list containing at least \code{cluster_id} and an
 \code{inputs} block with reviewer summaries. This is the JSON schema produced
 by the manuscript input-construction pipeline (stage 08) and expected by
-the deterministic adjudication core.
+the deterministic adjudication core. The pipeline code that constructs
+these inputs (reviewer parsing, dossier assembly) is in
+\verb{reproducibility/scripts/pipeline/08_build_judge_inputs.R}.
 }

@@ -57,7 +57,7 @@ The final adjudication record (list), with attribute
 \code{gate} = local gate result.
 }
 \description{
-Produces a final adjudication record. Two modes:
+Runs the deterministic adjudication core for one cluster. Two modes:
 \itemize{
 \item Deterministic (default, \code{use_api = FALSE}): post-processes and
 validates a precomputed head-editor adjudication draft through the
@@ -69,4 +69,10 @@ and calls the DeepSeek-compatible endpoint. Requires \code{DEEPSEEK_API_KEY}
 message when credentials are missing; the package loads fine without
 them.
 }
+}
+\details{
+In both modes the package invokes the Handling Editor stage only.
+Chief QC and final release-state assignment run only in the batch
+pipeline script (\verb{reproducibility/scripts/pipeline/09_run_judge.R}),
+not in this package.
 }
