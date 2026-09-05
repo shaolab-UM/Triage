@@ -1,0 +1,11 @@
+metric	value
+single_identity_reviewer_annotations	140
+exact_mapping	102
+direct_parent_mapping	2
+exact_or_direct_parent_mapping	104
+overspecific_mapping	5
+incorrect_mapping	6
+unmapped_or_abstained	25
+fraction_mapped_numerator	115
+fraction_mapped_denominator	140
+non_single_reference_withheld	10

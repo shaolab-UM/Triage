@@ -11,8 +11,7 @@ if (!nzchar(Sys.getenv("DEEPSEEK_API_KEY"))) {
 ontology <- load_triage_ontology()
 
 jin <- read_triage_input(
-  file.path("reproducibility", "primary", "TS_pancreas",
-            "handling_editor_round1_inputs", "cluster_1_round1.json"))
+  file.path("examples", "pancreas_demo", "cluster_1_round1.json"))
 
 fin <- run_triage_adjudication(
   jin,

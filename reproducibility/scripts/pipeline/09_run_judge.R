@@ -1,21 +1,35 @@
-# =========================================================================
-# adjudication.R — deterministic adjudication core
-# Extracted verbatim from scripts/pipeline/09_run_judge.R (v1.0.0 release).
-# RULES, schema, prompts, normalization, release policy, consensus engine,
-# local gate. API invocation lives in provider_deepseek.R.
-# =========================================================================
+#!/usr/bin/env Rscript
+# ============================================================
+# 09_run_judge.R — Triage adjudication (Handling Editor + Chief QC)
+# Input: stage-08 adjudication inputs using fixed reviewer CL mappings.
+# Output: adjudication summaries and final per-cluster JSON records.
+#
+# Rank-1 reviewer CL IDs supplied by stage 08 remain authoritative.
+# Missing CL IDs are allowed; non-empty CL IDs must validate against
+# the fixed Cell Ontology. Deterministic post-processing may adjust
+# specificity only along supported ontology ancestor/descendant relations.
+# Non-hierarchical identity conflicts are routed to Chief QC.
+# ============================================================
 
-# Prompt profile used by the primary publication pipeline
-# (config/primary_adjudication_profile.tsv: prompt_profile = compact).
-PROMPT_PROFILE <- "compact"
+rm(list=ls())
 
-# Pipeline verbosity flag (was a command-line option in the release pipeline)
+suppressPackageStartupMessages({
+  library(httr)
+  library(jsonlite)
+  library(glue)
+  library(stringr)
+  library(readr)
+  library(dplyr)
+  library(purrr)
+  library(optparse)
+  library(future)
+  library(future.apply)
+  library(cellmarkeraccordion)
+})
+
+`%||%` <- function(a,b) if (!is.null(a)) a else b
 VERBOSE <- FALSE
-
-# Dataset configuration object (set by reproducibility pipeline scripts via
-# config/dataset_config.R; NULL in standalone package use).
-cfg <- NULL
-
+PROMPT_PROFILE <- "compact"  # legacy | compact; compact is the formal profile (peer-review role separation)
 vlog <- function(...) {
   if (isTRUE(VERBOSE)) message(...)
 }
@@ -31,7 +45,7 @@ if (!nzchar(triageHome09)) {
     dirname(dirname(dirname(normalizePath(sub("^--file=", "", scriptArgV09[[1]]), winslash = "/", mustWork = FALSE))))
   } else getwd()
 }
-# dataset_config and cl_normalizer logic ships with the package namespace.
+suppressMessages(library(Triage))
 ensure_dir <- function(p) if (!dir.exists(p)) dir.create(p, recursive = TRUE)
 
 MARKER_CACHE <- new.env(parent = emptyenv())
@@ -378,6 +392,90 @@ calc_backoff <- function(base_delay, attempt, err_class) {
   delay + stats::runif(1, 0, 1)
 }
 
+invoke_deepseek_api <- function(prompt_json_string, api_key, model="deepseek-chat",
+                                temperature=0, timeout_seconds=1200, max_retries=4, retry_delay=4,
+                                system_prompt = NULL) {
+  if (is.null(api_key) || !nzchar(api_key)) stop("Missing API key in environment.")
+  
+  retries <- 0
+  last_err <- NULL
+  last_status <- NA_integer_
+  last_err_class <- "unknown"
+  
+  while (retries < max_retries) {
+    sys_msg <- if (!is.null(system_prompt) && nzchar(as.character(system_prompt))) {
+      paste(
+        as.character(system_prompt),
+        "Return ONLY valid JSON (no markdown fences, no extra text).",
+        "Use JSON null (without quotes) for nulls.",
+        "Do NOT add extra top-level keys.",
+        sep = "\n"
+      )
+    } else {
+      paste(
+        "Return ONLY valid JSON (no markdown fences, no extra text).",
+        "Use JSON null (without quotes) for nulls.",
+        "Do NOT add extra top-level keys."
+      )
+    }
+    req_body <- list(
+      model = model,
+      messages = list(
+        list(role="system", content=sys_msg),
+        list(role="user", content=prompt_json_string)
+      ),
+      temperature = temperature,
+      stream = FALSE
+    )
+    
+    resp <- tryCatch({
+      httr::POST(
+        url=DEEPSEEK_BASE_URL,
+        httr::add_headers(
+          `Content-Type`="application/json",
+          `Authorization`=paste("Bearer", api_key)
+        ),
+        body=jsonlite::toJSON(req_body, auto_unbox=TRUE, null="null"),
+        encode="raw",
+        httr::timeout(timeout_seconds)
+      )
+    }, error=function(e) e)
+    
+    if (inherits(resp, "error")) {
+      last_err <- as.character(resp$message %||% "http_error")
+      last_err_class <- classify_http_error(NA_integer_, last_err)
+      retries <- retries + 1
+      Sys.sleep(calc_backoff(retry_delay, retries, last_err_class))
+      next
+    }
+    
+    status <- httr::status_code(resp)
+    last_status <- status
+    if (status == 200) {
+      content <- httr::content(resp, as="parsed")
+      out <- tryCatch(content$choices[[1]]$message$content, error=function(e) NULL)
+      usage <- content$usage %||% NULL
+      if (!is.null(out) && nzchar(out)) {
+        return(list(ok=TRUE, text=out, usage=usage, status=status, model=model, error=NULL, retry_count=retries, error_class=NULL))
+      } else {
+        last_err <- "empty_content"
+        last_err_class <- "empty_content"
+      }
+    } else {
+      last_err <- tryCatch({
+        txt <- httr::content(resp, as="text", encoding="UTF-8")
+        paste0("status_", status, "_", substr(txt, 1, 200))
+      }, error=function(e) paste0("status_", status))
+      last_err_class <- classify_http_error(status, last_err)
+    }
+    
+    retries <- retries + 1
+    Sys.sleep(calc_backoff(retry_delay, retries, last_err_class))
+  }
+  
+  list(ok=FALSE, text=NULL, usage=NULL, status=last_status, model=model, error=last_err %||% "unknown", retry_count=retries, error_class=last_err_class)
+}
+
 usage_to_fields <- function(usage) {
   if (is.null(usage) || !is.list(usage)) {
     return(list(prompt_tokens=NA_integer_, completion_tokens=NA_integer_, total_tokens=NA_integer_))
@@ -402,6 +500,8 @@ make_request_id <- function(cid, stage, round) {
 # --------------------------
 # Scheme A constraints
 # --------------------------
+banned_tokens_pattern <- function() rules_banned_tokens_pattern()
+
 judge_output_schema_text <- function() {
   paste(
     "{",
@@ -6967,14 +7067,475 @@ validate_rules_consistency <- function() {
   schema_txt <- judge_output_schema_text()
   dec_text <- rules_decision_categories_text()
   ban_text <- rules_banned_tokens_text()
-  if (!stringr::str_detect(head_prompt, stringr::fixed(dec_text))) reasons <- c(reasons, "head_prompt_missing_decision_categories")
-  if (!stringr::str_detect(chief_combined, stringr::fixed(dec_text))) reasons <- c(reasons, "chief_prompt_missing_decision_categories")
-  if (!stringr::str_detect(head_prompt, stringr::fixed(ban_text))) reasons <- c(reasons, "head_prompt_missing_banned_tokens")
-  if (!stringr::str_detect(chief_combined, stringr::fixed(ban_text))) reasons <- c(reasons, "chief_prompt_missing_banned_tokens")
-  if (!stringr::str_detect(schema_txt, stringr::fixed(dec_text))) reasons <- c(reasons, "schema_missing_decision_categories")
+  if (!stringr::str_detect(head_prompt, fixed(dec_text))) reasons <- c(reasons, "head_prompt_missing_decision_categories")
+  if (!stringr::str_detect(chief_combined, fixed(dec_text))) reasons <- c(reasons, "chief_prompt_missing_decision_categories")
+  if (!stringr::str_detect(head_prompt, fixed(ban_text))) reasons <- c(reasons, "head_prompt_missing_banned_tokens")
+  if (!stringr::str_detect(chief_combined, fixed(ban_text))) reasons <- c(reasons, "chief_prompt_missing_banned_tokens")
+  if (!stringr::str_detect(schema_txt, fixed(dec_text))) reasons <- c(reasons, "schema_missing_decision_categories")
   list(ok = length(reasons) == 0, reasons = reasons)
 }
 
+make_min_judge <- function() {
+  list(
+    cluster_id = "cluster_0",
+    cluster_state = "clean",
+    final_decision = list(
+      primary_cell_type = "cell type",
+      secondary_signals = list(),
+      mixture_explanation = "",
+      final_cell_ontology_id = NULL,
+      decision_category = rules_allowed_decision_categories()[[1]],
+      confidence_primary = 0.5
+    ),
+    method_verdict = list(
+      cassia = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list()),
+      our_method = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list()),
+      enrich = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list()),
+      inter = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list())
+    ),
+    audit_report = list(reviewer_support = list(cassia_supported = TRUE, our_supported = TRUE, enrich_supported = TRUE, inter_supported = TRUE), flags = list(), notes = ""),
+    third_party_adjudication = list(primary_cell_type = NULL, confidence = NULL, evidence_pointers = list(), why_reviewers_failed = NULL),
+    evidence = list(supporting = list(), conflicting = list(), enrichment_or_literature = list(), cited_pmids = list(), cited_enrichment_terms = list()),
+    post_issues = list(needs_manual_review = FALSE, flags = list(), notes = ""),
+    manual_review_plan = list(priority = NULL, goals = list(), actions = list())
+  )
+}
+
+run_rules_unit_tests <- function() {
+  v <- validate_rules_consistency()
+  stopifnot(isTRUE(v$ok))
+
+  j1 <- make_min_judge()
+  j1$final_decision$primary_cell_type <- paste0(rules_banned_tokens()[[1]], " cell")
+  g1 <- judge_local_gate(j1, citation_requirements = list(require_any = FALSE, allowed_pmids = character(0), allowed_enrichment_terms = character(0)))
+  stopifnot(!isTRUE(g1$ok))
+  stopifnot(any(grepl("primary_cell_type_contains_banned_token", g1$reasons)))
+
+  j2 <- make_min_judge()
+  j2$audit_report$notes <- paste0("note with ", rules_banned_tokens()[[1]])
+  g2 <- judge_local_gate(j2, citation_requirements = list(require_any = FALSE, allowed_pmids = character(0), allowed_enrichment_terms = character(0)))
+  stopifnot(isTRUE(g2$ok))
+
+  j3 <- make_min_judge()
+  g3 <- judge_local_gate(j3, citation_requirements = list(require_any = TRUE, allowed_pmids = c("123456"), allowed_enrichment_terms = character(0)))
+  stopifnot(any(grepl("missing_required_citation", g3$reasons)))
+
+  j4 <- make_min_judge()
+  j4$post_issues$needs_manual_review <- TRUE
+  j4$manual_review_plan <- list(priority = "medium", goals = list(), actions = list())
+  g4 <- judge_local_gate(j4, citation_requirements = list(require_any = FALSE, allowed_pmids = character(0), allowed_enrichment_terms = character(0)))
+  stopifnot(any(grepl("manual_review_actions_missing", g4$reasons)))
+  stopifnot(!any(grepl("manual_review_goals_missing", g4$reasons)))
+
+  j5 <- make_min_judge()
+  j5$final_decision$decision_category <- "invalid_category"
+  g5 <- judge_local_gate(j5, citation_requirements = list(require_any = FALSE, allowed_pmids = character(0), allowed_enrichment_terms = character(0)))
+  stopifnot(any(grepl("decision_category_invalid", g5$reasons)))
+
+  j6 <- make_min_judge()
+  j6$final_decision$final_cell_ontology_id <- "CL:0000000"
+  j6$final_decision$confidence_primary <- 0.9
+  j6$decision_trace <- list(final_rule = "supported_input_candidate", support_gate_pass = TRUE)
+  j6$post_issues$needs_manual_review <- TRUE
+  j6$post_issues$flags <- list("score_missing", "rerun_not_beneficial")
+  j6 <- apply_release_policy(j6, cl_graph = NULL, release_policy = "blocker")
+  stopifnot(!isTRUE(j6$post_issues$needs_manual_review))
+  stopifnot("score_unavailable" %in% get_audit_flags(j6))
+  stopifnot(length(get_release_blockers(j6)) == 0L)
+
+  j7 <- make_min_judge()
+  j7$final_decision$final_cell_ontology_id <- "CL:0000000"
+  j7$final_decision$confidence_primary <- 0.9
+  j7$decision_trace <- list(final_rule = "supported_input_candidate", support_gate_pass = TRUE)
+  j7$post_issues$flags <- list("no_lock")
+  j7 <- apply_release_policy(j7, cl_graph = NULL, release_policy = "blocker")
+  stopifnot(isTRUE(j7$post_issues$needs_manual_review))
+  stopifnot("no_lock" %in% get_release_blockers(j7))
+
+  j8 <- make_min_judge()
+  j8$final_decision$final_cell_ontology_id <- "CL:0000000"
+  j8$final_decision$confidence_primary <- 0.85
+  j8$decision_trace <- list(final_rule = "supported_input_candidate", support_gate_pass = TRUE)
+  j8$post_issues$flags <- list("minor_secondary_signal", "activation_signal")
+  j8 <- apply_release_policy(j8, cl_graph = NULL, release_policy = "auto")
+  stopifnot(!isTRUE(j8$post_issues$needs_manual_review))
+  stopifnot(length(get_auto_qc_flags(j8)) == 0L)
+  stopifnot(identical(j8$post_issues$release_state, "release_with_audit_note"))
+
+  j9 <- make_min_judge()
+  j9$final_decision$final_cell_ontology_id <- "CL:0000000"
+  j9$final_decision$confidence_primary <- 0.75
+  j9$decision_trace <- list(final_rule = "supported_input_candidate", support_gate_pass = TRUE)
+  j9$post_issues$flags <- list("possible_ambient_contamination")
+  j9 <- apply_release_policy(j9, cl_graph = NULL, release_policy = "auto")
+  stopifnot(!isTRUE(j9$post_issues$needs_manual_review))
+  stopifnot(length(get_auto_qc_flags(j9)) > 0L)
+  stopifnot(identical(j9$post_issues$release_state, "auto_qc_pending"))
+  j9$post_issues$chief_qc_status <- "passed"
+  j9 <- apply_release_policy(j9, cl_graph = NULL, release_policy = "auto")
+  stopifnot(length(get_auto_qc_flags(j9)) == 0L)
+  stopifnot(identical(j9$post_issues$release_state, "release_with_audit_note"))
+
+  # A Handling-Editor-versus-deterministic cross-branch conflict enters automated Chief QC,
+  # and a Chief QC pass resolves it to an audit note rather than human review.
+  j9b <- make_min_judge()
+  j9b$final_decision$final_cell_ontology_id <- "CL:0000000"
+  j9b$final_decision$confidence_primary <- 0.85
+  j9b$decision_trace <- list(final_rule = "head_editor_preserved_cross_branch_guard", support_gate_pass = TRUE)
+  j9b$post_issues$flags <- list("head_vs_deterministic_cross_branch_qc")
+  j9b <- apply_release_policy(j9b, cl_graph = NULL, release_policy = "auto")
+  stopifnot("head_vs_deterministic_cross_branch_qc" %in% get_auto_qc_flags(j9b))
+  stopifnot(identical(j9b$post_issues$release_state, "auto_qc_pending"))
+  j9b$post_issues$chief_qc_status <- "passed"
+  j9b <- apply_release_policy(j9b, cl_graph = NULL, release_policy = "auto")
+  stopifnot(length(get_auto_qc_flags(j9b)) == 0L)
+  stopifnot(identical(j9b$post_issues$release_state, "release_with_audit_note"))
+
+  # Generic ontology-context test using synthetic CL IDs only (no biological hard-coding).
+  cl_graph_ctx <- list(cl = list(
+    "CL:ROOT" = list(label = "root", ancestors = c()),
+    "CL:A" = list(label = "branch A", ancestors = c("CL:ROOT" = 1)),
+    "CL:A1" = list(label = "branch A child", ancestors = c("CL:A" = 1, "CL:ROOT" = 2)),
+    "CL:B" = list(label = "branch B", ancestors = c("CL:ROOT" = 1))
+  ))
+  rel_same <- ontology_relation_record("CL:A", "CL:A", cl_graph_ctx)
+  rel_child <- ontology_relation_record("CL:A", "CL:A1", cl_graph_ctx)
+  rel_cross <- ontology_relation_record("CL:A1", "CL:B", cl_graph_ctx)
+  stopifnot(identical(rel_same$relation, "same"))
+  stopifnot(identical(rel_child$relation, "a_is_ancestor_of_b"))
+  stopifnot(identical(rel_cross$relation, "non_hierarchical"))
+  stopifnot(identical(rel_cross$lca_clid, "CL:ROOT"))
+
+  # Frozen TOP-K candidate test: Step 09 must consume the provided CLID literally.
+  frozen_test_inputs <- list(
+    cassia_summary = list(top1_cell_type = "label A", cell_ontology_id = "CL:A"),
+    in_house_summary = list(top1_cell_type = "label B", cell_ontology_id = "CL:B"),
+    enrich_summary = list(top1_cell_type = "label A", cell_ontology_id = "CL:A"),
+    frozen_reviewer_candidates = list(
+      list(method = "cassia", rank = 1L, label = "label A", clid = "CL:A", map_quality = 3L),
+      list(method = "cassia", rank = 2L, label = "text that must not be remapped", clid = "CL:A1", map_quality = 2L),
+      list(method = "our", rank = 1L, label = "label B", clid = "CL:B", map_quality = 3L),
+      list(method = "enrich", rank = 1L, label = "label A", clid = "CL:A", map_quality = 3L)
+    )
+  )
+  frozen_cands <- collect_candidates_from_inputs(frozen_test_inputs, cl_cfg = NULL, cl_graph = cl_graph_ctx)
+  frozen_rank2 <- Filter(function(x) identical(x$method, "cassia") && x$rank == 2L, frozen_cands)
+  stopifnot(length(frozen_rank2) == 1L)
+  stopifnot(identical(frozen_rank2[[1]]$clid, "CL:A1"))
+  stopifnot(identical(frozen_rank2[[1]]$candidate_mapping_source, "frozen_step08"))
+
+  # Prompt-policy test: evidence provenance and balanced contrastive QC.
+  hp437 <- build_head_editor_system_prompt("human")
+  cp437 <- build_chief_editor_instructions()
+  # Profile-agnostic parsing accepts both supported wording variants.
+  hp437_upper <- toupper(hp437)
+  stopifnot(grepl("EVIDENCE PROVENANCE|Evidence provenance", hp437_upper))
+  stopifnot(grepl("HIERARCHY-AWARE GRANULARITY|HIERARCHICAL REFINEMENT", hp437_upper))
+  stopifnot(grepl("NON-HIERARCHICAL CONTRASTIVE TEST|NON-HIERARCHICAL BRANCH CHOICE", hp437_upper))
+  stopifnot(any(stringr::str_detect(
+    tolower(paste(unlist(cp437$pass_fail_policy$fail_conditions, use.names = FALSE), collapse = "\n")),
+    "missing specificity"
+  )))
+
+  # Three-reviewer support semantics: enrichment can prevent an unnecessary third-party override.
+  j10 <- make_min_judge()
+  j10$audit_report$reviewer_support$cassia_supported <- FALSE
+  j10$audit_report$reviewer_support$our_supported <- FALSE
+  j10$audit_report$reviewer_support$enrich_supported <- TRUE
+  j10$audit_report$reviewer_support$inter_supported <- TRUE
+  g10 <- judge_local_gate(j10, citation_requirements = list(require_any = FALSE, allowed_pmids = character(0), allowed_enrichment_terms = character(0)))
+  stopifnot(!any(grepl("third_party_", g10$reasons)))
+  stopifnot(!any(grepl("decision_category_not_third_party_override", g10$reasons)))
+
+  # All three explicitly unsupported must require third-party adjudication.
+  j11 <- make_min_judge()
+  j11$audit_report$reviewer_support$cassia_supported <- FALSE
+  j11$audit_report$reviewer_support$our_supported <- FALSE
+  j11$audit_report$reviewer_support$enrich_supported <- FALSE
+  j11$audit_report$reviewer_support$inter_supported <- FALSE
+  g11 <- judge_local_gate(j11, citation_requirements = list(require_any = FALSE, allowed_pmids = character(0), allowed_enrichment_terms = character(0)))
+  stopifnot(any(grepl("third_party_", g11$reasons)))
+
+  # Missing support assessment must remain unknown and fail the local gate.
+  j12 <- make_min_judge()
+  j12$audit_report$reviewer_support$enrich_supported <- NULL
+  j12$audit_report$reviewer_support$inter_supported <- NULL
+  g12 <- judge_local_gate(j12, citation_requirements = list(require_any = FALSE, allowed_pmids = character(0), allowed_enrichment_terms = character(0)))
+  stopifnot(any(grepl("audit_report_invalid_reviewer_support", g12$reasons)))
+
+  # Direct consensus is a true majority, not plurality.
+  mk_cand <- function(method, clid) list(method = method, clid = clid, rank = 1L)
+  dc_2of3 <- compute_top1_lock_context(
+    list(mk_cand("cassia", "CL:A"), mk_cand("our", "CL:A"), mk_cand("enrich", "CL:B")),
+    enable_method_reliability_gate = FALSE, protect_lock_inputs = FALSE
+  )
+  stopifnot(identical(dc_2of3$direct_consensus_clid, "CL:A"))
+  stopifnot(identical(dc_2of3$direct_consensus_votes, 2L))
+
+  dc_1of3 <- compute_top1_lock_context(
+    list(mk_cand("cassia", "CL:A"), mk_cand("our", "CL:B"), mk_cand("enrich", "CL:C")),
+    enable_method_reliability_gate = FALSE, protect_lock_inputs = FALSE
+  )
+  stopifnot(is.na(dc_1of3$direct_consensus_clid))
+
+  cfg_t <- list(score_margin_unsteady_max = 0.12, method_gap_unsteady_max = 0, evidence_gap_unsteady_max = 0)
+  cand_u1 <- list(list(score_adj = 0.50, method_count = 1, evidence_support = 1), list(score_adj = 0.39, method_count = 0, evidence_support = 0))
+  inst_u1 <- compute_lock_instability(cand_u1, cfg_t)
+  stopifnot(isTRUE(inst_u1$unsteady))
+
+  cand_u2 <- list(list(score_adj = 0.55, method_count = 2, evidence_support = 2), list(score_adj = 0.42, method_count = 1, evidence_support = 1))
+  inst_u2 <- compute_lock_instability(cand_u2, cfg_t)
+  stopifnot(!isTRUE(inst_u2$unsteady))
+
+  cfg_o <- list(
+    min_margin = 0.12,
+    score_na_policy = "require_finite_new",
+    min_margin_small_pool = -1.00,
+    descendant_strict_margin = 0.00
+  )
+  base <- list(score_adj = 0.60, method_count = 1, evidence_support = 1)
+  c_a <- list(score_adj = 0.62, method_count = 2, evidence_support = 1)
+  c_b <- list(score_adj = 0.40, method_count = 2, evidence_support = 1)
+  c_c <- list(score_adj = 0.55, method_count = 1, evidence_support = 1)
+  c_d <- list(score_adj = 0.40, method_count = 1, evidence_support = 1)
+  stopifnot(isTRUE(should_override(base, c_a, cfg_o)$ok))
+  stopifnot(!isTRUE(should_override(base, c_b, cfg_o)$ok))
+  stopifnot(!isTRUE(should_override(base, c_c, cfg_o)$ok))
+  stopifnot(!isTRUE(should_override(base, c_d, cfg_o)$ok))
+
+  ov_both_na <- should_override(
+    list(score_adj = NA_real_, method_count = 1, evidence_support = 1),
+    list(score_adj = NA_real_, method_count = 2, evidence_support = 2),
+    cfg_o
+  )
+  stopifnot(!isTRUE(ov_both_na$ok))
+  stopifnot(identical(ov_both_na$checks$score_na_case, "both_na"))
+
+  ov_base_na_new_fin <- should_override(
+    list(score_adj = NA_real_, method_count = 1, evidence_support = 1),
+    list(score_adj = 0.20, method_count = 2, evidence_support = 1),
+    cfg_o
+  )
+  stopifnot(isTRUE(ov_base_na_new_fin$ok))
+  stopifnot(identical(ov_base_na_new_fin$checks$score_na_case, "base_na"))
+
+  ov_base_fin_new_na <- should_override(
+    list(score_adj = 0.30, method_count = 1, evidence_support = 1),
+    list(score_adj = NA_real_, method_count = 2, evidence_support = 2),
+    cfg_o
+  )
+  stopifnot(!isTRUE(ov_base_fin_new_na$ok))
+  stopifnot(identical(ov_base_fin_new_na$checks$score_na_case, "new_na"))
+
+  ov_both_fin <- should_override(
+    list(score_adj = 0.40, method_count = 1, evidence_support = 1),
+    list(score_adj = 0.45, method_count = 2, evidence_support = 1),
+    cfg_o
+  )
+  stopifnot(isTRUE(ov_both_fin$ok))
+  stopifnot(identical(ov_both_fin$checks$score_na_case, "none"))
+
+  cl_graph_test <- list(cl = list(
+    "CL:ROOT" = list(ancestors = c()),
+    "CL:A" = list(ancestors = c("CL:ROOT" = 1)),
+    "CL:B" = list(ancestors = c("CL:ROOT" = 1)),
+    "CL:A1" = list(ancestors = c("CL:A" = 1, "CL:ROOT" = 2))
+  ))
+  base_state <- list(
+    chosen = list(clid = "CL:ROOT", label = "root", score_adj = 0.60, method_count = 1, evidence_support = 1),
+    base = list(clid = "CL:ROOT", label = "root", score_adj = 0.60, method_count = 1, evidence_support = 1),
+    final_rule = "balanced_anchor_fallback",
+    anchor_fallback_happened = TRUE
+  )
+  gate_decisions_test <- list(
+    list(
+      kept = FALSE,
+      reject_stage = "branch_gate",
+      reject_reason = "branch_gate_reject",
+      is_descendant = TRUE,
+      lineage_key = "CL:A",
+      candidate = list(clid = "CL:A1", label = "x", score_adj = 0.61, method_count = 2, evidence_support = 2, map_quality = 1)
+    )
+  )
+  pools_shadow <- build_candidate_pools(
+    cand_ordered = list(),
+    gate_decisions = gate_decisions_test,
+    chosen = base_state$chosen,
+    cl_graph = cl_graph_test,
+    cfg_pool = list(soft_map_quality_min = 0, shadow_per_lineage = 1),
+    require_deeper = FALSE,
+    is_generic_fn = function(clid, lbl) FALSE,
+    is_stage_fn = function(clid, label) FALSE
+  )
+  stopifnot((pools_shadow$meta$shadow_pool_n %||% 0) > 0)
+  stopifnot(!identical(pools_shadow$meta$shadow_empty_reason %||% "", "no_descendant_rejects"))
+  res_shadow <- apply_post_fallback(base_state, pools_shadow, list(override = cfg_o), "non_generic", cl_graph = cl_graph_test)
+  stopifnot(isTRUE(res_shadow$logs$shadow_pool_used))
+
+  # Guard tests cover descendant consistency, tie-depth rescue and CL-ID allowlist absence.
+  cl_graph_desc <- list(cl = list(
+    "CL:ROOT" = list(ancestors = c()),
+    "CL:P" = list(ancestors = c("CL:ROOT" = 1)),
+    "CL:C" = list(ancestors = c("CL:P" = 1, "CL:ROOT" = 2)),
+    "CL:O" = list(ancestors = c("CL:ROOT" = 1))
+  ))
+  cfg_desc <- list(
+    min_margin = 0.12,
+    score_na_policy = "effective_surrogate",
+    min_margin_small_pool = 0.00,
+    descendant_strict_margin = 0.00,
+    ultra_generic_depth_max = 1,
+    ultra_generic_subtree_ratio_min = 0.5,
+    ultra_generic_subtree_size_min = 100L
+  )
+  base_d <- list(clid = "CL:P", score_adj = 0.40, method_count = 1, evidence_support = 1)
+  cand_desc_one_support <- list(clid = "CL:C", score_adj = 0.60, method_count = 2, evidence_support = 1)
+  cand_desc_both_support <- list(clid = "CL:C", score_adj = 0.60, method_count = 2, evidence_support = 2)
+  ov_desc_fail <- should_override(base_d, cand_desc_one_support, cfg_desc, pool_ctx = build_pool_ctx(list(base_d, cand_desc_one_support)), cl_graph = cl_graph_desc)
+  stopifnot(!isTRUE(ov_desc_fail$ok))
+  stopifnot(!isTRUE(ov_desc_fail$checks$consistency_ok))
+  ov_desc_pass <- should_override(base_d, cand_desc_both_support, cfg_desc, pool_ctx = build_pool_ctx(list(base_d, cand_desc_both_support)), cl_graph = cl_graph_desc)
+  stopifnot(isTRUE(ov_desc_pass$ok))
+
+  # Non-generic rescue helper should NOT trigger when consistency fails
+  cfg_non_generic <- list(override = cfg_desc)
+  non_generic_fail <- should_enter_non_generic_rescue(
+    effective_pool = list(cand_desc_one_support, base_d),
+    base = base_d,
+    cfg = cfg_non_generic,
+    cl_graph = cl_graph_desc
+  )
+  stopifnot(!isTRUE(non_generic_fail$ok))
+
+  # Non-generic rescue helper can trigger when strict descendant override passes
+  non_generic_pass <- should_enter_non_generic_rescue(
+    effective_pool = list(cand_desc_both_support, base_d),
+    base = base_d,
+    cfg = cfg_non_generic,
+    cl_graph = cl_graph_desc
+  )
+  stopifnot(isTRUE(non_generic_pass$ok))
+
+  # pool_size==1 tie path: allow only for ultra-generic + descendant + depth gain + support_not_down_both
+  cfg_p1 <- list(
+    min_margin = 0.12,
+    score_na_policy = "effective_surrogate",
+    pool_size_1_strong_margin = 0.30,
+    depth_gain_min = 1,
+    descendant_strict_margin = 0.00,
+    ultra_generic_depth_max = 1,
+    ultra_generic_subtree_ratio_min = 0.1,
+    ultra_generic_subtree_size_min = 1L
+  )
+  base_p1 <- list(clid = "CL:ROOT", score_adj = 0.10, method_count = 2, evidence_support = 2)
+  cand_p1 <- list(clid = "CL:C", score_adj = 0.10, method_count = 3, evidence_support = 1)
+  ov_p1 <- should_override(base_p1, cand_p1, cfg_p1, pool_ctx = build_pool_ctx(list(base_p1)), cl_graph = cl_graph_desc)
+  stopifnot(isTRUE(ov_p1$ok))
+  stopifnot(isTRUE(ov_p1$checks$pool_size_1_strong_margin_used))
+  stopifnot(isTRUE(ov_p1$checks$tie_depth_gain_used))
+  stopifnot(identical(ov_p1$checks$score_ok_reason, "pool_size_1_tie_allow_depth_gain"))
+
+  # Tie path must not pass for non-ultra-generic base
+  cfg_p1_fail <- cfg_p1
+  cfg_p1_fail$ultra_generic_depth_max <- -1
+  ov_p1_fail <- should_override(base_p1, cand_p1, cfg_p1_fail, pool_ctx = build_pool_ctx(list(base_p1)), cl_graph = cl_graph_desc)
+  stopifnot(!isTRUE(ov_p1_fail$ok))
+
+  # Guard: no CLID allowlist/denylist in should_override/apply_post_fallback logic
+  fn_should <- paste(deparse(should_override), collapse = "\n")
+  fn_apply <- paste(deparse(apply_post_fallback), collapse = "\n")
+  stopifnot(!grepl("%in%\\s*c\\s*\\(\\s*\"CL:", fn_should, perl = TRUE))
+  stopifnot(!grepl("%in%\\s*c\\s*\\(\\s*\"CL:", fn_apply, perl = TRUE))
+}
+
+if (FALSE) {
+  cfg_sur <- list(min_margin = 0.12, score_na_policy = "effective_surrogate")
+  pool_sur <- build_pool_ctx(list(
+    list(score_adj = NA_real_, method_count = 0, evidence_support = 0),
+    list(score_adj = NA_real_, method_count = 1, evidence_support = 1),
+    list(score_adj = NA_real_, method_count = 5, evidence_support = 5)
+  ))
+  ov_sur_ok <- should_override(
+    list(score_adj = NA_real_, method_count = 1, evidence_support = 1),
+    list(score_adj = NA_real_, method_count = 2, evidence_support = 3),
+    cfg_sur,
+    pool_ctx = pool_sur
+  )
+  stopifnot(isTRUE(ov_sur_ok$checks$support_up))
+  stopifnot(isTRUE(ov_sur_ok$checks$score_ok))
+  stopifnot(isTRUE(ov_sur_ok$ok))
+  stopifnot(is.finite(ov_sur_ok$checks$effective_base_score))
+  stopifnot(ov_sur_ok$checks$effective_base_score > 0)
+
+  ov_sur_fail <- should_override(
+    list(score_adj = NA_real_, method_count = 4, evidence_support = 20),
+    list(score_adj = NA_real_, method_count = 4, evidence_support = 20),
+    cfg_sur,
+    pool_ctx = pool_sur
+  )
+  stopifnot(!isTRUE(ov_sur_fail$checks$support_up))
+  stopifnot(isTRUE(ov_sur_fail$checks$score_ok))
+  stopifnot(!isTRUE(ov_sur_fail$ok))
+
+  inst_na_pool <- compute_lock_instability(
+    list(
+      list(score_adj = NA_real_, method_count = 1, evidence_support = 2),
+      list(score_adj = NA_real_, method_count = 2, evidence_support = 1)
+    ),
+    list(score_margin_unsteady_max = 0.12, method_gap_unsteady_max = 0, evidence_gap_unsteady_max = 0)
+  )
+  stopifnot(!("no_candidate" %in% (inst_na_pool$reasons %||% character(0))))
+
+  cl_graph_test2 <- list(cl = list(
+    "CL:ROOT" = list(ancestors = c()),
+    "CL:A" = list(ancestors = c("CL:ROOT" = 1)),
+    "CL:A1" = list(ancestors = c("CL:A" = 1, "CL:ROOT" = 2))
+  ))
+  gate_decisions_test2 <- list(
+    list(kept = FALSE, reject_stage = "branch_gate", reject_reason = "branch_gate_reject", is_descendant = TRUE, lineage_key = "CL:A",
+         candidate = list(clid = "CL:A1", label = "x", score_adj = NA_real_, method_count = 2, evidence_support = 2, map_quality = 1)),
+    list(kept = FALSE, reject_stage = "branch_gate", reject_reason = "branch_gate_reject", is_descendant = FALSE, lineage_key = "",
+         candidate = list(clid = NA_character_, label = "", score_adj = NA_real_, method_count = 0, evidence_support = 0, map_quality = 0))
+  )
+  pools_test2 <- build_candidate_pools(
+    cand_ordered = list(),
+    gate_decisions = gate_decisions_test2,
+    chosen = list(clid = "CL:ROOT", label = "root"),
+    cl_graph = cl_graph_test2,
+    cfg_pool = list(soft_map_quality_min = 0, shadow_per_lineage = 1),
+    require_deeper = FALSE,
+    is_generic_fn = function(clid, lbl) FALSE,
+    is_stage_fn = function(clid, label) FALSE
+  )
+  cnt <- pools_test2$meta$shadow_desc_filter_counts
+  attempted <- as.integer(pools_test2$meta$shadow_desc_ref$attempted_n %||% 0L)
+  stopifnot(sum(as.integer(unlist(cnt, use.names = FALSE))) == attempted)
+
+  pools_stage_only <- build_candidate_pools(
+    cand_ordered = list(),
+    gate_decisions = list(
+      list(kept = FALSE, reject_stage = "branch_gate", reject_reason = "branch_gate_reject", is_descendant = TRUE, lineage_key = "CL:A",
+           candidate = list(clid = "CL:A1", label = "x", score_adj = NA_real_, method_count = 1, evidence_support = 1, map_quality = 1))
+    ),
+    chosen = list(clid = "CL:ROOT", label = "root"),
+    cl_graph = cl_graph_test2,
+    cfg_pool = list(soft_map_quality_min = 0, shadow_per_lineage = 1),
+    require_deeper = FALSE,
+    is_generic_fn = function(clid, lbl) FALSE,
+    is_stage_fn = function(clid, label) TRUE
+  )
+  stopifnot((pools_stage_only$meta$shadow_pool_n %||% 0L) >= 1)
+
+  effective_pool <- c(pools_test2$soft_pool %||% list(), pools_test2$shadow_pool %||% list())
+  instability_pool_n_test <- length(effective_pool)
+  inst_test <- compute_lock_instability(effective_pool, list(score_margin_unsteady_max = 0.12, method_gap_unsteady_max = 0, evidence_gap_unsteady_max = 0))
+  stopifnot(isTRUE(instability_pool_n_test == length(effective_pool)))
+  stopifnot(is.list(inst_test))
+}
+
+# --------------------------
+# Decide whether to run Chief (speed)
+# --------------------------
 should_run_chief <- function(head_out, cite_req, always_run=FALSE, gate_ok=TRUE,
                              release_policy="legacy") {
   if (isTRUE(always_run)) return(list(run=TRUE, reason="always_run"))
@@ -7046,6 +7607,1204 @@ attach_chief_qc_failure <- function(head_out, chief_out) {
 # --------------------------
 # Run one cluster
 # --------------------------
+run_head_and_chief <- function(judge_input_path, api_key,
+                               model_head=Sys.getenv("TRIAGE_MODEL_HEAD", unset="deepseek-v4-flash"),
+                               model_chief=Sys.getenv("TRIAGE_MODEL_CHIEF", unset="deepseek-v4-flash"),
+                               max_rounds=3L,
+                               out_dir_head,
+                               out_dir_chief,
+                               out_dir_final,
+                               out_dir_runlog,
+                               temperature=0,
+                               always_run_chief=FALSE,
+                               cl_cfg=NULL,
+                               cl_graph=NULL,
+                               min_depth_for_eligibility=3,
+                               delta_depth=2,
+                               gate_mode="fixed_k",
+                               gate_k=2,
+                               disable_aggressive_trigger=FALSE,
+                               enable_method_reliability_gate=FALSE,
+                               enable_aggressive_lca_hard_guard=TRUE,
+                               protect_lock_inputs=FALSE,
+                               meta_reviewer_gate=FALSE,
+                               parity_mode=FALSE,
+                               identity_policy="ontology_guarded",
+                               release_policy="legacy",
+                               chief_max_revisions=1L) {
 
-# Banned-token pattern helper (09_run_judge.R lines 507-508)
-banned_tokens_pattern <- function() rules_banned_tokens_pattern()
+  extract_chief_failure_tags <- function(chief_out) {
+    if (is.null(chief_out) || !is.list(chief_out)) return(character(0))
+    fr <- chief_out$failure_reasons %||% character(0)
+    if (is.list(fr)) fr <- unlist(fr, recursive = TRUE, use.names = FALSE)
+    fr <- as.character(fr)
+    fr <- fr[!is.na(fr) & nzchar(trimws(fr))]
+    if (length(fr) == 0L) return(character(0))
+    tags <- trimws(sub("\\|.*$", "", fr))
+    unique(toupper(tags[nzchar(tags)]))
+  }
+
+  classify_chief_failure_mode <- function(chief_out) {
+    # Chief does not choose a label. It only determines whether the Head report
+    # needs a report/evidence repair with identity locked, or a biological
+    # re-adjudication in which identity may change.
+    tags <- extract_chief_failure_tags(chief_out)
+    biological_tags <- c(
+      "EVIDENCE_INSUFFICIENT",
+      "LABEL_EVIDENCE_MISMATCH",
+      "UNSUPPORTED_SPECIFICITY",
+      "UNRESOLVED_LINEAGE_CONFLICT"
+    )
+    if (any(tags %in% biological_tags)) "reconsider_identity" else "repair_report"
+  }
+
+  build_chief_revision_focus <- function(h, chief_out, mode) {
+    dt <- h$decision_trace %||% list()
+    fd <- h$final_decision %||% list()
+    fr <- chief_out$failure_reasons %||% list()
+    sf <- chief_out$suggested_fixes %||% list()
+
+    if (identical(mode, "repair_report")) {
+      return(list(
+        reason = "Chief QC failed on report/evidence presentation or schema. Repair the report without changing the biological identity.",
+        revision_mode = "repair_report_identity_locked",
+        identity_lock = list(
+          primary_cell_type = as.character(fd$primary_cell_type %||% NA_character_),
+          final_cell_ontology_id = as.character(fd$final_cell_ontology_id %||% NA_character_)
+        ),
+        checks = list(
+          "KEEP the same biological identity and final CL ID.",
+          "Repair only schema, citation, evidence wording, manual-review-plan, or internal-consistency issues identified by Chief QC.",
+          "Do not introduce new markers, PMIDs, pathways, or facts not present in the original dossier."
+        ),
+        chief_failure_reasons = fr,
+        chief_suggested_fixes = sf,
+        current = list(
+          primary_cell_type = as.character(fd$primary_cell_type %||% NA_character_),
+          final_cell_ontology_id = as.character(fd$final_cell_ontology_id %||% NA_character_),
+          final_rule = as.character(dt$final_rule %||% NA_character_)
+        )
+      ))
+    }
+
+    list(
+      reason = "Chief QC found that the selected label or its specificity is not sufficiently supported by the original biological evidence. Re-adjudicate once.",
+      revision_mode = "reconsider_identity",
+      checks = list(
+        "Re-evaluate the current primary label against the reviewer candidates using ONLY the original dossier evidence.",
+        "You may keep, broaden, or change the primary identity only when the evidence justifies it.",
+        "Do not treat Chief feedback as ground truth and do not follow any suggested alternative label blindly.",
+        "If no candidate is sufficiently supported, choose a conservative supported parent or mark the unresolved risk for manual review."
+      ),
+      chief_failure_reasons = fr,
+      chief_suggested_fixes = sf,
+      current = list(
+        primary_cell_type = as.character(fd$primary_cell_type %||% NA_character_),
+        final_cell_ontology_id = as.character(fd$final_cell_ontology_id %||% NA_character_),
+        final_rule = as.character(dt$final_rule %||% NA_character_),
+        support_n = dt$support_n %||% NULL,
+        support_gate_threshold_effective = dt$support_gate_threshold_effective %||% dt$support_gate_threshold %||% NULL
+      )
+    )
+  }
+
+  evaluate_round2_utility <- function(prev_h, new_h) {
+    prev_fd <- prev_h$final_decision %||% list()
+    new_fd <- new_h$final_decision %||% list()
+    prev_pi <- prev_h$post_issues %||% list()
+    new_pi <- new_h$post_issues %||% list()
+
+    prev_primary <- as.character(prev_fd$primary_cell_type %||% "")
+    new_primary <- as.character(new_fd$primary_cell_type %||% "")
+    prev_clid <- as.character(prev_fd$final_cell_ontology_id %||% "")
+    new_clid <- as.character(new_fd$final_cell_ontology_id %||% "")
+
+    prev_flags <- as.character(unlist(prev_pi$flags %||% list(), recursive = TRUE, use.names = FALSE))
+    new_flags <- as.character(unlist(new_pi$flags %||% list(), recursive = TRUE, use.names = FALSE))
+    prev_flags <- unique(prev_flags[nzchar(prev_flags)])
+    new_flags <- unique(new_flags[nzchar(new_flags)])
+
+    id_changed <- (!identical(prev_primary, new_primary) || !identical(prev_clid, new_clid))
+    ontology_mismatch_removed <- ("ontology_id_mismatch" %in% prev_flags) && !("ontology_id_mismatch" %in% new_flags)
+    risk_count_reduced <- length(new_flags) < length(prev_flags)
+
+    useful <- isTRUE(id_changed || ontology_mismatch_removed || risk_count_reduced)
+    reasons <- c()
+    if (id_changed) reasons <- c(reasons, "primary_or_clid_changed")
+    if (ontology_mismatch_removed) reasons <- c(reasons, "ontology_id_mismatch_removed")
+    if (risk_count_reduced) reasons <- c(reasons, "risk_flag_count_reduced")
+    if (length(reasons) == 0) reasons <- c("no_material_improvement")
+
+    list(
+      useful = useful,
+      reasons = reasons,
+      prev_primary = prev_primary,
+      prev_clid = prev_clid,
+      new_primary = new_primary,
+      new_clid = new_clid
+    )
+  }
+  
+  ensure_dir(out_dir_head); ensure_dir(out_dir_chief); ensure_dir(out_dir_final); ensure_dir(out_dir_runlog)
+  
+  vlog("[DEBUG] run_head_and_chief called for: ", basename(judge_input_path))
+  jin <- read_json_safely(judge_input_path)
+  vlog("[DEBUG] JSON loaded, cluster_id: ", jin$cluster_id %||% "UNKNOWN")
+  cid <- as.character(jin$cluster_id %||% "UNKNOWN")
+  species_value <- if (exists("cfg", inherits = TRUE) && !is.null(cfg$species)) cfg$species[[1]] %||% "human" else "human"
+  if (is.null(cl_cfg) || is.null(cl_graph)) {
+    cl_cfg <- get("cl_cfg", inherits = TRUE)
+    cl_graph <- get("cl_graph", inherits = TRUE)
+  }
+  
+  dossier <- jin$inputs$original_evidence$step1_report_query %||%
+    jin$inputs$original_evidence %||% NULL
+  
+  head_out_last <- NULL
+  chief_out_last <- NULL
+  gate_last <- NULL
+  round2_focus_last <- NULL
+  round2_baseline_head <- NULL
+  round2_mode_last <- NULL
+  repair_identity_lock <- NULL
+  chief_revision_count <- 0L
+  cite_req <- extract_citation_requirements(jin)
+  gate_stage <- function(obj) {
+    judge_local_gate(obj, citation_requirements = cite_req, judge_input_obj = jin)
+  }
+  finalize_stage <- function(obj, head_ref = head_out_last) {
+    finalize_output(obj, jin, cl_cfg, cl_graph, cid, out_dir_head, head_ref,
+                    release_policy = release_policy)
+  }
+  
+  runlog_path <- file.path(out_dir_runlog, paste0(cid, "_RUNLOG.jsonl"))
+  
+  rerun_head <- TRUE
+  for (round in seq_len(max_rounds)) {
+    if (round > 1 && !isTRUE(rerun_head)) break
+    rerun_head <- FALSE
+    # ---- Head ----
+    head_query <- build_head_editor_query(jin, cl_graph = cl_graph, cl_cfg = cl_cfg)
+    
+    # Provide deterministic feedback so the model can correct hard-gate failures.
+    if (!is.null(gate_last) && is.list(gate_last) && length(gate_last$reasons %||% character(0)) > 0) {
+      head_query$inputs$local_gate_feedback <- list(
+        message = "Your previous output FAILED the local hard gate. Fix the reasons and output JSON again.",
+        reasons = gate_last$reasons
+      )
+    }
+    
+    chief_feedback <- list()
+    if (!is.null(chief_out_last$suggested_fixes) && length(chief_out_last$suggested_fixes) > 0) {
+      chief_feedback$suggested_fixes <- chief_out_last$suggested_fixes
+    }
+    if (!is.null(chief_out_last$failure_reasons) && length(chief_out_last$failure_reasons) > 0) {
+      chief_feedback$failure_reasons <- chief_out_last$failure_reasons
+    }
+    if (length(chief_feedback) > 0) {
+      head_query$inputs$chief_editor_feedback <- chief_feedback
+    }
+    if (!is.null(round2_focus_last) && is.list(round2_focus_last)) {
+      head_query$inputs$targeted_round2_focus <- round2_focus_last
+    }
+    
+    # Save the exact Head input for reproducibility/audit before API invocation.
+    save_json_pretty(head_query, file.path(out_dir_head, paste0(cid, "_LLM_JUDGE_INPUT_round", round, ".json")))
+    head_prompt_str <- jsonlite::toJSON(head_query, auto_unbox=TRUE, null="null")
+    
+    req_id_head <- make_request_id(cid, "head", round)
+    vlog("[DEBUG] Calling head API (round ", round, ") for ", cid, "...")
+    t0 <- Sys.time()
+    rH <- invoke_deepseek_api(head_prompt_str, api_key=api_key, model=model_head, temperature=temperature,
+                              system_prompt = build_head_editor_system_prompt(
+                                species_value = if (exists("cfg", inherits = TRUE) && !is.null(cfg$species)) cfg$species[[1]] %||% "human" else "human"))
+    t1 <- Sys.time()
+    vlog("[DEBUG] Head API returned, ok=", rH$ok, ", duration=", round(as.numeric(difftime(t1, t0, units="secs")), 1), "s")
+    
+    uH <- usage_to_fields(rH$usage)
+    append_jsonl(runlog_path, list(
+      stage="head", cluster_id=cid, round=round, model=rH$model %||% model_head,
+      request_id=req_id_head,
+      ok=isTRUE(rH$ok), status=rH$status %||% NA_integer_, error=rH$error %||% NULL,
+      retry_count=rH$retry_count %||% 0L, error_class=rH$error_class %||% NULL,
+      start_time=format(t0, "%Y-%m-%dT%H:%M:%S%z"),
+      end_time=format(t1, "%Y-%m-%dT%H:%M:%S%z"),
+      duration_sec=as.numeric(difftime(t1, t0, units="secs")),
+      prompt_chars=nchar(head_prompt_str),
+      response_chars=if (!is.null(rH$text)) nchar(rH$text) else NA_integer_,
+      prompt_tokens=uH$prompt_tokens, completion_tokens=uH$completion_tokens, total_tokens=uH$total_tokens
+    ))
+    
+    if (!isTRUE(rH$ok)) {
+      save_json_pretty(list(error="head_api_failed", status=rH$status %||% NA_integer_, detail=rH$error),
+                       file.path(out_dir_head, paste0(cid, "_head_api_failed_round", round, ".json")))
+      # Inject feedback for next round retry instead of breaking immediately
+      gate_last <- list(ok = FALSE, reasons = c(paste0("Head API failed (round ", round, "): ", rH$error %||% "unknown error")))
+      rerun_head <- TRUE
+      if (round < max_rounds) next
+      break
+    }
+    
+    head_clean <- extract_first_json_object_stack(rH$text, expected_cluster_id = cid)
+    if (is.na(head_clean)) {
+      cleaned_txt <- strip_fences(rH$text)
+      writeLines(cleaned_txt %||% "", file.path(out_dir_head, paste0(cid, "_head_nonjson_round", round, "_cleaned.txt")))
+      save_json_pretty(list(error="head_nonjson", raw=rH$text),
+                       file.path(out_dir_head, paste0(cid, "_head_nonjson_round", round, ".json")))
+      # Inject feedback for next round retry instead of breaking immediately
+      gate_last <- list(ok = FALSE, reasons = c(paste0("Head returned non-JSON (round ", round, "). Output valid JSON only.")))
+      rerun_head <- TRUE
+      if (round < max_rounds) next
+      break
+    }
+    
+    head_out <- jsonlite::fromJSON(head_clean, simplifyVector=FALSE)
+    # Preserve the exact parsed Head output BEFORE deterministic post-processing or
+    # repair-identity locks. This is required for auditability and later replay.
+    head_raw_audit <- head_out
+    head_raw_audit$cluster_id <- cid
+    save_json_pretty(
+      head_raw_audit,
+      file.path(out_dir_head, paste0(cid, "_LLM_JUDGE_RAW_round", round, ".json"))
+    )
+    # Never trust the model for cluster_id: it may copy the schema example.
+    head_out$cluster_id <- cid
+
+    # When Chief failed only on report/evidence presentation or schema, the
+    # biological CL identity is locked across all automatic repair retries.
+    # Wording may be canonicalized within the same CL ID (e.g. to remove a
+    # banned token), but the repair round cannot silently switch lineage/CLID.
+    if (!is.null(repair_identity_lock) && is.list(repair_identity_lock)) {
+      if (is.null(head_out$final_decision) || !is.list(head_out$final_decision)) {
+        head_out$final_decision <- list()
+      }
+      lock_clid <- as.character(repair_identity_lock$clid %||% NA_character_)
+      lock_label <- as.character(repair_identity_lock$label %||% NA_character_)
+      if (!is.na(lock_clid) && nzchar(lock_clid)) {
+        head_out$final_decision$final_cell_ontology_id <- lock_clid
+        canonical_lock_label <- local_lookup_by_clid(lock_clid, cl_cfg)
+        if (!is.na(canonical_lock_label) && nzchar(canonical_lock_label)) {
+          lock_label <- canonical_lock_label
+        }
+      }
+      if (!is.na(lock_label) && nzchar(lock_label)) {
+        head_out$final_decision$primary_cell_type <- lock_label
+      }
+    }
+
+    head_out <- postprocess_head_out(
+    head_out, jin, cite_req, cl_cfg, cl_graph,
+      dataset_cfg = cfg,
+      species_value = species_value,
+    min_depth_for_eligibility = min_depth_for_eligibility,
+    delta_depth = delta_depth,
+      gate_mode = gate_mode,
+      gate_k = gate_k,
+      disable_aggressive_trigger = disable_aggressive_trigger,
+      enable_method_reliability_gate = enable_method_reliability_gate,
+      enable_aggressive_lca_hard_guard = enable_aggressive_lca_hard_guard,
+      protect_lock_inputs = protect_lock_inputs,
+      meta_reviewer_gate = meta_reviewer_gate,
+      parity_mode = parity_mode,
+      identity_policy = identity_policy,
+      release_policy = release_policy
+  )
+
+    if (!is.null(round2_baseline_head) && is.list(round2_baseline_head)) {
+      util <- evaluate_round2_utility(round2_baseline_head, head_out)
+      if (is.null(head_out$decision_trace) || !is.list(head_out$decision_trace)) head_out$decision_trace <- list()
+      head_out$decision_trace$chief_revision_mode <- as.character(round2_mode_last %||% "")
+      head_out$decision_trace$round2_useful <- isTRUE(util$useful)
+      head_out$decision_trace$round2_useful_reasons <- as.list(util$reasons)
+      head_out$decision_trace$round2_prev_primary <- util$prev_primary
+      head_out$decision_trace$round2_prev_clid <- util$prev_clid
+      head_out$decision_trace$round2_new_primary <- util$new_primary
+      head_out$decision_trace$round2_new_clid <- util$new_clid
+      # For report-only repair the identity is intentionally unchanged, so an
+      # unchanged label/CLID is not evidence that the repair was useless. Chief
+      # will judge the repaired evidence/schema in the next QC pass.
+      if (!identical(round2_mode_last, "repair_report") && !isTRUE(util$useful)) {
+        head_out <- flag_issue(head_out, "rerun_not_beneficial", "Chief-triggered re-adjudication produced no material identity/risk improvement; further retries avoided.")
+      }
+      round2_baseline_head <- NULL
+      # Keep round2_focus_last / round2_mode_last active until Chief resolves
+      # this revision, so any local-gate retry stays in the same repair mode.
+    }
+
+    head_out <- apply_release_policy(head_out, cl_graph = cl_graph, release_policy = release_policy)
+    head_out <- normalize_manual_review_plan(head_out)
+    if (isTRUE(head_out$post_issues$needs_manual_review %||% FALSE)) {
+      head_out <- ensure_manual_review_action(head_out, jin, cite_req)
+    }
+    head_out <- force_array_fields(head_out)
+
+    diag <- attr(head_out, "diag")
+    if (!is.null(diag) && is.list(diag)) {
+      diag_dir <- file.path(out_dir_runlog, "diagnostics")
+      ensure_dir(diag_dir)
+      diag_path <- file.path(diag_dir, paste0(cid, "_judge_diag.json"))
+      save_json_pretty(diag, diag_path)
+    }
+    
+    head_out_last <- head_out
+    save_json_pretty(head_out, file.path(out_dir_head, paste0(cid, "_LLM_JUDGE_OUTPUT_round", round, ".json")))
+    
+    # ---- Local gate ----
+    gate <- gate_stage(head_out)
+    save_json_pretty(gate, file.path(out_dir_head, paste0(cid, "_head_local_gate_round", round, ".json")))
+    if (!isTRUE(gate$ok)) {
+      gate_last <- gate
+      rerun_head <- TRUE
+      if (round < max_rounds) next
+      break
+    }
+    gate_last <- NULL
+    
+    # ---- Decide/Run Chief ----
+    chief_attempt <- 1L
+    repeat {
+      chief_decision <- should_run_chief(
+        head_out, cite_req,
+        always_run = always_run_chief,
+        gate_ok = isTRUE(gate$ok),
+        release_policy = release_policy
+      )
+      if (!isTRUE(chief_decision$run)) {
+        head_out <- ensure_post_issues(head_out)
+        head_out$post_issues$chief_qc_status <- "not_run"
+        head_out$cluster_id <- cid
+        head_out <- finalize_stage(head_out, head_out_last)
+        save_json_pretty(head_out, file.path(out_dir_final, paste0(cid, "_LLM_JUDGE_FINAL.json")))
+        return(list(ok=TRUE, cluster_id=cid, round=round, chief_ran=FALSE, runlog_path=runlog_path))
+      }
+
+      chief_ontology_context <- build_chief_ontology_context(head_out, jin, cl_graph, cl_cfg)
+      chief_query <- build_chief_editor_query(
+        cid, head_out, dossier, cite_req,
+        ontology_context = chief_ontology_context
+      )
+      # Save the exact Chief input, including frozen ontology relations, for audit/replay.
+      save_json_pretty(chief_query, file.path(out_dir_chief, paste0(cid, "_LLM_JUDGE_QC_INPUT_round", round, ".json")))
+      chief_prompt_str <- jsonlite::toJSON(chief_query, auto_unbox=TRUE, null="null")
+
+      req_id_chief <- make_request_id(cid, "chief", round)
+      c0 <- Sys.time()
+      rC <- invoke_deepseek_api(chief_prompt_str, api_key=api_key, model=model_chief, temperature=temperature,
+                                system_prompt = build_chief_system_prompt())
+      c1 <- Sys.time()
+
+      uC <- usage_to_fields(rC$usage)
+      append_jsonl(runlog_path, list(
+        stage="chief", cluster_id=cid, round=round, model=rC$model %||% model_chief,
+        request_id=req_id_chief,
+        ok=isTRUE(rC$ok), status=rC$status %||% NA_integer_, error=rC$error %||% NULL,
+        retry_count=rC$retry_count %||% 0L, error_class=rC$error_class %||% NULL,
+        start_time=format(c0, "%Y-%m-%dT%H:%M:%S%z"),
+        end_time=format(c1, "%Y-%m-%dT%H:%M:%S%z"),
+        duration_sec=as.numeric(difftime(c1, c0, units="secs")),
+        prompt_chars=nchar(chief_prompt_str),
+        response_chars=if (!is.null(rC$text)) nchar(rC$text) else NA_integer_,
+        prompt_tokens=uC$prompt_tokens, completion_tokens=uC$completion_tokens, total_tokens=uC$total_tokens
+      ))
+
+      if (!isTRUE(rC$ok)) {
+        save_json_pretty(list(error="chief_api_failed", status=rC$status %||% NA_integer_, detail=rC$error),
+                         file.path(out_dir_chief, paste0(cid, "_chief_api_failed_round", round, "_attempt", chief_attempt, ".json")))
+        if (chief_attempt < max_rounds) {
+          chief_attempt <- chief_attempt + 1L
+          next
+        }
+        break
+      }
+
+      chief_clean <- extract_first_json_object_stack(rC$text, expected_cluster_id = NULL)
+      if (is.na(chief_clean)) {
+        cleaned_txt <- strip_fences(rC$text)
+        writeLines(cleaned_txt %||% "", file.path(out_dir_chief, paste0(cid, "_chief_nonjson_round", round, "_cleaned.txt")))
+        save_json_pretty(list(error="chief_nonjson", raw=rC$text),
+                         file.path(out_dir_chief, paste0(cid, "_chief_nonjson_round", round, "_attempt", chief_attempt, ".json")))
+        if (chief_attempt < max_rounds) {
+          chief_attempt <- chief_attempt + 1L
+          next
+        }
+        break
+      }
+
+      chief_out <- jsonlite::fromJSON(chief_clean, simplifyVector=FALSE)
+      chief_out$cluster_id <- cid
+      chief_out_last <- chief_out
+      save_json_pretty(chief_out, file.path(out_dir_chief, paste0(cid, "_LLM_JUDGE_QC_OUTPUT_round", round, ".json")))
+
+      status <- toupper(as.character(chief_out$validation_status %||% ""))
+      passed <- grepl("PASSED", status)
+
+      if (isTRUE(passed)) {
+        # v4 semantics: Chief is the final QC authority for a valid Head report.
+        # Once Chief passes, do NOT force another free-form Head adjudication.
+        head_out <- ensure_post_issues(head_out)
+        head_out$post_issues$chief_qc_status <- "passed"
+        head_out$post_issues$chief_qc_round <- as.integer(round)
+        head_out <- apply_release_policy(
+          head_out, cl_graph = cl_graph, release_policy = release_policy
+        )
+        head_out$cluster_id <- cid
+        head_out <- finalize_stage(head_out, head_out_last)
+        save_json_pretty(head_out, file.path(out_dir_final, paste0(cid, "_LLM_JUDGE_FINAL.json")))
+        return(list(ok=TRUE, cluster_id=cid, round=round, chief_ran=TRUE, runlog_path=runlog_path))
+      }
+
+      # v4 semantics: Chief FAIL is actionable. The Head receives one targeted
+      # automatic revision before human review. Report/schema failures lock the
+      # biological identity; biological-support failures allow re-adjudication.
+      can_revise <- (round < max_rounds) &&
+        (chief_revision_count < max(0L, as.integer(chief_max_revisions)))
+
+      if (isTRUE(can_revise)) {
+        revision_mode <- classify_chief_failure_mode(chief_out)
+        chief_revision_count <- chief_revision_count + 1L
+        round2_mode_last <- revision_mode
+        round2_baseline_head <- head_out
+        round2_focus_last <- build_chief_revision_focus(head_out, chief_out, revision_mode)
+        if (identical(revision_mode, "repair_report")) {
+          fd_lock <- head_out$final_decision %||% list()
+          repair_identity_lock <- list(
+            clid = as.character(fd_lock$final_cell_ontology_id %||% NA_character_),
+            label = as.character(fd_lock$primary_cell_type %||% NA_character_)
+          )
+        } else {
+          repair_identity_lock <- NULL
+        }
+        rerun_head <- TRUE
+        gate_last <- NULL
+        append_jsonl(runlog_path, list(
+          stage = "chief_revision_trigger",
+          cluster_id = cid,
+          round = round,
+          revision_index = chief_revision_count,
+          revision_mode = revision_mode,
+          chief_failure_tags = as.list(extract_chief_failure_tags(chief_out))
+        ))
+        break
+      }
+
+      # Chief still fails after the allowed automated revision(s): only now
+      # escalate to human review.
+      head_out <- attach_chief_qc_failure(head_out, chief_out)
+      head_out <- ensure_post_issues(head_out)
+      head_out$post_issues$chief_qc_status <- "failed"
+      head_out$post_issues$chief_qc_round <- as.integer(round)
+      head_out <- apply_release_policy(
+        head_out, cl_graph = cl_graph, release_policy = release_policy
+      )
+      head_out$post_issues$needs_manual_review <- TRUE
+      head_out <- normalize_manual_review_plan(head_out)
+      head_out <- ensure_manual_review_action(head_out, jin, cite_req)
+      head_out$cluster_id <- cid
+      head_out <- finalize_stage(head_out, head_out_last)
+      save_json_pretty(head_out, file.path(out_dir_final, paste0(cid, "_LLM_JUDGE_FINAL.json")))
+      return(list(ok=TRUE, cluster_id=cid, round=round, chief_ran=TRUE, runlog_path=runlog_path))
+    }
+
+    if (isTRUE(rerun_head)) {
+      if (round < max_rounds) next
+      break
+    }
+  }
+
+  if (is.null(head_out_last) || !is.list(head_out_last)) {
+    head_out_last <- list(
+      cluster_id = cid,
+      cluster_state = "clean",
+      final_decision = list(
+        primary_cell_type = "unlabeled cell type",
+        secondary_signals = list(),
+        mixture_explanation = "",
+        final_cell_ontology_id = NULL,
+        decision_category = "tie",
+        confidence_primary = 0.0
+      ),
+      method_verdict = list(
+        cassia = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list()),
+        our_method = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list()),
+        enrich = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list()),
+        inter = list(predicted_cell_type = NULL, cell_ontology_id = NULL, strengths = list(), weaknesses = list())
+      ),
+      audit_report = list(
+        reviewer_support = list(cassia_supported = FALSE, our_supported = FALSE, enrich_supported = FALSE, inter_supported = FALSE),
+        flags = list("head_missing"),
+        notes = "Head output missing after retries."
+      ),
+      third_party_adjudication = list(
+        primary_cell_type = NULL,
+        confidence = NULL,
+        evidence_pointers = list(),
+        why_reviewers_failed = NULL
+      ),
+      evidence = list(
+        supporting = list(),
+        conflicting = list(),
+        enrichment_or_literature = list(),
+        cited_pmids = list(),
+        cited_enrichment_terms = list()
+      ),
+      post_issues = list(needs_manual_review = TRUE, flags = list("max_rounds_exceeded"), notes = "Head output missing after retries; manual review required."),
+      manual_review_plan = list(priority = "high", goals = list(), actions = list())
+    )
+  }
+  
+  # If automatic Head/Chief repair is exhausted without a Chief PASS, emit
+  # the last Head decision for auditability but force human review.
+  final_out <- head_out_last
+  final_out$cluster_id <- cid
+  final_out <- ensure_post_issues(final_out)
+  final_out$post_issues$needs_manual_review <- TRUE
+  flags0 <- as.character(unlist(final_out$post_issues$flags %||% list(), recursive = TRUE, use.names = FALSE))
+  flags0 <- flags0[nzchar(flags0)]
+  final_out$post_issues$flags <- unique(c(flags0, "max_rounds_exceeded"))
+  note0 <- str_trim(as.character(final_out$post_issues$notes %||% ""))
+  final_out$post_issues$notes <- str_trim(paste(note0, "Max rounds reached; manual review required."))
+  final_out <- normalize_manual_review_plan(final_out)
+  final_out <- ensure_manual_review_action(final_out, jin, cite_req)
+  
+  chief_passed <- FALSE
+  if (!is.null(chief_out_last) && is.list(chief_out_last)) {
+    status_last <- toupper(as.character(chief_out_last$validation_status %||% ""))
+    chief_passed <- grepl("PASSED", status_last)
+  }
+  final_ok <- TRUE
+  if (!isTRUE(chief_passed)) {
+    gate2 <- gate_stage(final_out)
+    final_ok <- isTRUE(gate2$ok)
+    final_out <- attach_chief_qc_failure(final_out, chief_out_last)
+    final_out <- ensure_post_issues(final_out)
+    final_out$post_issues$chief_qc_status <- if (!is.null(chief_out_last) && is.list(chief_out_last)) "failed" else "not_run"
+  }
+  
+  final_out <- finalize_stage(final_out, head_out_last)
+  save_json_pretty(final_out, file.path(out_dir_final, paste0(cid, "_LLM_JUDGE_FINAL.json")))
+  if (!isTRUE(final_ok)) {
+    # Write FAILED_DEBUG to fail/ subdirectory under chief outputs (not in final/)
+    out_dir_fail <- file.path(out_dir_chief, "fail")
+    ensure_dir(out_dir_fail)
+    save_json_pretty(list(head=head_out_last, chief=chief_out_last),
+                     file.path(out_dir_fail, paste0(cid, "_LLM_JUDGE_FAILED_DEBUG.json")))
+  }
+  list(ok=TRUE, cluster_id=cid, round=max_rounds, chief_ran=TRUE, runlog_path=runlog_path)
+}
+
+# --------------------------
+# Robust JSONL-to-data.frame conversion
+# --------------------------
+# --------------------------
+# Extract summary rows from FINAL json
+# --------------------------
+read_jsonl_df <- function(path) {
+  if (!file.exists(path)) return(data.frame())
+  lines <- readLines(path, warn = FALSE)
+  lines <- lines[nzchar(str_trim(lines))]
+  if (length(lines) == 0) return(data.frame())
+
+  objs <- lapply(lines, function(x) {
+    tryCatch(jsonlite::fromJSON(x, simplifyVector = FALSE), error = function(e) NULL)
+  })
+  objs <- objs[!vapply(objs, is.null, logical(1))]
+  if (length(objs) == 0) return(data.frame())
+
+  # Build rows as CHARACTER first. JSON null otherwise becomes logical NA, which can
+  # make vctrs::bind_rows() fail when another row/file contains character text.
+  fix_val <- function(v) {
+    if (is.null(v) || length(v) == 0L) return(NA_character_)
+    if (is.atomic(v)) {
+      if (length(v) == 1L) return(as.character(v))
+      return(paste(as.character(v), collapse = ";"))
+    }
+    as.character(jsonlite::toJSON(v, auto_unbox = TRUE, null = "null"))
+  }
+
+  dfs <- lapply(objs, function(o) {
+    if (is.null(names(o)) || length(names(o)) == 0) return(NULL)
+    row <- lapply(o, fix_val)
+    as.data.frame(row, stringsAsFactors = FALSE, check.names = FALSE)
+  })
+  dfs <- dfs[!vapply(dfs, is.null, logical(1))]
+  if (length(dfs) == 0) return(data.frame())
+  out <- dplyr::bind_rows(dfs)
+  if (nrow(out) == 0) return(out)
+
+  wanted <- c("stage","cluster_id","round","model","request_id","ok","status","error","retry_count","error_class",
+              "start_time","end_time","duration_sec","prompt_chars","response_chars",
+              "prompt_tokens","completion_tokens","total_tokens")
+  for (w in wanted) if (!w %in% names(out)) out[[w]] <- NA_character_
+
+  int_cols <- c("round", "retry_count", "prompt_chars", "response_chars", "prompt_tokens", "completion_tokens", "total_tokens")
+  num_cols <- c("duration_sec")
+  for (cc in int_cols) if (cc %in% names(out)) out[[cc]] <- suppressWarnings(as.integer(out[[cc]]))
+  for (cc in num_cols) if (cc %in% names(out)) out[[cc]] <- suppressWarnings(as.numeric(out[[cc]]))
+  if ("ok" %in% names(out)) {
+    z <- tolower(trimws(as.character(out$ok)))
+    out$ok <- ifelse(z %in% c("true", "t", "1"), TRUE,
+                     ifelse(z %in% c("false", "f", "0"), FALSE, NA))
+  }
+  char_cols <- setdiff(wanted, c(int_cols, num_cols, "ok"))
+  for (cc in char_cols) if (cc %in% names(out)) out[[cc]] <- as.character(out[[cc]])
+  out
+}
+
+# Read a single _LLM_JUDGE_FINAL.json and return a summary row
+read_final_row <- function(path) {
+  x <- tryCatch(read_json_safely(path), error = function(e) NULL)
+  if (is.null(x)) return(NULL)
+  
+  # Extract cluster_id from filename if not in JSON
+  cid <- x$cluster_id %||% sub("_LLM_JUDGE_FINAL\\.json$", "", basename(path))
+  
+  # Extract final_decision fields
+  fd <- x$final_decision %||% list()
+  primary_cell_type <- fd$primary_cell_type %||% NA_character_
+  final_cl_id <- fd$final_cell_ontology_id %||% NA_character_
+  decision_cat <- normalize_decision_category(fd$decision_category %||% NA_character_)
+  confidence <- fd$confidence_primary %||% NA_real_
+  
+  # Extract post_issues fields
+  pi <- x$post_issues %||% list()
+  needs_manual_review <- isTRUE(pi$needs_manual_review)
+  flags <- if (is.list(pi$flags)) paste(unlist(pi$flags), collapse = "|") else as.character(pi$flags %||% "")
+  audit_flags <- paste(normalize_issue_flags(pi$audit_flags %||% character(0)), collapse = "|")
+  auto_qc_flags <- paste(normalize_issue_flags(pi$auto_qc_flags %||% character(0)), collapse = "|")
+  release_blockers <- paste(normalize_issue_flags(pi$release_blockers %||% character(0)), collapse = "|")
+  release_state <- as.character(pi$release_state %||% if (needs_manual_review) "manual_review" else "release")
+  policy_version <- as.character(pi$policy_version %||% "legacy")
+  chief_qc_status <- as.character(pi$chief_qc_status %||% "not_run")
+  
+  # Extract manual_review_plan priority
+  mrp <- x$manual_review_plan %||% list()
+  manual_review_priority <- mrp$priority %||% NA_character_
+  
+  # Extract method verdicts
+  mv <- x$method_verdict %||% list()
+  cassia_ct <- mv$cassia$predicted_cell_type %||% NA_character_
+  cassia_cl <- mv$cassia$cell_ontology_id %||% NA_character_
+  cassia_correct <- isTRUE(mv$cassia$is_correct)
+  cassia_support <- as.character(mv$cassia$support_class %||% NA_character_)
+  in_house_mv <- mv$in_house %||% mv$our_method %||% list()
+  our_ct <- in_house_mv$predicted_cell_type %||% NA_character_
+  our_cl <- in_house_mv$cell_ontology_id %||% NA_character_
+  our_correct <- isTRUE(in_house_mv$is_correct)
+  our_support <- as.character(in_house_mv$support_class %||% NA_character_)
+  enrich_mv <- mv$enrich %||% mv$inter %||% list()
+  inter_ct <- enrich_mv$predicted_cell_type %||% NA_character_
+  inter_cl <- enrich_mv$cell_ontology_id %||% NA_character_
+  inter_correct <- isTRUE(enrich_mv$is_correct)
+  inter_support <- as.character(enrich_mv$support_class %||% NA_character_)
+
+  # Extract key override diagnostics from decision_trace for observability
+  dt <- x$decision_trace %||% list()
+  ov_support_up <- isTRUE(dt$support_up %||% FALSE)
+  ov_score_ok <- isTRUE(dt$score_ok %||% FALSE)
+  ov_score_ok_reason <- as.character(dt$score_ok_reason %||% "")
+  ov_consistency_ok <- isTRUE(dt$consistency_ok %||% FALSE)
+  ov_consistency_ok_reason <- as.character(dt$consistency_ok_reason %||% "")
+  ov_base_depth <- suppressWarnings(as.numeric(dt$base_depth %||% NA_real_))
+  ov_candidate_depth <- suppressWarnings(as.numeric(dt$candidate_depth %||% NA_real_))
+  ov_base_is_ultra_generic <- isTRUE(dt$base_is_ultra_generic %||% FALSE)
+  ov_pool_size <- suppressWarnings(as.integer(dt$pool_size %||% 0L))
+  ov_pool_size_1_strong_margin_used <- isTRUE(dt$pool_size_1_strong_margin_used %||% FALSE)
+  n_with_valid_clid <- suppressWarnings(as.integer(dt$n_with_valid_clid %||% NA_integer_))
+  n_after_meta_reviewer_gate <- suppressWarnings(as.integer(dt$n_after_meta_reviewer_gate %||% NA_integer_))
+  n_after_anchor_constraints <- suppressWarnings(as.integer(dt$n_after_anchor_constraints %||% NA_integer_))
+  n_in_cand_table <- suppressWarnings(as.integer(dt$n_in_cand_table %||% NA_integer_))
+  n_in_cand_ordered <- suppressWarnings(as.integer(dt$n_in_cand_ordered %||% NA_integer_))
+  identity_policy <- as.character(dt$identity_policy %||% NA_character_)
+  reviewer_candidate_source <- as.character(dt$reviewer_candidate_source %||% NA_character_)
+  head_identity_preserved <- isTRUE(dt$head_identity_preserved %||% FALSE)
+  head_identity_restore_applied <- isTRUE(dt$head_identity_restore_applied %||% FALSE)
+  head_deterministic_relation <- as.character(dt$head_deterministic_relation %||% NA_character_)
+  identity_resolution_action <- as.character(dt$identity_resolution_action %||% NA_character_)
+  hierarchical_adjustment_applied <- isTRUE(dt$hierarchical_adjustment_applied %||% FALSE)
+  deterministic_pre_preserve_clid <- as.character(dt$deterministic_pre_preserve_clid %||% NA_character_)
+  
+  data.frame(
+    cluster_id = as.character(cid),
+    primary_cell_type = as.character(primary_cell_type),
+    final_cl_id = as.character(final_cl_id),
+    decision_category = as.character(decision_cat),
+    confidence = as.numeric(confidence),
+    needs_manual_review = needs_manual_review,
+    release_state = release_state,
+    policy_version = policy_version,
+    identity_policy = identity_policy,
+    reviewer_candidate_source = reviewer_candidate_source,
+    head_identity_preserved = head_identity_preserved,
+    head_identity_restore_applied = head_identity_restore_applied,
+    head_deterministic_relation = head_deterministic_relation,
+    identity_resolution_action = identity_resolution_action,
+    hierarchical_adjustment_applied = hierarchical_adjustment_applied,
+    deterministic_pre_preserve_clid = deterministic_pre_preserve_clid,
+    flags = flags,
+    audit_flags = audit_flags,
+    auto_qc_flags = auto_qc_flags,
+    release_blockers = release_blockers,
+    chief_qc_status = chief_qc_status,
+    manual_review_priority = as.character(manual_review_priority),
+    cassia_cell_type = as.character(cassia_ct),
+    cassia_cl_id = as.character(cassia_cl),
+    cassia_correct = cassia_correct,
+    cassia_support = cassia_support,
+    in_house_cell_type = as.character(our_ct),
+    in_house_cl_id = as.character(our_cl),
+    in_house_correct = our_correct,
+    in_house_support = our_support,
+    # Compatibility columns retained for downstream consumers.
+    our_cell_type = as.character(our_ct),
+    our_cl_id = as.character(our_cl),
+    our_correct = our_correct,
+    our_support = our_support,
+    inter_cell_type = as.character(inter_ct),
+    inter_cl_id = as.character(inter_cl),
+    inter_correct = inter_correct,
+    inter_support = inter_support,
+    override_support_up = ov_support_up,
+    override_score_ok = ov_score_ok,
+    override_score_ok_reason = ov_score_ok_reason,
+    override_consistency_ok = ov_consistency_ok,
+    override_consistency_ok_reason = ov_consistency_ok_reason,
+    override_base_depth = ov_base_depth,
+    override_candidate_depth = ov_candidate_depth,
+    override_base_is_ultra_generic = ov_base_is_ultra_generic,
+    override_pool_size = ov_pool_size,
+    override_pool_size_1_strong_margin_used = ov_pool_size_1_strong_margin_used,
+    n_with_valid_clid = n_with_valid_clid,
+    n_after_meta_reviewer_gate = n_after_meta_reviewer_gate,
+    n_after_anchor_constraints = n_after_anchor_constraints,
+    n_in_cand_table = n_in_cand_table,
+    n_in_cand_ordered = n_in_cand_ordered,
+    stringsAsFactors = FALSE
+  )
+}
+
+summarize_manual_review_plan <- function(x) {
+  if (is.null(x) || !is.list(x)) {
+    return(list(priority = NA_character_, actions = "", action_types = "", evidence_pointers = ""))
+  }
+  mrp <- x$manual_review_plan %||% NULL
+  if (is.null(mrp) || !is.list(mrp)) {
+    return(list(priority = NA_character_, actions = "", action_types = "", evidence_pointers = ""))
+  }
+  priority <- as.character(mrp$priority %||% NA_character_)
+  actions <- mrp$actions %||% list()
+  if (!is.list(actions)) actions <- list()
+  action_types <- character(0)
+  action_summaries <- character(0)
+  pointers <- character(0)
+  for (a in actions) {
+    if (!is.list(a)) next
+    at <- as.character(a$action_type %||% "")
+    if (nzchar(at)) action_types <- c(action_types, at)
+    why <- as.character(a$why %||% "")
+    how <- as.character(a$how %||% "")
+    if (nzchar(at) || nzchar(why) || nzchar(how)) {
+      action_summaries <- c(action_summaries, paste0(at, ": ", why, " / ", how))
+    }
+    eps <- a$evidence_pointers %||% list()
+    if (is.list(eps)) {
+      for (ep in eps) {
+        if (!is.list(ep)) next
+        t <- as.character(ep$type %||% "")
+        v <- as.character(ep$value %||% "")
+        if (nzchar(t) && nzchar(v)) pointers <- c(pointers, paste0(t, ":", v))
+      }
+    }
+  }
+  list(
+    priority = priority,
+    actions = if (length(action_summaries) > 0) paste(action_summaries, collapse = " || ") else "",
+    action_types = if (length(action_types) > 0) paste(unique(action_types), collapse = ";") else "",
+    evidence_pointers = if (length(pointers) > 0) paste(unique(pointers), collapse = " | ") else ""
+  )
+}
+
+# ============================================================
+# CLI
+# ============================================================
+option_list <- list(
+  make_option("--judge_input_dir", type="character", default="",
+              help="Dir containing *_LLM_JUDGE_INPUT.json (default: llm_outputs/<dataset_name>/llm_judge_inputs_v2)"),
+  make_option("--out_root", type="character", default="",
+              help="Root output dir (default: llm_judge_outputs/<dataset_name>)"),
+  make_option("--dataset_name", type="character", default="",
+              help="Dataset name for default paths (default: basename(getwd()))."),
+  make_option("--cluster_id", type="character", default="",
+              help="Optional: only run one cluster"),
+  make_option("--model_head", type="character", default=Sys.getenv("TRIAGE_MODEL_HEAD", unset="deepseek-v4-flash"),
+              help="Head model [primary benchmark: deepseek-v4-flash]"),
+  make_option("--model_chief", type="character", default=Sys.getenv("TRIAGE_MODEL_CHIEF", unset="deepseek-v4-flash"),
+              help="Chief model [primary benchmark: deepseek-v4-flash]"),
+  make_option("--max_rounds", type="integer", default=3,
+              help="Max rounds"),
+  make_option("--chief_max_revisions", type="integer", default=1L,
+              help="Max automatic Head revisions triggered by Chief FAIL [default %default]"),
+  make_option("--temperature", type="double", default=0.0,
+              help="Temperature"),
+  make_option("--prompt_profile", type="character", default="compact",
+              help="Prompt profile: legacy (backward compat) or compact (formal peer-review rules) [default %default]"),
+  make_option("--always_run_chief", action="store_true", default=FALSE,
+              help="Force chief QC for every cluster (slow). Default is conditional."),
+  make_option("--workers", type="integer", default=10,
+              help="Number of parallel workers (clusters processed concurrently)."),
+  make_option("--dryrun", action="store_true", default=FALSE,
+              help="Dryrun only list planned inputs"),
+  make_option("--repair_only", action="store_true", default=FALSE,
+              help="Skip LLM calls; repair/rewrite finals from existing head/chief outputs"),
+  make_option("--run_rules_tests", action="store_true", default=FALSE,
+              help="Run rules consistency/unit tests and exit"),
+  make_option("--cl_local_json", type="character", default=file.path(Sys.getenv("TRIAGE_HOME", unset = getwd()), "inputs", "raw", "ontology", "CL-ontology-v2025-07-30.json"),
+              help="Local CL ontology JSON path [default %default]"),
+  make_option("--ols_first", type="logical", default=FALSE,
+              help="Use OLS first for CL normalization [default FALSE; formal frozen runs should remain FALSE]"),
+  make_option("--ols_cache_dir", type="character", default="",
+              help="OLS cache dir (default: <out_root>/.ols_cache)"),
+  make_option("--min_depth_for_eligibility", type="integer", default=3,
+              help="Eligibility minimum CL depth [default %default]"),
+  make_option("--delta_depth", type="integer", default=2,
+              help="Aggressive trigger depth gap threshold [default %default]"),
+  make_option("--gate_mode", type="character", default="fixed_k",
+              help="Support gate mode [default %default]"),
+  make_option("--gate_k", type="integer", default=2,
+              help="Support gate k threshold [default %default]"),
+  make_option("--disable_aggressive_trigger", action="store_true", default=FALSE,
+              help="Disable aggressive trigger (ablation)"),
+  make_option("--enable_method_reliability_gate", type="logical", default=FALSE,
+              help="Enable reliability gating for non-core methods (default OFF to preserve old results)"),
+  make_option("--enable_aggressive_lca_hard_guard", type="logical", default=TRUE,
+              help="In aggressive mode, when supported_lca passes support gate but is missing from candidate pool, lock fallback to supported_lca [default TRUE]"),
+  make_option("--protect_lock_inputs", type="logical", default=FALSE,
+      help="When reliability gate is enabled, compute lock from cassia/our/enrich only"),
+  make_option("--meta_reviewer_gate", type="logical", default=FALSE,
+              help="Enable hard keep/drop for non-core methods using reliability+alignment thresholds (default OFF)"),
+  make_option("--parity_mode", type="logical", default=TRUE,
+              help="Parity mode: legacy deterministic candidate ranking; under ontology_guarded it may calibrate specificity only within a direct ontology branch [default TRUE]"),
+  make_option("--identity_policy", type="character", default="ontology_guarded",
+              help="Identity policy: ontology_guarded (default), head_preserve (full Head freeze), or legacy_rerank (ablation only)"),
+  make_option("--require_frozen_reviewer_candidates", type="logical", default=TRUE,
+              help="Require Step-08-frozen reviewer TOP-K CLIDs; formal runs should keep TRUE [default %default]"),
+  make_option("--release_policy", type="character", default="auto",
+              help="Release policy: auto, blocker, or legacy [default %default]"),
+  make_option("--verbose", action="store_true", default=FALSE,
+              help="Enable verbose debug logs")
+)
+opt <- parse_args(OptionParser(option_list=option_list))
+opt$prompt_profile <- tolower(trimws(as.character(opt$prompt_profile %||% "legacy")))
+if (!opt$prompt_profile %in% c("legacy", "compact")) {
+  stop("--prompt_profile must be one of: legacy, compact")
+}
+PROMPT_PROFILE <- opt$prompt_profile
+opt$release_policy <- tolower(trimws(as.character(opt$release_policy %||% "auto")))
+opt$identity_policy <- tolower(trimws(as.character(opt$identity_policy %||% "ontology_guarded")))
+opt$chief_max_revisions <- max(0L, as.integer(opt$chief_max_revisions %||% 1L))
+if (!opt$identity_policy %in% c("ontology_guarded", "head_preserve", "legacy_rerank")) {
+  stop("--identity_policy must be one of: ontology_guarded, head_preserve, legacy_rerank")
+}
+if (!opt$release_policy %in% c("legacy", "blocker", "auto")) {
+  stop("--release_policy must be one of: legacy, blocker, auto")
+}
+VERBOSE <- isTRUE(opt$verbose)
+if (isTRUE(opt$run_rules_tests) || nzchar(Sys.getenv("RUN_RULES_TESTS"))) {
+  run_rules_unit_tests()
+  message("[OK] rules unit tests passed")
+  quit(status = 0)
+}
+dataset_name <- if (nzchar(opt$dataset_name)) opt$dataset_name else basename(getwd())
+project_root <- Sys.getenv("PROJECT_ROOT", unset = getwd())
+cfg <- get_dataset_config(dataset_name, project_root)
+  if (!nzchar(opt$judge_input_dir)) {
+    v3_dir <- file.path(cfg$llm_outputs_root, "llm_judge_inputs_v3")
+    v2_dir <- file.path(cfg$llm_outputs_root, "llm_judge_inputs_v2")
+    v1_dir <- file.path(cfg$llm_outputs_root, "llm_judge_inputs")
+    opt$judge_input_dir <- if (dir.exists(v3_dir)) v3_dir else if (dir.exists(v2_dir)) v2_dir else v1_dir
+  }
+if (!nzchar(opt$out_root)) opt$out_root <- cfg$judge_outputs_root
+
+ols_cache_dir <- opt$ols_cache_dir
+if (!nzchar(ols_cache_dir)) ols_cache_dir <- file.path(opt$out_root, ".ols_cache")
+  cl_cfg <- make_cl_cfg(opt$cl_local_json, prefer_ols = isTRUE(opt$ols_first), cache_dir = ols_cache_dir)
+  cl_graph <- load_cl_graph(cl_cfg)
+
+api_key_env <- Sys.getenv("LLM_API_KEY_ENV", unset = Sys.getenv("CASSIA_API_KEY_ENV", unset = "DEEPSEEK_API_KEY"))
+api_key <- Sys.getenv(api_key_env)
+if (!isTRUE(opt$repair_only) && !nzchar(api_key)) stop("Please export ", api_key_env, " in your environment.")
+
+in_dir <- opt$judge_input_dir
+if (!dir.exists(in_dir)) stop("judge_input_dir not found: ", in_dir)
+
+out_head   <- file.path(opt$out_root, "head_editor_outputs")
+out_chief  <- file.path(opt$out_root, "chief_editor_qc_outputs")
+out_final  <- file.path(opt$out_root, "final")
+out_runlog <- file.path(opt$out_root, "runlogs")
+
+ensure_dir(out_head); ensure_dir(out_chief); ensure_dir(out_final); ensure_dir(out_runlog)
+
+# Run manifest snapshot for reproducibility and provenance.
+manifest_path <- file.path(opt$out_root, "run_manifest.env")
+script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+script_path <- if (length(script_arg) > 0) sub("^--file=", "", script_arg[[1]]) else ""
+script_path <- if (nzchar(script_path)) normalizePath(script_path, winslash = "/", mustWork = FALSE) else ""
+manifest_lines <- c(
+  paste0("RUN_TIMESTAMP=", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
+  paste0("SCRIPT_PATH=", script_path),
+  paste0("PROJECT_ROOT=", project_root),
+  paste0("DATASET_NAME=", dataset_name),
+  paste0("JUDGE_INPUT_DIR=", normalizePath(in_dir, winslash = "/", mustWork = FALSE)),
+  paste0("OUT_ROOT=", normalizePath(opt$out_root, winslash = "/", mustWork = FALSE)),
+  paste0("CLUSTER_ID=", as.character(opt$cluster_id %||% "")),
+  paste0("WORKERS=", as.integer(opt$workers)),
+  paste0("MAX_ROUNDS=", as.integer(opt$max_rounds)),
+  paste0("CHIEF_MAX_REVISIONS=", as.integer(opt$chief_max_revisions)),
+  paste0("HEAD_CHIEF_WORKFLOW=v1.0.0"),
+  paste0("TEMPERATURE=", as.numeric(opt$temperature)),
+  paste0("PARITY_MODE=", isTRUE(opt$parity_mode)),
+  paste0("IDENTITY_POLICY=", as.character(opt$identity_policy)),
+  paste0("REQUIRE_FROZEN_REVIEWER_CANDIDATES=", isTRUE(opt$require_frozen_reviewer_candidates)),
+  paste0("RELEASE_POLICY=", as.character(opt$release_policy)),
+  paste0("DISABLE_AGGRESSIVE_TRIGGER=", isTRUE(opt$disable_aggressive_trigger)),
+  paste0("ENABLE_AGGRESSIVE_LCA_HARD_GUARD=", isTRUE(opt$enable_aggressive_lca_hard_guard)),
+  paste0("GATE_MODE=", as.character(opt$gate_mode)),
+  paste0("GATE_K=", as.integer(opt$gate_k)),
+  paste0("DELTA_DEPTH=", as.integer(opt$delta_depth)),
+  paste0("META_REVIEWER_GATE=", isTRUE(opt$meta_reviewer_gate)),
+  paste0("ENABLE_METHOD_RELIABILITY_GATE=", isTRUE(opt$enable_method_reliability_gate)),
+  paste0("MODEL_HEAD=", as.character(opt$model_head %||% "")),
+  paste0("MODEL_CHIEF=", as.character(opt$model_chief %||% "")),
+  paste0("OLS_FIRST=", isTRUE(opt$ols_first)),
+  paste0("OLS_CACHE_DIR=", as.character(opt$ols_cache_dir %||% "")),
+  paste0("CL_LOCAL_JSON=", as.character(opt$cl_local_json %||% "")),
+  paste0("ARGS=", paste(commandArgs(trailingOnly = TRUE), collapse = " "))
+)
+writeLines(manifest_lines, con = manifest_path)
+
+files <- sort(list.files(in_dir, pattern="_LLM_JUDGE_INPUT\\.json$", full.names=TRUE))
+if (length(files) == 0) stop("No *_LLM_JUDGE_INPUT.json under: ", in_dir)
+
+if (nzchar(opt$cluster_id)) {
+  files <- files[grepl(paste0("/", opt$cluster_id, "_LLM_JUDGE_INPUT\\.json$"), files)]
+  if (length(files) == 0) stop("No judge input found for cluster_id: ", opt$cluster_id)
+}
+
+if (isTRUE(opt$require_frozen_reviewer_candidates) && !isTRUE(opt$repair_only)) {
+  for (fp in files) {
+    jin_check <- tryCatch(read_json_safely(fp), error = function(e) NULL)
+    if (is.null(jin_check) || !is.list(jin_check)) stop("Cannot read judge input: ", fp)
+    validate_frozen_reviewer_candidate_payload(jin_check, cl_graph, fp)
+  }
+}
+
+if (isTRUE(opt$dryrun)) {
+  cat("Planned judge inputs:\n")
+  cat(paste0(" - ", files, collapse="\n"), "\n")
+  quit(save="no", status=0)
+}
+
+if (isTRUE(opt$repair_only)) {
+  cat("[INFO] repair_only=TRUE -> skipping LLM calls; will repair existing finals.\n")
+  results <- list()
+} else {
+  workers <- max(1L, as.integer(opt$workers))
+  if (workers > 1L) {
+    future::plan(future::multisession, workers = workers)
+    cat(glue("[INFO] parallel workers = {workers}\n"))
+  } else {
+    future::plan(future::sequential)
+    cat("[INFO] workers=1 (sequential)\n")
+  }
+  
+  vcat("[DEBUG] Starting future_lapply with", length(files), "files\n")
+  vcat("[DEBUG] Files:", paste(basename(files), collapse=", "), "\n")
+  
+  results <- future.apply::future_lapply(files, function(f) {
+    # NOTE: console output interleaves under parallel; that's expected.
+    # Re-source config in worker process to ensure STAGE_ROOT_CLIDS is available
+    pr <- Sys.getenv("TRIAGE_HOME", unset = Sys.getenv("PROJECT_ROOT", unset = getwd()))
+    source(file.path(pr, "config", "cl_normalizer.R"), local = FALSE)
+    source(file.path(pr, "config", "dataset_config.R"), local = FALSE)
+    vlog("[DEBUG] Processing: ", basename(f))
+    run_head_and_chief(
+      judge_input_path = f,
+      api_key = api_key,
+      model_head = opt$model_head,
+      model_chief = opt$model_chief,
+      max_rounds = as.integer(opt$max_rounds),
+      out_dir_head = out_head,
+      out_dir_chief = out_chief,
+      out_dir_final = out_final,
+      out_dir_runlog = out_runlog,
+      temperature = opt$temperature,
+      always_run_chief = opt$always_run_chief,
+      cl_cfg = cl_cfg,
+      cl_graph = cl_graph,
+      min_depth_for_eligibility = as.integer(opt$min_depth_for_eligibility),
+      delta_depth = as.integer(opt$delta_depth),
+      gate_mode = as.character(opt$gate_mode),
+      gate_k = as.integer(opt$gate_k),
+      disable_aggressive_trigger = isTRUE(opt$disable_aggressive_trigger),
+      enable_method_reliability_gate = isTRUE(opt$enable_method_reliability_gate),
+      enable_aggressive_lca_hard_guard = isTRUE(opt$enable_aggressive_lca_hard_guard),
+      protect_lock_inputs = isTRUE(opt$protect_lock_inputs),
+      meta_reviewer_gate = isTRUE(opt$meta_reviewer_gate),
+      parity_mode = isTRUE(opt$parity_mode),
+      identity_policy = as.character(opt$identity_policy),
+      release_policy = as.character(opt$release_policy),
+      chief_max_revisions = as.integer(opt$chief_max_revisions)
+    )
+  }, future.seed = TRUE)
+  
+  summary_df <- bind_rows(lapply(results, function(x) {
+    data.frame(
+      ok = isTRUE(x$ok),
+      cluster_id = as.character(x$cluster_id %||% NA_character_),
+      round = as.integer(x$round %||% NA_integer_),
+      chief_ran = isTRUE(x$chief_ran %||% FALSE),
+      runlog_path = as.character(x$runlog_path %||% NA_character_),
+      stringsAsFactors = FALSE
+    )
+  }))
+  
+  summary_path <- file.path(opt$out_root, "judge_run_summary.csv")
+  write_csv(summary_df, summary_path)
+  cat(glue("[OK] summary saved: {summary_path}\n"))
+  
+  # Aggregate runlogs
+  log_files <- list.files(out_runlog, pattern="_RUNLOG\\.jsonl$", full.names=TRUE)
+  log_df <- bind_rows(lapply(log_files, read_jsonl_df))
+  log_path <- file.path(opt$out_root, "judge_run_log.csv")
+  if (nrow(log_df) > 0) {
+    wanted <- c("stage","cluster_id","round","model","request_id","ok","status","error","retry_count","error_class",
+                "start_time","end_time","duration_sec",
+                "prompt_chars","response_chars",
+                "prompt_tokens","completion_tokens","total_tokens")
+    for (w in wanted) if (!w %in% names(log_df)) log_df[[w]] <- NA
+    log_df <- log_df[, wanted]
+    write_csv(log_df, log_path)
+    cat(glue("[OK] run log saved: {log_path}\n"))
+  } else {
+    cat(glue("[WARN] no runlogs found under: {out_runlog}\n"))
+  }
+}
+
+# Build summary_final + manual_review_queue
+final_files <- list.files(out_final, pattern="_LLM_JUDGE_FINAL\\.json$", full.names=TRUE)
+
+infer_saved_chief_status <- function(cid, chief_dir) {
+  if (is.null(cid) || !nzchar(as.character(cid)) || !dir.exists(chief_dir)) return("not_run")
+  pat <- paste0("^", as.character(cid), "_LLM_JUDGE_QC_OUTPUT_round[0-9]+\\.json$")
+  fps <- list.files(chief_dir, pattern = pat, full.names = TRUE)
+  if (length(fps) == 0L) return("not_run")
+  info <- file.info(fps)
+  fp <- fps[order(info$mtime, decreasing = TRUE)][[1]]
+  obj <- tryCatch(read_json_safely(fp), error = function(e) NULL)
+  if (is.null(obj)) return("failed")
+  status <- toupper(as.character(obj$validation_status %||% ""))
+  if (grepl("PASSED", status)) "passed" else "failed"
+}
+
+if (isTRUE(opt$repair_only)) {
+  # Repair any existing finals to satisfy basic consistency (no extra API calls).
+  for (fp in final_files) {
+    x <- tryCatch(read_json_safely(fp), error=function(e) NULL)
+    if (is.null(x) || is.null(x$cluster_id)) next
+    cid0 <- as.character(x$cluster_id)
+    in_fp <- file.path(in_dir, paste0(cid0, "_LLM_JUDGE_INPUT.json"))
+    if (!file.exists(in_fp)) next
+    jin0 <- tryCatch(read_json_safely(in_fp), error=function(e) NULL)
+    if (is.null(jin0)) next
+    x <- ensure_post_issues(x)
+    x$post_issues$chief_qc_status <- infer_saved_chief_status(cid0, out_chief)
+    x2 <- finalize_output(
+      x, jin0, cl_cfg, cl_graph, cid0, out_head, NULL,
+      release_policy = as.character(opt$release_policy)
+    )
+    save_json_pretty(x2, fp)
+  }
+}
+
+final_df <- bind_rows(lapply(final_files, read_final_row))
+final_summary_path <- file.path(opt$out_root, "summary_final.csv")
+write_csv(final_df, final_summary_path)
+cat(glue("[OK] final summary saved: {final_summary_path}\n"))
+
+release_policy_summary <- final_df %>%
+  count(policy_version, release_state, needs_manual_review, name = "n") %>%
+  arrange(
+    policy_version,
+    factor(
+      release_state,
+      levels = c("release", "release_with_audit_note", "auto_qc_pending", "manual_review")
+    )
+  )
+release_policy_summary_path <- file.path(opt$out_root, "release_policy_summary.csv")
+write_csv(release_policy_summary, release_policy_summary_path)
+cat(glue("[OK] release policy summary saved: {release_policy_summary_path}\n"))
+
+audit_notes_df <- final_df %>%
+  filter(release_state == "release_with_audit_note") %>%
+  select(cluster_id, primary_cell_type, final_cl_id, confidence, release_state, audit_flags, flags)
+audit_notes_path <- file.path(opt$out_root, "audit_notes.csv")
+write_csv(audit_notes_df, audit_notes_path)
+cat(glue("[OK] audit notes saved: {audit_notes_path}\n"))
+
+auto_qc_df <- final_df %>%
+  filter(release_state == "auto_qc_pending") %>%
+  select(
+    cluster_id, primary_cell_type, final_cl_id, confidence,
+    release_state, chief_qc_status, auto_qc_flags, audit_flags, flags
+  )
+auto_qc_path <- file.path(opt$out_root, "automated_qc_queue.csv")
+write_csv(auto_qc_df, auto_qc_path)
+cat(glue("[OK] automated QC queue saved: {auto_qc_path}\n"))
+
+queue_df <- final_df %>%
+  filter(
+    needs_manual_review == TRUE |
+      (identical(opt$release_policy, "legacy") & confidence < 0.5)
+  ) %>%
+  mutate(reason = dplyr::case_when(
+    nzchar(release_blockers) ~ release_blockers,
+    needs_manual_review == TRUE ~ "needs_manual_review",
+    confidence < 0.5 ~ "low_confidence",
+    TRUE ~ ""
+  )) %>%
+  mutate(priority_rank = match(manual_review_priority, c("high", "medium", "low"))) %>%
+  arrange(is.na(priority_rank), priority_rank, confidence, desc(needs_manual_review)) %>%
+  select(-priority_rank)
+queue_path <- file.path(opt$out_root, "manual_review_queue.csv")
+write_csv(queue_df, queue_path)
+cat(glue("[OK] manual review queue saved: {queue_path}\n"))
+
+# Diagnostics summary
+diag_dir <- file.path(out_runlog, "diagnostics")
+if (dir.exists(diag_dir)) {
+  diag_files <- list.files(diag_dir, pattern = "_judge_diag\\.json$", full.names = TRUE)
+  if (length(diag_files) > 0) {
+    diag_rows <- lapply(diag_files, function(fp) {
+      d <- tryCatch(read_json_safely(fp), error = function(e) NULL)
+      if (is.null(d)) return(NULL)
+      data.frame(
+        cluster_id = sub("_judge_diag\\.json$", "", basename(fp)),
+        lock_clid = as.character(d$lock_clid %||% NA_character_),
+        num_candidates_before = suppressWarnings(as.integer(d$num_candidates_before %||% NA_integer_)),
+        num_candidates_after = suppressWarnings(as.integer(d$num_candidates_after %||% NA_integer_)),
+        expanded_added = suppressWarnings(as.integer(d$expanded_added %||% NA_integer_)),
+        specificity_tiebreak = as.character(d$specificity_tiebreak %||% NA_character_),
+        score_missing_flag = as.character(d$score_missing_flag %||% NA_character_),
+        chosen_pred_main_clid = as.character(d$chosen_pred_main_clid %||% NA_character_),
+        chosen_pred_subtypes = if (is.list(d$chosen_pred_subtypes)) paste(unlist(d$chosen_pred_subtypes), collapse = "|") else as.character(d$chosen_pred_subtypes %||% NA_character_),
+        stringsAsFactors = FALSE
+      )
+    })
+    diag_rows <- diag_rows[!vapply(diag_rows, is.null, logical(1))]
+    if (length(diag_rows) > 0) {
+      diag_df <- bind_rows(diag_rows)
+      diag_path <- file.path(opt$out_root, "judge_candidate_diagnostics.csv")
+      write_csv(diag_df, diag_path)
+      cat(glue("[OK] diagnostics saved: {diag_path}\n"))
+    }
+  }
+}

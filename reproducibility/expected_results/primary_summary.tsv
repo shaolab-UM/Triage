@@ -1,0 +1,51 @@
+dataset	cluster_id	primary_cell_type	final_cell_ontology_id	decision_category	confidence_primary
+Census_immune	cluster_1	classical monocyte	CL:0000860		0.93
+Census_immune	cluster_10	naive T cell	CL:0000898		0.71
+Census_immune	cluster_11	alpha-beta T cell	CL:0000789		0.92
+Census_immune	cluster_12	natural killer cell	CL:0000623		0.97
+Census_immune	cluster_13	plasma cell	CL:0000786		0.92
+Census_immune	cluster_14	plasmacytoid dendritic cell	CL:0000784		0.93
+Census_immune	cluster_15	B cell	CL:0000236		0.6
+Census_immune	cluster_16	pro-B cell	CL:0000826		0.85
+Census_immune	cluster_2	naive T cell	CL:0000898		0.9
+Census_immune	cluster_3	hematopoietic precursor cell	CL:0008001		0.87
+Census_immune	cluster_4	dendritic cell	CL:0000451		0.87
+Census_immune	cluster_5	gamma-delta T cell	CL:0000798		0.85
+Census_immune	cluster_6	erythroid lineage cell	CL:0000764		0.82
+Census_immune	cluster_7	platelet	CL:0000233		0.92
+Census_immune	cluster_8	mesenchymal stem cell	CL:0000134		0.85
+Census_immune	cluster_9	B cell	CL:0000236		0.92
+Sikkema_lung	cluster_1	T cell	CL:0000084		0.85
+Sikkema_lung	cluster_10	pulmonary alveolar type 2 cell	CL:0002063		0.9
+Sikkema_lung	cluster_11	epithelial cell	CL:0000066		0.78
+Sikkema_lung	cluster_2	basal cell	CL:0000646		0.72
+Sikkema_lung	cluster_3	endothelial cell	CL:0000115		0.78
+Sikkema_lung	cluster_4	ciliated epithelial cell	CL:0000067		0.8
+Sikkema_lung	cluster_5	fibroblast	CL:0000057		0.8
+Sikkema_lung	cluster_6	macrophage	CL:0000235		0.84
+Sikkema_lung	cluster_7	B cell	CL:0000236		0.8
+Sikkema_lung	cluster_8	monocyte	CL:0000576		0.85
+Sikkema_lung	cluster_9	natural killer cell	CL:0000623		0.8
+TS_kidney	cluster_1	B cell	CL:0000236		0.8
+TS_kidney	cluster_2	T cell	CL:0000084		0.95
+TS_kidney	cluster_3	epithelial cell of proximal tubule	CL:0002306		0.82
+TS_kidney	cluster_4	classical monocyte	CL:0000860		0.75
+TS_pancreas	cluster_1	B cell	CL:0000236		0.75
+TS_pancreas	cluster_10	pancreatic A cell	CL:0000171		0.74
+TS_pancreas	cluster_2	T cell	CL:0000084		0.72
+TS_pancreas	cluster_3	classical monocyte	CL:0000860		0.78
+TS_pancreas	cluster_4	endothelial cell	CL:0000115		0.8
+TS_pancreas	cluster_5	pancreatic endocrine cell	CL:0008024		0.65
+TS_pancreas	cluster_6	macrophage	CL:0000235		0.85
+TS_pancreas	cluster_7	pancreatic acinar cell	CL:0002064		0.62
+TS_pancreas	cluster_8	pancreatic ductal cell	CL:0002079		0.9
+TS_pancreas	cluster_9	pancreatic stellate cell	CL:0002410		0.7
+Zheng_blood	cluster_1	B cell	CL:0000236		0.88
+Zheng_blood	cluster_2	classical monocyte	CL:0000860		0.92
+Zheng_blood	cluster_3	natural killer cell	CL:0000623		0.93
+Zheng_blood	cluster_4	alpha-beta T cell	CL:0000789		0.78
+Zheng_blood	cluster_5	CD8-positive, alpha-beta T cell	CL:0000625		0.9
+Zheng_blood	cluster_6	T cell	CL:0000084		0.92
+Zheng_blood	cluster_7	hematopoietic precursor cell	CL:0008001		0.85
+Zheng_blood	cluster_8	naive T cell	CL:0000898		0.88
+Zheng_blood	cluster_9	T cell	CL:0000084		0.84
