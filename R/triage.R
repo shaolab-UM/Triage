@@ -225,9 +225,8 @@ build_adjudication_input <- function(cluster_id, reviewers,
 #'     access.
 #' }
 #'
-#' Chief QC is NOT executed by this function. The full publication
-#' benchmark orchestration, including Chief QC and final release-state
-#' assignment, remains under `reproducibility/scripts/`.
+#' Full manuscript workflow orchestration is available under
+#' `reproducibility/scripts/`.
 #
 #' @param input Triage adjudication input (from [read_triage_input()] or
 #'   [build_adjudication_input()]).

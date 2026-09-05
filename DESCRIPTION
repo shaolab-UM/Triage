@@ -20,11 +20,7 @@ Description: Triage is a downstream workflow for adjudicating cell type
     package provides deterministic postprocessing of Handling Editor
     adjudication outputs (normalization, release policy, deterministic
     adjudication rules and the local validation gate); optional external
-    LLM execution applies to the Handling Editor stage only. Chief QC and
-    final release-state assignment are executed only by the batch pipeline
-    scripts, not by the package API. The cellmarkeraccordion dependency is
-    installed from GitHub (declared in Remotes; e.g. via remotes or
-    devtools install_github("TebaldiLab/cellmarkeraccordion")).
+    LLM execution applies to the Handling Editor stage only.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Remotes:

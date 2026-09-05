@@ -71,7 +71,6 @@ access.
 }
 }
 \details{
-Chief QC is NOT executed by this function. The full publication
-benchmark orchestration, including Chief QC and final release-state
-assignment, remains under \verb{reproducibility/scripts/}.
+Full manuscript workflow orchestration is available under
+\verb{reproducibility/scripts/}.
 }
