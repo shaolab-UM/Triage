@@ -1,0 +1,141 @@
+---
+title: "Getting started with Triage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with Triage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+# Getting started with Triage
+
+Triage is an evidence-adjudication pipeline for single-cell cluster
+annotation. It combines three independent reviewers — a CASSIA agent,
+an in-house marker-based annotator, and an enrichment reviewer
+(clusterProfiler) — with a deterministic Cell-Ontology (CL) mapping
+layer and an LLM handling editor / chief-QC step.
+
+The repository has two components:
+
+1. **The R package** (`Triage`) — installable, loads without API keys,
+   exposes a compact public API.
+2. **`reproducibility/`** — manuscript data, scripts, and expected
+   results for exact reproduction.
+
+## 1. Installation
+
+```{r install}
+# From a local clone:
+R CMD build .
+R CMD INSTALL Triage_1.0.0.tar.gz
+
+# Or from GitHub (once pushed):
+# remotes::install_github("shaolab-UM/Triage")
+library(Triage)
+```
+
+The package loads without any API keys; keys are only needed for the
+optional API path (section 7).
+
+## 2. Loading the Cell Ontology
+
+Triage ships the Cell Ontology JSON snapshot used by the manuscript
+(v2025-07-30) in `inst/extdata/ontology/`. All ontology lookups are
+local; OLS web queries are never required.
+
+```{r ontology}
+ontology <- load_triage_ontology()
+default_ontology_path()   # honors the CL_LOCAL_JSON env override
+```
+
+## 3. Reading reviewer inputs
+
+```{r input}
+jin <- read_triage_input("reproducibility/primary/Census_immune/handling_editor_round1_inputs/cluster_1_round1.json")
+```
+
+`read_triage_input()` accepts a file path, a JSON string, or a parsed
+list, and validates the required `cluster_id` / `inputs` fields.
+
+## 4. Mapping labels to the Cell Ontology
+
+```{r mapping}
+map_cell_ontology("monocyte", ontology = ontology)
+```
+
+## 5. CL-Linker: deterministic label mapping
+
+```{r cl_linker}
+run_cl_linker(c("macrophage", "T cell"), c("", "CL:0000084"))
+```
+
+## 6. Reviewer summaries and adjudication inputs
+
+```{r build}
+rs <- build_reviewer_summary(list(
+  cassia = list(top1_cell_type = "classical monocyte",
+                topk_cell_types = c("classical monocyte",
+                                    "intermediate monocyte")),
+  in_house = list(top1_cell_type = "monocyte",
+                  cell_ontology_id = "CL:0000576")
+))
+
+ain <- build_adjudication_input(
+  cluster_id = "cluster_1",
+  reviewers = rs
+)
+```
+
+## 7. Running an adjudication
+
+Two modes:
+
+- **No API (deterministic):** supply a precomputed head-editor output;
+  Triage runs the full deterministic post-processing chain
+  (release policy, CL normalization, local gate).
+- **API:** set `use_api = TRUE` with `DEEPSEEK_API_KEY` and
+  (optionally) `LLM_API_BASE_URL`; the head editor model is called
+  first, then the same deterministic chain runs.
+
+```{r adjudication}
+# Deterministic example (see examples/immune_demo/):
+fin <- run_triage_adjudication(
+  jin,
+  ontology = ontology,
+  use_api = FALSE,
+  head_output = "examples/immune_demo/head_round1.json",
+  dataset_name = "census_immune",
+  project_root = "reproducibility/primary"
+)
+attr(fin, "gate")$ok
+
+# API path (primary workflow: all roles deepseek-v4-flash, temp 0):
+# fin <- run_triage_adjudication(jin, ontology = ontology,
+#          use_api = TRUE, model = "deepseek-v4-flash",
+#          temperature = 0, prompt_profile = "compact")
+```
+
+## 8. Validating results
+
+```{r validate}
+validate_triage_result(fin, jin)
+```
+
+`validate_triage_result()` re-runs the deterministic local gate
+(schema, banned tokens, citation policy, reviewer-support logic) and
+stops with the failing reasons if anything is wrong.
+
+## 9. Reproducing the manuscript
+
+See `README.md` ("Reproducing the manuscript analyses") and
+`docs/SELECTOR_REPRODUCTION.md`, `docs/CL_LINKER_EVALUATION.md`,
+`docs/CELLMARKERDB_SENSITIVITY.md`. All release validation scripts are
+deterministic (no LLM calls) and live in `reproducibility/scripts/`.

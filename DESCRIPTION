@@ -1,0 +1,49 @@
+Package: Triage
+Type: Package
+Title: LLM-Adjudicated Cell-Type Annotation with Cell Ontology Grounding
+Version: 1.0.0
+Authors@R: c(
+    person(given = "Triage", family = "contributors", role = "aut",
+        comment = "See git history for individual contributors"),
+    person(given = "shaolab-UM", email = "linfanxiao.bio@gmail.com",
+        role = "cre", comment = "Repository contact"))
+Maintainer: shaolab-UM <linfanxiao.bio@gmail.com>
+Description: Triage adjudicates single-cluster cell-type annotations from
+    multiple reviewers (CASSIA, an in-house marker-based annotator and
+    enrichment-based annotation) into a single Cell Ontology grounded final
+    decision, and provides CL-Linker, a deterministic lexical Cell Ontology
+    label mapper. The deterministic adjudication core (normalization,
+    release policy, consensus rules and the local validation gate) runs
+    fully offline; Handling Editor / Chief QC adjudication can optionally be
+    executed through a DeepSeek-compatible LLM API.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.9
+Depends:
+    R (>= 4.1.0)
+Imports:
+    data.table,
+    dplyr,
+    httr,
+    jsonlite,
+    ontologyIndex,
+    ontologySimilarity,
+    purrr,
+    readr,
+    rlang,
+    stats,
+    stringdist,
+    stringr,
+    tibble,
+    utils
+Suggests:
+    cellmarkeraccordion,
+    httr2,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+URL: https://github.com/shaolab-UM/Triage
+BugReports: https://github.com/shaolab-UM/Triage/issues
