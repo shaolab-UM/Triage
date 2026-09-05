@@ -66,6 +66,6 @@ test_that("no-API adjudication reproduces the head decision on the fixture", {
 test_that("invalid inputs fail with informative errors", {
   expect_error(read_triage_input("does_not_exist.json"), regexp = "not found|exist")
   expect_error(read_triage_input('{"foo": 1}'), regexp = "cluster_id|inputs")
-  expect_error(run_triage_adjudication(list(cluster_id = "x"), use_api = FALSE),
+  expect_error(suppressWarnings(run_triage_adjudication(list(cluster_id = "x"), use_api = FALSE)),
                regexp = "head_output|head")
 })
