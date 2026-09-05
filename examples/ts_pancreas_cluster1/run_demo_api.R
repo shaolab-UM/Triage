@@ -1,7 +1,6 @@
 # ts_pancreas_cluster1: Handling Editor API call for one TS_pancreas
 # cluster. Requires DEEPSEEK_API_KEY (and optionally LLM_API_BASE_URL).
 # This script makes real LLM calls; it is NOT part of the test suite.
-# Chief QC is not invoked by the package.
 
 suppressMessages(library(Triage))
 
