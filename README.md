@@ -70,7 +70,7 @@ External validation:
 
 ## Formal primary adjudication settings
 
-The primary benchmark used `deepseek-v4-flash` as handling editor and `deepseek-chat` for Chief QC, with temperature 0. Exact adjudication settings are in `config/primary_adjudication_profile.tsv`. See `docs/REPRODUCE_PRIMARY_ADJUDICATION.md`.
+The primary benchmark used `deepseek-v4-flash` as both the Handling Editor and Chief QC models, with temperature 0. Exact adjudication settings are in `config/primary_adjudication_profile.tsv`. See `docs/REPRODUCE_PRIMARY_ADJUDICATION.md`.
 
 ## Deterministic selector controls
 
@@ -149,11 +149,13 @@ Final manuscript figure-rendering and table-formatting scripts are not part of t
 
 This repository uses `v1.0.0` as the public software release version. See `docs/PROVENANCE.md`.
 
-## Historical model configuration
+## Model configuration
 
-The reported Chief QC identifier `deepseek-chat` is retained as historical
-configuration metadata. Its availability for a new execution depends on the API
-provider or compatible gateway. See `docs/MODEL_CONFIGURATION.md`.
+The reported primary benchmark used `deepseek-v4-flash` for the Handling Editor
+and Chief QC. A separate profiling / model-comparison experiment used
+`deepseek-reasoner` as Handling Editor and `deepseek-chat` as Chief QC; those
+identifiers are recorded only for that separate experiment and do not describe
+the primary workflow. See `docs/MODEL_CONFIGURATION.md`.
 
 ## Model-generated interpretive text
 

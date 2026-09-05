@@ -1,28 +1,43 @@
-# Historical model configuration
+# Model configuration
 
-The reported primary benchmark used:
+## Primary benchmark and main Triage workflow
 
+The reported primary workflow used DeepSeek V4 Flash throughout:
+
+- CASSIA reviewer: `deepseek-v4-flash`
+- In-house reviewer: `deepseek-v4-flash`
+- clusterProfiler reviewer: `deepseek-v4-flash`
 - Handling Editor: `deepseek-v4-flash`
+- Chief QC: `deepseek-v4-flash`
+- Handling Editor and Chief QC temperature: 0
+
+Machine-readable records:
+
+- `config/primary_adjudication_profile.tsv`
+- `config/model_run_provenance.tsv`
+
+## Separate profiling / model-comparison experiment
+
+A separate computational experiment (reported independently of the primary
+benchmark in the manuscript) used:
+
+- Handling Editor: `deepseek-reasoner`
 - Chief QC: `deepseek-chat`
-- Temperature: 0
 
-`deepseek-chat` is retained as the historical Chief QC model identifier used by
-the reported analysis. Runtime availability of a historical model name depends
-on the API provider or compatible gateway used for a new execution. If a new
-execution substitutes a different model identifier, that execution should be
-documented as a new configuration and should not be presented as an identical
-historical rerun.
+Alternative model-comparison conditions each used one model for both the
+Handling Editor and Chief QC: GPT-5.4, Gemini-3 Pro Preview and Claude Opus
+4.5. These identifiers describe only the profiling / model-comparison
+experiment and do not define the primary workflow; no profiling result values
+are affected by this repository release.
 
-## Provider and run provenance
+## Retained provenance
 
-The retained source code used a provider-hosted DeepSeek-compatible OpenAI Chat Completions API endpoint. The exact endpoint string and all credentials are intentionally masked from the public code.
+The retained source code used a provider-hosted DeepSeek-compatible OpenAI
+Chat Completions API endpoint. The exact endpoint string and all credentials
+are intentionally masked from the public code. The retained reviewer mapping
+registry (`data/primary/reviewer_mapping_registry.tsv`) records
+`deepseek-v4-flash` for the primary reviewer runs.
 
-For the reported primary adjudication, the retained configuration records:
-
-- Handling Editor model identifier: `deepseek-v4-flash`
-- Chief QC model identifier: `deepseek-chat`
-- Temperature: 0
-- Provider category: DeepSeek-compatible OpenAI Chat Completions API
-- Retained formal artifact timestamps: August 2026
-
-These model identifiers describe the historical analysis configuration. A new execution should use model identifiers accepted by the configured provider and should document any substitution as a new execution configuration.
+Model identifiers describe the historical analysis configuration. A new
+execution should use model identifiers accepted by the configured provider and
+should document any substitution as a new execution configuration.

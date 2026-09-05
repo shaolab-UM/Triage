@@ -1,6 +1,6 @@
 parameter	value	evidence
 handling_editor_model	deepseek-v4-flash	formal primary run logs + manuscript
-chief_qc_model	deepseek-chat	formal primary run logs + manuscript
+chief_qc_model	deepseek-v4-flash	formal primary run logs + manuscript
 temperature	0	primary run configuration
 prompt_profile	compact	final adjudication JSON
 min_depth_for_eligibility	3	final adjudication JSON / 09 default

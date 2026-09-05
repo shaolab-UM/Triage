@@ -30,7 +30,7 @@ option_list <- list(
   make_option("--api_base_url", type = "character",
               default = Sys.getenv("LLM_API_BASE_URL", unset = Sys.getenv("CASSIA_API_BASE_URL", unset = "XXXXX")),
               help = "API base URL; set LLM_API_BASE_URL or CASSIA_API_BASE_URL"),
-  make_option("--model", type = "character", default = "deepseek-reasoner", help = "Model identifier")
+  make_option("--model", type = "character", default = "deepseek-v4-flash", help = "Model identifier")
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 source(file.path(dirname(dirname(dirname(normalizePath(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]), winslash = "/", mustWork = FALSE)))), "lib", "00_utils.R"))

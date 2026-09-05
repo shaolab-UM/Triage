@@ -67,7 +67,7 @@ option_list <- list(
   make_option("--bioinfo_dir", type = "character", default = NULL),
   make_option("--out_dir", type = "character", default = NULL),
   make_option("--dataset_name", type = "character", default = NULL),
-  make_option("--model", type = "character", default = Sys.getenv("LLM_MODEL_INTER", unset = Sys.getenv("CASSIA_MODEL_INTER", unset = "deepseek-reasoner"))),
+  make_option("--model", type = "character", default = Sys.getenv("LLM_MODEL_INTER", unset = Sys.getenv("CASSIA_MODEL_INTER", unset = "deepseek-v4-flash"))),
   make_option("--context", type = "character", default = NULL),
   make_option("--n_markers", type = "integer", default = 50),
   make_option("--cluster_id", type = "character", default = ""),

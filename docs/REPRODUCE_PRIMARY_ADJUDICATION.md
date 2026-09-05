@@ -28,7 +28,7 @@ The formal primary adjudication settings were:
 
 ```text
 Handling Editor: deepseek-v4-flash
-Chief QC: deepseek-chat
+Chief QC: deepseek-v4-flash
 temperature: 0
 max_rounds: 3
 always_run_chief: TRUE

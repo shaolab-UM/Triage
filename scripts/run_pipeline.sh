@@ -241,7 +241,7 @@ run_step 09 \
   --judge_input_dir "$RUN_DIR/08_judge_inputs" \
   --out_root "$RUN_DIR/09_judge_outputs" \
   --model_head "${TRIAGE_MODEL_HEAD:-deepseek-v4-flash}" \
-  --model_chief "${TRIAGE_MODEL_CHIEF:-deepseek-chat}" \
+  --model_chief "${TRIAGE_MODEL_CHIEF:-deepseek-v4-flash}" \
   --temperature 0 \
   --workers "$WORKERS" \
   --max_rounds 3 \

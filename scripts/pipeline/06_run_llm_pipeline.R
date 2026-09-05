@@ -197,14 +197,14 @@ config <- list(
   api_key_env = Sys.getenv("LLM_API_KEY_ENV", unset = Sys.getenv("CASSIA_API_KEY_ENV", unset = "DEEPSEEK_API_KEY")),
   api_base_url = Sys.getenv("LLM_API_BASE_URL", unset = Sys.getenv("CASSIA_API_BASE_URL", unset = "XXXXX")),
   deepseek_api_key = Sys.getenv(Sys.getenv("LLM_API_KEY_ENV", unset = Sys.getenv("CASSIA_API_KEY_ENV", unset = "DEEPSEEK_API_KEY"))),
-  deepseek_model   = "deepseek-reasoner",
+  deepseek_model   = "deepseek-v4-flash",
   
   # ---- model routing ----
-  model_default = Sys.getenv("LLM_MODEL_STEP1", unset = Sys.getenv("CASSIA_MODEL_STEP1", unset = "deepseek-reasoner")),
-  model_step1   = Sys.getenv("LLM_MODEL_STEP1", unset = Sys.getenv("CASSIA_MODEL_STEP1", unset = "deepseek-reasoner")),
-  model_step15  = Sys.getenv("LLM_MODEL_STEP15", unset = Sys.getenv("CASSIA_MODEL_STEP15", unset = "deepseek-chat")),
-  model_step2   = Sys.getenv("LLM_MODEL_STEP2", unset = Sys.getenv("CASSIA_MODEL_STEP2", unset = "deepseek-chat")),
-  model_repair  = Sys.getenv("LLM_MODEL_REPAIR", unset = Sys.getenv("CASSIA_MODEL_REPAIR", unset = "deepseek-reasoner")),
+  model_default = Sys.getenv("LLM_MODEL_STEP1", unset = Sys.getenv("CASSIA_MODEL_STEP1", unset = "deepseek-v4-flash")),
+  model_step1   = Sys.getenv("LLM_MODEL_STEP1", unset = Sys.getenv("CASSIA_MODEL_STEP1", unset = "deepseek-v4-flash")),
+  model_step15  = Sys.getenv("LLM_MODEL_STEP15", unset = Sys.getenv("CASSIA_MODEL_STEP15", unset = "deepseek-v4-flash")),
+  model_step2   = Sys.getenv("LLM_MODEL_STEP2", unset = Sys.getenv("CASSIA_MODEL_STEP2", unset = "deepseek-v4-flash")),
+  model_repair  = Sys.getenv("LLM_MODEL_REPAIR", unset = Sys.getenv("CASSIA_MODEL_REPAIR", unset = "deepseek-v4-flash")),
   
   temperature = 0.0,
   max_retries = 5,

@@ -48,3 +48,19 @@ addressed in this structural cleanup.
   root-level data directories; documentation, scripts and release
   checks already expected the `data/...` layout, so no path rewrites
   were required beyond the directory moves themselves.
+
+## 4. Submission-package inconsistency: model-comparison runs per dataset
+
+The supplied final submission package is internally inconsistent for the
+model-comparison experiment (Table S15 runs per dataset):
+
+- `Triage.docx`: alternative models were evaluated once per dataset.
+- `Triage.xlsx` (Table S15): GPT-5.4 / Gemini-3 Pro Preview / Claude Opus 4.5
+  `Runs per dataset = 1`.
+- `Supplementary_table.xlsx` (Table S15): shows `5` for these alternatives.
+
+Repository alignment uses `Triage.docx` + `Triage.xlsx` as authoritative:
+DeepSeek = 5 runs per dataset; GPT-5.4 = 1; Gemini-3 Pro Preview = 1;
+Claude Opus 4.5 = 1. The erroneous `5`-run alternative value was NOT
+propagated into this repository. The manuscript files themselves are outside
+this repository's scope and were not modified.
