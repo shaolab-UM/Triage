@@ -1,0 +1,25 @@
+.env
+.Rhistory
+.RData
+.Rproj.user/
+*.log
+logs/
+cache/
+**/.ols_cache/
+**/.kb_cache/
+**/debug*/
+**/*FAILED_DEBUG*.json
+work/
+internal/
+QA/
+archive/
+backup*/
+.DS_Store
+Thumbs.db
+# Local third-party resources
+inputs/raw/ppi/*
+inputs/raw/collectri/*
+inputs/raw/cellmarker/*.xlsx
+
+# Generated reproduction outputs
+results/

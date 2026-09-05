@@ -1,0 +1,16 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^reproducibility$
+^data$
+^examples$
+^docs$
+^resources$
+^inputs$
+^results$
+^\.env\.example$
+^VERSION$
+^sessionInfo\.txt$
+^MANIFEST_SHA256\.tsv$
+^\.gitignore$
+^\.github$
+LICENSE.md

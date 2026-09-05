@@ -1,0 +1,5 @@
+mapping_approach	n	exact_n	exact_or_direct_parent_n	overspecific_n	incorrect_n	unmapped_n
+CL-Linker	97	63	64	5	2	26
+OLS top-result search	97	40	43	20	12	22
+OLS exact lookup	97	33	34	6	8	49
+Exact/synonym lookup	97	28	29	1	0	67

@@ -24,8 +24,8 @@ The code also marks no-CL, generic-label or large lineage-distance cases as low 
 
 The release contains two derived data files:
 
-- `data/sensitivity/cellmarkerdb_additional_reviewer_summary.tsv`: overall mean similarity, paired delta, bootstrap CI, exact rate, manual-review rate and paired P values from Table S7.
-- `data/sensitivity/cellmarkerdb_additional_reviewer_by_dataset.tsv`: the five dataset-specific paired deltas and pooled overall delta used for Fig. 3A, together with the corresponding full-Triage means.
+- `reproducibility/sensitivity/cellmarkerdb_additional_reviewer_summary.tsv`: overall mean similarity, paired delta, bootstrap CI, exact rate, manual-review rate and paired P values from Table S9.
+- `reproducibility/sensitivity/cellmarkerdb_additional_reviewer_by_dataset.tsv`: the five dataset-specific paired deltas and pooled overall delta used for Fig. 3A, together with the corresponding full-Triage means.
 
 The reported means are:
 
@@ -36,7 +36,7 @@ The reported means are:
 
 The release contains the baseline CellMarkerDB loader (`06b_run_inter.R`), the adjudication reliability/gating implementation (`09_run_judge.R`) and the publication sensitivity summaries.
 
-The separate script that generated the additional CellMarkerDB reviewer assignments is not included in this release. Therefore the release does not claim to regenerate those fourth-reviewer assignments from raw DEG files. It does preserve the exact resource specification, gate implementation and publication-derived results needed to reconstruct the reported Fig. 3A and Table S7 values.
+The separate script that generated the additional CellMarkerDB reviewer assignments is not included in this release. Therefore the release does not claim to regenerate those fourth-reviewer assignments from raw DEG files. It does preserve the exact resource specification, gate implementation and publication-derived results needed to reconstruct the reported Fig. 3A and Table S9 values.
 
 The released derived sensitivity results can be reproduced at the summary and figure-source-data level with the included scripts.
 

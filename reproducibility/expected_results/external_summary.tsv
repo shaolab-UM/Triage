@@ -1,0 +1,43 @@
+dataset	cluster_id	primary_cell_type	final_cell_ontology_id	decision_category	confidence_primary
+Anderson_DLPFC	cluster_1	oligodendrocyte	CL:0000128		0.95
+Anderson_DLPFC	cluster_10	macrophage	CL:0000235		0.82
+Anderson_DLPFC	cluster_11	glutamatergic neuron	CL:0000679		0.9
+Anderson_DLPFC	cluster_12	lamp5 GABAergic cortical interneuron	CL:4023011		0.85
+Anderson_DLPFC	cluster_13	fibroblast	CL:0000057		0.82
+Anderson_DLPFC	cluster_14	glutamatergic neuron	CL:0000679		0.8
+Anderson_DLPFC	cluster_15	pvalb GABAergic cortical interneuron	CL:4023018		0.82
+Anderson_DLPFC	cluster_16	brain pericyte	CL:2000043		0.8
+Anderson_DLPFC	cluster_17	endothelial cell	CL:0000115		0.9
+Anderson_DLPFC	cluster_18	neuron	CL:0000540		0.75
+Anderson_DLPFC	cluster_2	L2/3 intratelencephalic projecting glutamatergic neuron	CL:4030059		0.88
+Anderson_DLPFC	cluster_3	GABAergic interneuron	CL:0011005		0.82
+Anderson_DLPFC	cluster_4	astrocyte	CL:0000127		0.82
+Anderson_DLPFC	cluster_5	glutamatergic neuron	CL:0000679		0.85
+Anderson_DLPFC	cluster_6	GABAergic neuron	CL:0000617		0.85
+Anderson_DLPFC	cluster_7	neuron	CL:0000540		0.86
+Anderson_DLPFC	cluster_8	oligodendrocyte precursor cell	CL:0002453		0.9
+Anderson_DLPFC	cluster_9	glutamatergic neuron	CL:0000679		0.8
+S6K1_organoid	cluster_1	neuron	CL:0000540		0.82
+S6K1_organoid	cluster_10	progenitor cell	CL:0011026		0.8
+S6K1_organoid	cluster_11	neural progenitor cell	CL:0011020		0.92
+S6K1_organoid	cluster_12	fibroblast	CL:0000057		0.8
+S6K1_organoid	cluster_13	retinal ganglion cell	CL:0000740		0.8
+S6K1_organoid	cluster_14	retinal pigment epithelial cell	CL:0002586		0.85
+S6K1_organoid	cluster_15	retinal progenitor cell	CL:0002672		0.92
+S6K1_organoid	cluster_2	neuron	CL:0000540		0.7
+S6K1_organoid	cluster_3	radial glial cell	CL:0000681		0.92
+S6K1_organoid	cluster_4	neuron	CL:0000540		0.85
+S6K1_organoid	cluster_5	microglial cell	CL:0000129		0.65
+S6K1_organoid	cluster_6	neural progenitor cell	CL:0011020		0.82
+S6K1_organoid	cluster_7	neuron	CL:0000540		0.8
+S6K1_organoid	cluster_8	glutamatergic neuron	CL:0000679		0.85
+S6K1_organoid	cluster_9	choroid plexus epithelial cell	CL:0000706		0.88
+Zha_AD_mouse	cluster_1	oligodendrocyte	CL:0000128		0.93
+Zha_AD_mouse	cluster_2	oligodendrocyte	CL:0000128		0.95
+Zha_AD_mouse	cluster_3	choroid plexus epithelial cell	CL:0000706		0.96
+Zha_AD_mouse	cluster_4	microglial cell	CL:0000129		0.94
+Zha_AD_mouse	cluster_5	astrocyte	CL:0000127		0.95
+Zha_AD_mouse	cluster_6	GABAergic interneuron	CL:0011005		0.87
+Zha_AD_mouse	cluster_7	CD8-positive, alpha-beta cytotoxic T cell	CL:0000794		0.93
+Zha_AD_mouse	cluster_8	neural progenitor cell	CL:0011020		0.72
+Zha_AD_mouse	cluster_9	endothelial cell	CL:0000115		0.85

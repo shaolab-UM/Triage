@@ -5,7 +5,7 @@ The benchmark used locally downloaded CellMarkerDB spreadsheets:
 - `Cell_marker_Human.xlsx`
 - `Cell_marker_Mouse.xlsx`
 
-The files were read by `scripts/pipeline/06b_run_inter.R`, where the `cell_name` and `marker` columns are supplied to `clusterProfiler::enricher` as `TERM2GENE`.
+The files were read by `reproducibility/scripts/pipeline/06b_run_inter.R`, where the `cell_name` and `marker` columns are supplied to `clusterProfiler::enricher` as `TERM2GENE`.
 
 For release hygiene, the third-party XLSX files are not redistributed in this repository. Place local copies at:
 

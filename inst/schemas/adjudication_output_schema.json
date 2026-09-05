@@ -1,0 +1,83 @@
+{
+  "cluster_id": "CLUSTER_0",
+  "cluster_state": "clean | mixed | doublet_suspected | contaminated_or_ambient | transitional_state",
+
+  "final_decision": {
+    "primary_cell_type": "ONE primary label (free text, no mixed/doublet words)",
+    "secondary_signals": ["list secondary lineages/contamination signals"],
+    "mixture_explanation": "short text explaining mixed/doublet/contamination if present",
+    "final_cell_ontology_id": "CL:.... or null",
+    "decision_category": "cassia_better | in_house_better | enrich_better | tie | third_party_override",
+    "confidence_primary": 0.0
+  },
+
+  "method_verdict": {
+    "cassia": {
+      "predicted_cell_type": "string or null",
+      "cell_ontology_id": "CL:.... or null",
+      "strengths": ["string"],
+      "weaknesses": ["string"]
+    },
+    "our_method": {
+      "predicted_cell_type": "string or null",
+      "cell_ontology_id": "CL:.... or null",
+      "strengths": ["string"],
+      "weaknesses": ["string"]
+    },
+    "enrich": {
+      "predicted_cell_type": "string or null",
+      "cell_ontology_id": "CL:.... or null",
+      "strengths": ["string"],
+      "weaknesses": ["string"]
+    }
+  },
+
+  "audit_report": {
+    "reviewer_support": {
+      "cassia_supported": true,
+      "our_supported": false,
+      "enrich_supported": false
+    },
+    "flags": ["reviewer_disagreement | missing_citation | lineage_conflict | evidence_weak | other"],
+    "notes": "Short, audit-style notes explaining why each reviewer is or is not supported by ORIGINAL evidence."
+  },
+
+  "third_party_adjudication": {
+    "primary_cell_type": "string (required if ALL THREE reviewers are explicitly unsupported; otherwise can be null)",
+    "confidence": 0.0,
+    "evidence_pointers": [
+      {"type": "gene | pmid | term", "value": "GENE_X | 1234567 | TERM_X"}
+    ],
+    "why_reviewers_failed": "Short explanation of why CASSIA/in-house/enrichment are unsupported (if applicable)."
+  },
+
+  "evidence": {
+    "supporting": ["string (must mention concrete genes/pmids/terms when available)"],
+    "conflicting": ["string"],
+    "enrichment_or_literature": ["string"],
+    "cited_pmids": ["1234567"],
+    "cited_enrichment_terms": ["TERM_X"]
+  },
+
+  "post_issues": {
+    "needs_manual_review": false,
+    "flags": ["mixed_signature"],
+    "notes": "string"
+  },
+
+  "manual_review_plan": {
+    "priority": "low | medium | high",
+    "goals": ["what uncertainty to resolve"],
+    "actions": [
+      {
+        "action_type": "subcluster | qc_recheck | deg_rerun | doublet_check | ambient_check | reference_mapping | ontology_fix | visual_check | other",
+        "why": "Trigger rationale grounded in ORIGINAL evidence (cite genes/pmids/terms).",
+        "how": "Executable steps (e.g., rerun DE with covariate; re-cluster at higher resolution; run doublet detection).",
+        "expected_outcomes": "If outcome A then ..., if outcome B then ...",
+        "evidence_pointers": [
+          {"type": "gene | pmid | term", "value": "GENE_X | 1234567 | TERM_X"}
+        ]
+      }
+    ]
+  }
+}

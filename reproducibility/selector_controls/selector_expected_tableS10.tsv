@@ -1,0 +1,6 @@
+relationship	n	majority_vote	top_reviewer_percentile	ontology_only	triage	published_retrospective_oracle
+Incomplete reviewer resolution	15	17.0499	34.402	52.9654	72.8822	78.2906
+Reviewer consensus	4	87.3212	87.3212	87.3212	87.3212	87.3212
+Supported refinement	12	78.1363	78.7457	67.7286	86.2877	88.2441
+Unresolved disagreement	19	27.5456	67.0317	62.6077	80.0516	87.518
+Overall	50	41.3207	61.6773	62.9211	79.979	84.9083

@@ -1,0 +1,11 @@
+Recorded analysis environment information
+
+R version: 4.5.1
+ontologyIndex: 2.12
+ontologySimilarity: 2.7
+
+The retained project snapshot did not contain the original complete
+sessionInfo() output or renv.lock. Exact versions of the remaining packages are
+not reconstructed or guessed in this release. See docs/DEPENDENCIES.md for the
+packages referenced by the released code.
+

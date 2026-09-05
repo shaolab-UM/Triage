@@ -1,0 +1,8 @@
+field	value
+public_release	v1.0.0
+provider_category	DeepSeek-compatible OpenAI Chat Completions API
+public_endpoint_value	XXXXX
+primary_handling_editor_model	deepseek-v4-flash
+primary_chief_qc_model	deepseek-v4-flash
+primary_temperature	0
+retained_formal_artifact_period	2026-08
