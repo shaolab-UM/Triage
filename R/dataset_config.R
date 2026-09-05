@@ -1,6 +1,6 @@
 # =========================================================================
 # dataset_config.R — dataset context configuration
-# Extracted verbatim from config/dataset_config.R (v1.0.0 release).
+# Adapted from the release dataset configuration (v1.0.0).
 # Developmental-stage ontology roots + per-dataset scope/context profiles.
 # =========================================================================
 

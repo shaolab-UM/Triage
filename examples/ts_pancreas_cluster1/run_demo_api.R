@@ -6,7 +6,7 @@
 suppressMessages(library(Triage))
 
 if (!nzchar(Sys.getenv("DEEPSEEK_API_KEY"))) {
-  stop("pancreas_demo: set DEEPSEEK_API_KEY (see examples/pancreas_demo/README.md).")
+  stop("ts_pancreas_cluster1: set DEEPSEEK_API_KEY (see examples/ts_pancreas_cluster1/README.md).")
 }
 
 ontology <- load_triage_ontology()

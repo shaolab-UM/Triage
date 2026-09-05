@@ -3,11 +3,13 @@ Type: Package
 Title: Adjudication of Cell Type Annotations Using Biological Evidence and Cell Ontology Constraints
 Version: 1.0.0
 Authors@R: c(
-    person(given = "Triage", family = "contributors", role = "aut",
-        comment = "See git history for individual contributors"),
-    person(given = "shaolab-UM", email = "linfanxiao.bio@gmail.com",
-        role = "cre", comment = "Repository contact"))
-Maintainer: shaolab-UM <linfanxiao.bio@gmail.com>
+    person(given = "Linfan", family = "Xiao", email = "linfanxiao.bio@gmail.com",
+        role = c("aut", "cre")),
+    person(given = "Benchen", family = "Ye", role = "aut"),
+    person(given = "Shifu", family = "Luo", role = "aut"),
+    person(given = "Jinyan", family = "Li", role = "aut"),
+    person(given = "Ning-Yi", family = "Shao", role = "aut")
+    )
 Description: Triage is a downstream workflow for adjudicating cell type
     annotations: candidate cell type annotations are generated upstream by
     separate annotation methods, and Triage evaluates those candidate
@@ -16,18 +18,23 @@ Description: Triage is a downstream workflow for adjudicating cell type
     supported cell identity and an appropriate level of specificity.
     CL-Linker maps free-text reviewer labels to Cell Ontology terms. The
     package provides deterministic postprocessing of Handling Editor
-    adjudication outputs (normalization, release policy, consensus rules and
-    the local validation gate); optional external LLM execution applies to
-    the Handling Editor stage only. Chief QC and final release-state
-    assignment are executed only by the batch pipeline scripts, not by the
-    package API.
+    adjudication outputs (normalization, release policy, deterministic
+    adjudication rules and the local validation gate); optional external
+    LLM execution applies to the Handling Editor stage only. Chief QC and
+    final release-state assignment are executed only by the batch pipeline
+    scripts, not by the package API. The cellmarkeraccordion dependency is
+    installed from GitHub (declared in Remotes; e.g. via remotes or
+    devtools install_github("TebaldiLab/cellmarkeraccordion")).
 License: MIT + file LICENSE
 Encoding: UTF-8
+Remotes:
+    TebaldiLab/cellmarkeraccordion
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.9
 Depends:
     R (>= 4.1.0)
 Imports:
+    cellmarkeraccordion,
     data.table,
     dplyr,
     httr,
@@ -43,7 +50,6 @@ Imports:
     tibble,
     utils
 Suggests:
-    cellmarkeraccordion,
     httr2,
     knitr,
     rmarkdown,

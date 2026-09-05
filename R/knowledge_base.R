@@ -1,7 +1,13 @@
 # =============================================================
 # knowledge_base.R — knowledge-base loading and scoring functions
-# Extracted verbatim from lib/00_knowledge_base.R (v1.0.0 release).
+# Adapted from the release knowledge-base utilities (v1.0.0).
 # =============================================================
+
+# accordion_marker is a packaged dataset (not a namespace export) of
+# cellmarkeraccordion; it is loaded at runtime with
+# data("accordion_marker", package = "cellmarkeraccordion").
+#' @import cellmarkeraccordion
+NULL
 
 utils::globalVariables(c("marker", "species", "marker_type", "CL_celltype", "cluster", "gene", "geneSymbol_u", "accordion_marker", "."))
 
@@ -50,7 +56,7 @@ load_accordion_kb <- function(species_filter = "Human", cache_path = NULL) {
   if (!requireNamespace("cellmarkeraccordion", quietly = TRUE)) {
     stop("The cellmarkeraccordion package is required")
   }
-  data(accordion_marker, package = "cellmarkeraccordion", envir = environment())
+  data(accordion_marker, package = "cellmarkeraccordion")
   am_dt <- data.table::as.data.table(accordion_marker)
 
   cell_to_genes_db <- am_dt %>%

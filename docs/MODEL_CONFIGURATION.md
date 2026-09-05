@@ -14,7 +14,7 @@ The reported primary workflow used DeepSeek V4 Flash throughout:
 Machine-readable records:
 
 - `reproducibility/config/primary_adjudication_profile.tsv`
-- `config/model_run_provenance.tsv`
+- `reproducibility/config/model_run_provenance.tsv`
 
 ## Separate profiling / model-comparison experiment
 

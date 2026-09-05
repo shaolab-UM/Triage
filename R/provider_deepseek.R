@@ -1,13 +1,22 @@
 # =========================================================================
 # provider_deepseek.R — DeepSeek-compatible API transport
-# Extracted verbatim from scripts/pipeline/09_run_judge.R (v1.0.0 release).
+# Adapted from scripts/pipeline/09_run_judge.R (v1.0.0 release).
 # Endpoint/key/model/temperature/retry handling only; no scientific logic.
 # =========================================================================
 
 invoke_deepseek_api <- function(prompt_json_string, api_key, model="deepseek-v4-flash",
                                 temperature=0, timeout_seconds=1200, max_retries=4, retry_delay=4,
-                                system_prompt = NULL) {
-  if (is.null(api_key) || !nzchar(api_key)) stop("Missing API key in environment.")
+                                system_prompt = NULL, base_url = NULL) {
+  if (is.null(api_key) || !nzchar(api_key) || identical(api_key, "XXXXX")) {
+    stop("invoke_deepseek_api: missing API key. Set the API key environment variable ",
+         "(default DEEPSEEK_API_KEY, override with TRIAGE_LLM_API_KEY_ENV).")
+  }
+  base_url <- base_url %||% Sys.getenv("LLM_API_BASE_URL",
+                                       unset = Sys.getenv("CASSIA_API_BASE_URL", unset = ""))
+  if (is.null(base_url) || !nzchar(base_url) || identical(base_url, "XXXXX")) {
+    stop("invoke_deepseek_api: LLM endpoint not configured. Set LLM_API_BASE_URL to ",
+         "<your OpenAI-compatible chat-completions endpoint> before calling the API path.")
+  }
   
   retries <- 0
   last_err <- NULL
@@ -42,7 +51,7 @@ invoke_deepseek_api <- function(prompt_json_string, api_key, model="deepseek-v4-
     
     resp <- tryCatch({
       httr::POST(
-        url=DEEPSEEK_BASE_URL,
+        url=base_url,
         httr::add_headers(
           `Content-Type`="application/json",
           `Authorization`=paste("Bearer", api_key)

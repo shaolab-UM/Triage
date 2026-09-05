@@ -1,7 +1,7 @@
 # =========================================================================
 # adjudication.R — deterministic adjudication core
-# Extracted verbatim from scripts/pipeline/09_run_judge.R (v1.0.0 release).
-# RULES, schema, prompts, normalization, release policy, consensus engine,
+# Adapted from scripts/pipeline/09_run_judge.R (v1.0.0 release).
+# RULES, schema, prompts, normalization, release policy, deterministic adjudication rules,
 # local gate. API invocation lives in provider_deepseek.R.
 # =========================================================================
 
@@ -257,7 +257,8 @@ rules_text_for_chief <- function() {
   )
 }
 
-DEEPSEEK_BASE_URL <- Sys.getenv("LLM_API_BASE_URL", unset = Sys.getenv("CASSIA_API_BASE_URL", unset = "XXXXX"))
+# The LLM endpoint is resolved at call time in invoke_deepseek_api()
+# (LLM_API_BASE_URL env; no hard-coded provider endpoint in the package).
 
 save_json_pretty <- function(obj, path) {
   ensure_dir(dirname(path))

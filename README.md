@@ -188,8 +188,8 @@ not redistributed; place local copies under `inputs/raw/` as specified in
 
 ## Citation
 
-Citation information will be provided upon publication. Software release:
-Triage v1.0.0 (`VERSION`, `docs/PROVENANCE.md`).
+Citation information will be provided upon publication. Software release
+version: Triage v1.0.0 (`VERSION`).
 
 ## License
 

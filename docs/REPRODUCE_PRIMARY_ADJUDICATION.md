@@ -1,24 +1,24 @@
 # Primary adjudication reproducibility
 
-Two reproducibility levels are provided.
+## Reproducibility boundary
 
-## 1. Exact API-facing payload archive
+The public release provides:
 
-The exact 50 round-1 Handling Editor payloads from the reported primary run were stored under `reproducibility/primary/<dataset>/handling_editor_round1_inputs/` during release assembly. **These payloads are internal adjudication inputs and are not redistributed in the public release**; only their final public counterparts (`reproducibility/primary/<dataset>/final/cluster_*.json`) and their checksum manifest from the release assembly are retained in the project record.
+- **Derived benchmark inputs** — masked DEG model inputs, evaluation files
+  and reviewer mapping registry under `reproducibility/primary/`.
+- **Configuration** — `reproducibility/config/primary_adjudication_profile.tsv`
+  and `reproducibility/config/model_run_provenance.tsv`.
+- **Pipeline scripts** — the full workflow under
+  `reproducibility/scripts/pipeline/`.
+- **Publication-facing final outputs** — the 50 final adjudication JSONs
+  under `reproducibility/primary/<dataset>/final/`.
 
-These files are provenance records. They are not presented as the pre-`09_run_judge.R` temporary input directory.
+Re-executing the model stages (Handling Editor, Chief QC) requires
+external API access. LLM execution may not be bitwise deterministic even
+at temperature 0, and identical generated text should not be expected;
+the released final outputs remain the publication-facing record.
 
-## 2. Regenerating adjudication inputs with the released workflow
-
-The formal primary run created temporary judge inputs with `08_build_judge_inputs.R`, then passed them to `09_run_judge.R`. The temporary `/tmp/...` directory was not retained in the project snapshot. The reviewer mapping registry used for the primary datasets is included at:
-
-```text
-reproducibility/primary/reviewer_mapping_registry.tsv
-```
-
-The main pipeline scripts are provided so that reviewer outputs and judge inputs can be regenerated from the released workflow and required external resources.
-
-The formal primary adjudication settings were:
+## Formal primary adjudication settings
 
 ```text
 Handling Editor: deepseek-v4-flash
@@ -40,4 +40,15 @@ release_policy: auto
 
 The machine-readable profile is `reproducibility/config/primary_adjudication_profile.tsv`.
 
-LLM/API execution may not be bitwise deterministic even at temperature 0. Publication-facing final outputs are therefore included separately under `reproducibility/primary/<dataset>/final/`.
+## Regenerating adjudication inputs with the released workflow
+
+The pipeline creates judge inputs with `08_build_judge_inputs.R`, then
+passes them to `09_run_judge.R`. The reviewer mapping registry used for
+the primary datasets is included at:
+
+```text
+reproducibility/primary/reviewer_mapping_registry.tsv
+```
+
+The pipeline scripts regenerate reviewer outputs and judge inputs from
+the released workflow and the required external resources.

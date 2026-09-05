@@ -284,23 +284,27 @@ run_triage_adjudication <- function(input,
     query <- build_head_editor_query(jin, ontology$graph, ontology$cfg)
     key_env <- Sys.getenv("TRIAGE_LLM_API_KEY_ENV", unset = "DEEPSEEK_API_KEY")
     key <- api_key %||% Sys.getenv(key_env, unset = "")
-    if (!nzchar(key)) {
+    if (!nzchar(key) || identical(key, "XXXXX")) {
       stop("run_triage_adjudication(use_api = TRUE): no API key found. Set ", key_env,
            " (or pass api_key =). The deterministic path (use_api = FALSE) needs no key.")
     }
-    payload <- jsonlite::toJSON(list(
-      model = model, temperature = temperature, stream = FALSE,
-      messages = list(
-        list(role = "system", content = sys_prompt),
-        list(role = "user", content = query)
-      )
-    ), auto_unbox = TRUE)
-    raw <- invoke_deepseek_api(payload, api_key = key, model = model,
-                               temperature = temperature)
-    head_out <- extract_first_json_object_stack(raw)
-    if (is.null(head_out)) {
+    # Publication-pipeline pattern: serialize ONLY the Handling Editor query
+    # object; the wrapper builds the chat-completions request itself and
+    # receives the system prompt separately.
+    query_str <- jsonlite::toJSON(query, auto_unbox = TRUE, null = "null")
+    raw <- invoke_deepseek_api(query_str, api_key = key, model = model,
+                               temperature = temperature, system_prompt = sys_prompt)
+    if (!isTRUE(raw$ok)) {
+      stop("run_triage_adjudication: Handling Editor API request failed (status: ",
+           raw$status, "; error: ", raw$error, ")")
+    }
+    head_txt <- extract_first_json_object_stack(raw$text,
+                                                expected_cluster_id = as.character(jin$cluster_id))
+    if (is.null(head_txt)) {
       stop("run_triage_adjudication: could not parse a JSON adjudication object from the model response.")
     }
+    head_out <- if (is.list(head_txt)) head_txt else
+      jsonlite::fromJSON(head_txt, simplifyVector = FALSE)
   } else {
     if (is.null(head_output)) {
       stop("run_triage_adjudication(use_api = FALSE) requires 'head_output': ",
@@ -364,7 +368,7 @@ validate_triage_result <- function(result, input = NULL) {
   invisible(j)
 }
 
-#' @importFrom dplyr %>% `%>%`
+#' @importFrom dplyr %>%
 #' @importFrom stats setNames
 #' @importFrom utils data head
 #' @importFrom stringr str_trim str_squish str_detect str_replace str_replace_all str_to_lower str_extract

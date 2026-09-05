@@ -7,11 +7,14 @@ The public release separates model-facing records from benchmark references.
 Each primary dataset contains:
 
 - `model_inputs/maskdeg.csv`: differential-expression input with anonymized `cluster_N` identifiers.
-- `handling_editor_round1_inputs/*_round1.json`: the exact API-facing round-1 Handling Editor payload retained from the formal primary run.
+- `final/cluster_*.json`: publication-facing final adjudication records.
 
-The 50 formal round-1 payloads were scanned during release assembly for benchmark/reference-like **field names**, local absolute paths and literal credentials. No such fields or local/secret values were detected. The system prompt itself states that reviewer hypotheses are “not ground truth”; this methodological phrase is not a benchmark-label input. Checksums and scan status are recorded in `reproducibility/primary/handling_editor_round1_manifest.tsv`.
+Internal round-1 Handling Editor payloads are internal adjudication
+inputs and are not redistributed in the public release. The release
+checksum manifest (`MANIFEST_SHA256.tsv`) covers all released files.
 
-Older intermediate judge-input files are not published as formal inputs because they are not byte-identical to the retained API-facing payloads from the reported run.
+The system prompt states that reviewer hypotheses are "not ground
+truth"; this methodological phrase is not a benchmark-label input.
 
 ## Evaluation-only files
 
