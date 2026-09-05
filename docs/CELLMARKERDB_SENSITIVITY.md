@@ -24,8 +24,8 @@ The code also marks no-CL, generic-label or large lineage-distance cases as low 
 
 The release contains two derived data files:
 
-- `data/sensitivity/cellmarkerdb_additional_reviewer_summary.tsv`: overall mean similarity, paired delta, bootstrap CI, exact rate, manual-review rate and paired P values from Table S9.
-- `data/sensitivity/cellmarkerdb_additional_reviewer_by_dataset.tsv`: the five dataset-specific paired deltas and pooled overall delta used for Fig. 3A, together with the corresponding full-Triage means.
+- `reproducibility/sensitivity/cellmarkerdb_additional_reviewer_summary.tsv`: overall mean similarity, paired delta, bootstrap CI, exact rate, manual-review rate and paired P values from Table S9.
+- `reproducibility/sensitivity/cellmarkerdb_additional_reviewer_by_dataset.tsv`: the five dataset-specific paired deltas and pooled overall delta used for Fig. 3A, together with the corresponding full-Triage means.
 
 The reported means are:
 

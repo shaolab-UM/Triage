@@ -13,7 +13,7 @@ The reported primary workflow used DeepSeek V4 Flash throughout:
 
 Machine-readable records:
 
-- `config/primary_adjudication_profile.tsv`
+- `reproducibility/config/primary_adjudication_profile.tsv`
 - `config/model_run_provenance.tsv`
 
 ## Separate profiling / model-comparison experiment
@@ -35,7 +35,7 @@ are affected by this repository release.
 The retained source code used a provider-hosted DeepSeek-compatible OpenAI
 Chat Completions API endpoint. The exact endpoint string and all credentials
 are intentionally masked from the public code. The retained reviewer mapping
-registry (`data/primary/reviewer_mapping_registry.tsv`) records
+registry (`reproducibility/primary/reviewer_mapping_registry.tsv`) records
 `deepseek-v4-flash` for the primary reviewer runs.
 
 Model identifiers describe the historical analysis configuration. A new

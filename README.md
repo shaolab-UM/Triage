@@ -1,186 +1,184 @@
 # Triage
 
-Triage is an adjudication workflow for cell-type annotation that integrates three reviewer outputs, biological evidence and Cell Ontology constraints. This repository contains the core workflow, CL-Linker utilities, publication-facing primary/validation outputs and deterministic downstream controls used in the manuscript.
+Triage is an evidence-adjudication workflow for single-cell cell-type
+annotation. It integrates three independent reviewers (a CASSIA agent, an
+in-house marker-based annotator, and an enrichment reviewer), biological
+evidence, and Cell Ontology constraints through a deterministic
+normalization/gating chain and an LLM handling editor with chief-QC.
 
-## Release status
+The repository has **two components**:
 
-This repository contains the minimal public code and data release for Triage v1.0.0. It includes the reported primary benchmark (50 clusters), external validation (42 clusters), core Triage/CL-Linker workflow code and retained downstream evaluation/control scripts.
+1. **The `Triage` R package** — an installable package exposing a compact
+   public API. It loads without any API keys; network access is only needed
+   for the optional API-backed adjudication path.
+2. **`reproducibility/`** — manuscript data, validation scripts and expected
+   results for the Triage v1.0.0 publication release.
 
-## Credentials
+## Navigation
 
-Never commit API credentials. Runtime-specific placeholder values are written as `XXXXX`. Use environment variables such as:
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [What Triage does](#what-triage-does)
+- [Example workflows](#example-workflows)
+- [Package structure](#package-structure)
+- [Reproducing the manuscript analyses](#reproducing-the-manuscript-analyses)
+- [Model configuration](#model-configuration)
+- [External resources](#external-resources)
+- [Reproducibility notes](#reproducibility-notes)
+- [Citation](#citation)
+- [License](#license)
+
+## Installation
+
+```bash
+R CMD build .
+R CMD INSTALL Triage_1.0.0.tar.gz
+```
+
+Or from GitHub: `remotes::install_github("shaolab-UM/Triage")`.
+
+## Quick start
+
+Deterministic, no API key required (see `examples/immune_demo/`):
+
+```r
+library(Triage)
+
+ontology <- load_triage_ontology()
+jin <- read_triage_input("examples/immune_demo/cluster_1_round1.json")
+
+fin <- run_triage_adjudication(
+  jin,
+  ontology = ontology,
+  use_api = FALSE,
+  head_output = "examples/immune_demo/head_round1.json",
+  dataset_name = "census_immune",
+  project_root = "reproducibility/primary"
+)
+attr(fin, "gate")$ok                      # deterministic local gate
+fin$final_decision$primary_cell_type      # classical monocyte
+validate_triage_result(fin, jin)
+```
+
+See the vignette: `vignette("getting-started", package = "Triage")`.
+
+## What Triage does
+
+For each cluster, Triage:
+
+1. Parses and normalizes the three reviewer summaries against the Cell
+   Ontology (`map_cell_ontology`, CL-Linker `run_cl_linker`).
+2. Assembles the adjudication dossier (`build_adjudication_input`).
+3. Runs the head-editor model over the dossier (API path) or consumes a
+   precomputed head-editor output (no-API path).
+4. Applies the deterministic post-processing chain: release policy,
+   CL normalization, citation/label gates, and the local validation gate
+   (`run_triage_adjudication`, `validate_triage_result`).
+
+## Example workflows
+
+- `examples/immune_demo/` — deterministic no-API adjudication of one
+  `Census_immune` cluster.
+- `examples/pancreas_demo/` — API-backed adjudication of one `TS_pancreas`
+  cluster (requires `DEEPSEEK_API_KEY`; not part of the test suite).
+
+## Package structure
 
 ```text
-DEEPSEEK_API_KEY
-DISGENET_API_KEY
-TRIAGE_HOME
-PROJECT_ROOT
-CL_LOCAL_JSON
-TRIAGE_PPI_ROOT
+R/                        public API + ontology, CL-Linker, adjudication engine
+inst/extdata/ontology/    Cell Ontology JSON snapshot (v2025-07-30)
+inst/prompts/, inst/schemas/, inst/config/
+vignettes/getting-started.Rmd
+tests/testthat/           deterministic tests (no API calls)
+examples/                 immune_demo (no API), pancreas_demo (API)
 ```
 
+## Reproducing the manuscript analyses
 
-## Repository layout
-
-- `scripts/pipeline/` — primary workflow stages.
-- `scripts/analysis/` — deterministic selector-control reproduction.
-- `scripts/sensitivity/` — publication-level CellMarkerDB sensitivity check.
-- `scripts/release/` — public JSON count and schema checks.
-- `lib/` — CL-Linker, CL similarity and shared utilities.
-- `config/` — dataset, ontology-normalization, prompt and formal adjudication settings.
-- `data/primary/` — masked DEG inputs, final adjudication inputs, evaluation files and 50 public final JSONs.
-- `data/validation/` — 42 public final validation JSONs.
-- `data/release/` — combined primary/validation JSONL files.
-- `resources/` — external-resource specifications and checksums.
-- `docs/` — reproducibility, reference-boundary and audit notes.
-
-## Primary benchmark inputs
-
-For each of the five primary datasets:
+Layout:
 
 ```text
-data/primary/<dataset>/model_inputs/maskdeg.csv
-data/primary/<dataset>/handling_editor_round1_inputs/*_round1.json
-data/primary/<dataset>/evaluation/true_label.csv
-data/primary/<dataset>/evaluation/cluster_map.csv
-data/primary/<dataset>/evaluation/reference_cl.tsv
-data/primary/<dataset>/final/cluster_*.json
+reproducibility/primary/        5 primary datasets (final JSONs, model inputs, evaluation files)
+reproducibility/external/       3 external-validation datasets (42 final JSONs, S6K1 exclusions)
+reproducibility/cl_linker/      CL-Linker evaluation source data
+reproducibility/sensitivity/    CellMarkerDB additional-reviewer sensitivity data
+reproducibility/selector_controls/  selector inputs + expected Table S10 values
+reproducibility/expected_results/   release JSONL records + summary tables
+reproducibility/scripts/        pipeline, analysis, release and sensitivity scripts
+reproducibility/config/         adjudication profile and run provenance
+docs/                           methodology and boundary documentation
 ```
 
-Model-facing inputs and evaluation references are intentionally separated. See `docs/REFERENCE_BOUNDARY.md`.
+Reported counts — primary benchmark (50 clusters): Census immune 16,
+Sikkema lung 11, Tabula Sapiens kidney 4, Tabula Sapiens pancreas 10,
+Zheng blood 9. External validation (42 clusters): Anderson DLPFC 18,
+Zha AD mouse 9, S6K1 organoid 15.
 
-## Reported counts
-
-Primary benchmark:
-
-- Census immune: 16
-- Sikkema lung: 11
-- Tabula Sapiens kidney: 4
-- Tabula Sapiens pancreas: 10
-- Zheng blood: 9
-- Total: 50
-
-External validation:
-
-- Anderson DLPFC: 18
-- Zha AD mouse: 9
-- S6K1 organoid: 15
-- Total: 42
-
-
-## Formal primary adjudication settings
-
-The primary benchmark used `deepseek-v4-flash` as both the Handling Editor and Chief QC models, with temperature 0. Exact adjudication settings are in `config/primary_adjudication_profile.tsv`. See `docs/REPRODUCE_PRIMARY_ADJUDICATION.md`.
-
-## Deterministic selector controls
+Deterministic release checks (no LLM calls):
 
 ```bash
-Rscript scripts/analysis/reproduce_selector_controls.R   --repo-root /path/to/Triage   --cl-json /path/to/CL-ontology-v2025-07-30.json
+Rscript reproducibility/scripts/release/check_public_json_counts.R
+Rscript reproducibility/scripts/release/validate_public_release.R
+Rscript reproducibility/scripts/analysis/evaluate_cl_linker.R
+Rscript reproducibility/scripts/analysis/reproduce_selector_controls.R
 ```
 
-Expected overall values:
+The selector check reproduces the published Table S10 / Fig. 3C-D controls,
+including the retrospective oracle value 84.908337 (Overall; see
+`docs/SELECTOR_REPRODUCTION.md`).
 
-- Majority vote: 41.3207
-- Top reviewer after percentile normalization: 61.6773
-- Ontology-only control: 62.9211
-- Triage: 79.9790
-- Retrospective oracle: 84.9083 (reference-using maximum across the three reviewer outputs plus Triage, including the publication's label-mapped retrospective candidates; Table S10)
-
-## CellMarkerDB sensitivity
-
-The baseline enrichment reviewer reads CellMarkerDB through `scripts/pipeline/06b_run_inter.R`. The additional-reviewer sensitivity source values are under `data/sensitivity/`.
-
-The CellMarkerDB spreadsheets are not redistributed. Place local copies at:
-
-```text
-inputs/raw/cellmarker/Cell_marker_Human.xlsx
-inputs/raw/cellmarker/Cell_marker_Mouse.xlsx
-```
-
-Exact file checksums are in `resources/cellmarkerdb/CHECKSUMS.tsv`. See `docs/CELLMARKERDB_SENSITIVITY.md`.
-
-## External resources
-
-The workflow also expects Cell Ontology, STRING and CollecTRI resources under `inputs/raw/`; see `resources/README.md`.
-
-## Release validation
-
-After installing the required R environment:
+The full primary pipeline can be rerun with:
 
 ```bash
-Rscript scripts/release/check_public_json_counts.R
-Rscript scripts/release/validate_public_release.R
-Rscript scripts/sensitivity/cellmarkerdb/validate_cellmarkerdb_sensitivity_summary.R
+bash reproducibility/scripts/run_pipeline.sh \
+  --dataset Census_immune \
+  --masked-deg reproducibility/primary/Census_immune/model_inputs/maskdeg.csv
 ```
 
-The selector check additionally requires the Cell Ontology JSON.
-
-## Reproducibility limitations
-
-The retained project snapshot did not contain the original complete `renv.lock` or full `sessionInfo()` output. The software versions supported by the retained record are summarized in `sessionInfo.txt` and `docs/DEPENDENCIES.md`.
-
-
-## Core workflow runner
-
-A clean workflow wrapper is provided at:
-
-```bash
-bash scripts/run_pipeline.sh   --dataset Census_immune   --masked-deg data/primary/Census_immune/model_inputs/maskdeg.csv
-```
-
-The wrapper starts from anonymized cluster-level DEG input and runs the core reviewer, CL-Linker and adjudication stages through the final summary. Reference labels are only introduced when `--true-label-csv` is explicitly supplied for Step 11 evaluation.
-
-See `scripts/run_pipeline.sh --help` for runtime requirements.
-
-## CL-Linker evaluation
-
-```bash
-Rscript scripts/analysis/evaluate_cl_linker.R   --repo-root /path/to/Triage   --cl-json /path/to/CL-ontology-v2025-07-30.json
-```
-
-See `docs/CL_LINKER_EVALUATION.md`.
-
-## Repository scope
-
-Final manuscript figure-rendering and table-formatting scripts are not part of this public code package. The repository provides the core Triage/CL-Linker workflow, publication-facing cluster-level outputs and deterministic downstream evaluation/control scripts.
-
-
-## Provenance
-
-This repository uses `v1.0.0` as the public software release version. See `docs/PROVENANCE.md`.
+Reference labels are only introduced when `--true-label-csv` is explicitly
+supplied for Step 11 evaluation.
 
 ## Model configuration
 
-The reported primary benchmark used `deepseek-v4-flash` for the Handling Editor
-and Chief QC. A separate profiling / model-comparison experiment used
-`deepseek-reasoner` as Handling Editor and `deepseek-chat` as Chief QC; those
-identifiers are recorded only for that separate experiment and do not describe
-the primary workflow. See `docs/MODEL_CONFIGURATION.md`.
+The primary benchmark used `deepseek-v4-flash` for every LLM role
+(CASSIA/In-house/clusterProfiler reviewer-side calls, Handling Editor and
+Chief QC) at temperature 0. A separate profiling / model-comparison
+experiment used `deepseek-reasoner` as Handling Editor and `deepseek-chat`
+as Chief QC; alternatives (GPT-5.4, Gemini-3 Pro Preview, Claude Opus 4.5)
+used the same model for both roles with 1 run per dataset (DeepSeek:
+5 runs/dataset). See `docs/MODEL_CONFIGURATION.md` and
+`reproducibility/config/model_run_provenance.tsv`.
 
-## Model-generated interpretive text
+Never commit API credentials; placeholder values are written as `XXXXX`
+(`.env.example` documents the variables, e.g. `DEEPSEEK_API_KEY`).
 
-Reviewer rationales and final evidence summaries are model-generated
-interpretive text. They may incorporate prior biological knowledge, including
-canonical markers that are not present in the supplied DEG list. Such mentions
-should not be interpreted as independently measured expression evidence.
-Quantitative benchmark analyses do not use these prose fields.
+## External resources
 
+The Cell Ontology JSON ships with the package
+(`system.file("extdata/ontology", package = "Triage")`; env override
+`CL_LOCAL_JSON`). STRING/PPI, CollecTRI and CellMarkerDB spreadsheets are
+not redistributed; place local copies under `inputs/raw/` as specified in
+`resources/README.md` (checksums in `resources/CHECKSUMS.tsv`).
 
-## Model/provider provenance
+## Reproducibility notes
 
-Historical model identifiers and provider category are recorded in `docs/MODEL_CONFIGURATION.md` and `config/model_run_provenance.tsv`. Credentials and the exact runtime endpoint string are not embedded in the public repository.
+- Final adjudication JSONs, counts and expected results are frozen; the
+  release checksums are recorded in `MANIFEST_SHA256.tsv`.
+- Model-generated interpretive text (reviewer rationales, evidence prose)
+  should not be read as independently measured expression evidence;
+  quantitative benchmark analyses do not use these prose fields.
+- Reviewer metadata in the public final JSONs preserves reviewer labels/CL
+  assignments while `final_decision` remains the single
+  publication-facing authoritative state (`docs/REFERENCE_BOUNDARY.md`,
+  `docs/DATA_LAYOUT.md`).
+- The retained snapshot did not include a full `renv.lock`; supported
+  versions are summarized in `sessionInfo.txt` and `docs/DEPENDENCIES.md`.
 
+## Citation
 
-## Publication-facing reviewer metadata
+Citation information will be provided upon publication. Software release:
+Triage v1.0.0 (`VERSION`, `docs/PROVENANCE.md`).
 
-The public final JSON omits adjudication-relative reviewer fields
-(`final_cl_id`, `support_class`, `is_correct` and `matches_final_label`).
-Reviewer labels, reviewer CL assignments and model-generated rationale are
-retained, while `final_decision` is the single authoritative publication-facing
-final state.
+## License
 
-Within reviewer objects, `reviewer_cl_id` preserves the source-facing reviewer
-mapping and `cell_ontology_id` records the CL assignment in the Handling
-Editor's reviewer-specific method verdict. These values may differ after
-normalization or refinement. Selector analyses use the frozen reviewer CL IDs
-in `data/primary/selector_inputs.tsv`.
+MIT — see `LICENSE.md`.

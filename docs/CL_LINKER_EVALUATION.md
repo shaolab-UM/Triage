@@ -1,18 +1,18 @@
 # CL-Linker evaluation
 
-The release includes `scripts/analysis/evaluate_cl_linker.R`.
+The release includes `reproducibility/scripts/analysis/evaluate_cl_linker.R`.
 
 It checks the two evaluation layers described in the manuscript:
 
-1. **Direct mapping on 97 unique single-identity labels.** The script recomputes the OLS top-result, OLS exact and exact/synonym comparator outcome counts from archived per-label predictions. The publication-final CL-Linker row is retained as source data in `data/cl_linker/publication_direct_mapping_summary.tsv`.
-2. **Operational mapping on 140 reviewer annotations.** This is recomputed directly from `data/primary/reviewer_mapping_registry.tsv` and `data/cl_linker/manual_mapping_gold.tsv`, including coverage, exact/direct-parent mappings, overspecific mappings, incorrect mappings and abstentions. The ten mixed/ambiguous reference cases are also checked for single-ID withholding.
+1. **Direct mapping on 97 unique single-identity labels.** The script recomputes the OLS top-result, OLS exact and exact/synonym comparator outcome counts from archived per-label predictions. The publication-final CL-Linker row is retained as source data in `reproducibility/cl_linker/publication_direct_mapping_summary.tsv`.
+2. **Operational mapping on 140 reviewer annotations.** This is recomputed directly from `reproducibility/primary/reviewer_mapping_registry.tsv` and `reproducibility/cl_linker/manual_mapping_gold.tsv`, including coverage, exact/direct-parent mappings, overspecific mappings, incorrect mappings and abstentions. The ten mixed/ambiguous reference cases are also checked for single-ID withholding.
 
 The separate per-label output from the 97-label CL-Linker direct evaluation was not present in the project snapshot supplied for release assembly. The repository therefore does not fabricate that missing file. The final direct-mapping CL-Linker counts and paired-comparison statistics are distributed as publication source data.
 
 Run:
 
 ```bash
-Rscript scripts/analysis/evaluate_cl_linker.R   --repo-root /path/to/Triage   --cl-json /path/to/CL-ontology-v2025-07-30.json
+Rscript reproducibility/scripts/analysis/evaluate_cl_linker.R   --repo-root /path/to/Triage   --cl-json /path/to/CL-ontology-v2025-07-30.json
 ```
 
 Expected publication values include:

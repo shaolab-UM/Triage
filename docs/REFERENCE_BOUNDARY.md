@@ -9,7 +9,7 @@ Each primary dataset contains:
 - `model_inputs/maskdeg.csv`: differential-expression input with anonymized `cluster_N` identifiers.
 - `handling_editor_round1_inputs/*_round1.json`: the exact API-facing round-1 Handling Editor payload retained from the formal primary run.
 
-The 50 formal round-1 payloads were scanned during release assembly for benchmark/reference-like **field names**, local absolute paths and literal credentials. No such fields or local/secret values were detected. The system prompt itself states that reviewer hypotheses are “not ground truth”; this methodological phrase is not a benchmark-label input. Checksums and scan status are recorded in `data/primary/handling_editor_round1_manifest.tsv`.
+The 50 formal round-1 payloads were scanned during release assembly for benchmark/reference-like **field names**, local absolute paths and literal credentials. No such fields or local/secret values were detected. The system prompt itself states that reviewer hypotheses are “not ground truth”; this methodological phrase is not a benchmark-label input. Checksums and scan status are recorded in `reproducibility/primary/handling_editor_round1_manifest.tsv`.
 
 Older intermediate judge-input files are not published as formal inputs because they are not byte-identical to the retained API-facing payloads from the reported run.
 

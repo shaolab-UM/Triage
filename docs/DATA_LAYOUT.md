@@ -23,7 +23,7 @@ Expected total: 42 cluster JSON files.
 
 ## Publication-facing JSON records
 
-The released JSON files are retained publication-facing records. The historical transformation step used to prepare these cleaned public records is not included as an executable release step. The public package therefore validates the retained records directly with `scripts/release/check_public_json_counts.R` and `scripts/release/validate_public_release.R`.
+The released JSON files are retained publication-facing records. The historical transformation step used to prepare these cleaned public records is not included as an executable release step. The public package therefore validates the retained records directly with `reproducibility/scripts/release/check_public_json_counts.R` and `reproducibility/scripts/release/validate_public_release.R`.
 
 
 ## Reviewer metadata in publication-facing JSON
@@ -58,4 +58,4 @@ The two CL fields in a reviewer object have different provenance:
 
 These fields should not be used to reconstruct the selector controls. The
 authoritative frozen reviewer CL IDs used by the selector analyses are provided
-in `data/primary/selector_inputs.tsv`.
+in `reproducibility/selector_controls/selector_inputs.tsv`.

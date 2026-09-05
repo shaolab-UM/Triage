@@ -4,7 +4,7 @@ This release reconstructs the deterministic selector controls reported in Table 
 
 ## Inputs
 
-`data/primary/selector_inputs.tsv` contains the 50 primary benchmark clusters.
+`reproducibility/selector_controls/selector_inputs.tsv` contains the 50 primary benchmark clusters.
 
 Native score sources are:
 
@@ -38,4 +38,4 @@ Deferred selector outputs receive CL similarity 0, matching the publication anal
 
 Expected unavailable/deferred counts are 24/50 for majority vote, 9/50 for reviewer-score selection and 5/50 for the ontology-only control.
 
-`data/primary/selector_expected_tableS10.tsv` contains the publication summary used for the final check.
+`reproducibility/selector_controls/selector_expected_tableS10.tsv` contains the publication summary used for the final check.
