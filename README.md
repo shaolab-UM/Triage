@@ -84,7 +84,7 @@ Expected overall values:
 - Top reviewer after percentile normalization: 61.6773
 - Ontology-only control: 62.9211
 - Triage: 79.9790
-- Retrospective oracle: 83.7732 (reference-using maximum across the three reviewer outputs plus Triage)
+- Retrospective oracle: 84.9083 (reference-using maximum across the three reviewer outputs plus Triage, including the publication's label-mapped retrospective candidates; Table S10)
 
 ## CellMarkerDB sensitivity
 

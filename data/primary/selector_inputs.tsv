@@ -10,7 +10,7 @@ Census_immune	cluster_16	CL:0000826	Unresolved disagreement	CL:0000236	CL:000023
 Census_immune	cluster_2	CL:0000625	Incomplete reviewer resolution		CL:0000084	CL:0000900	96.0	0.5	0.9	CL:0000898	In-house	CL:0000084	76.97265210806603
 Census_immune	cluster_3	CL:1001610	Incomplete reviewer resolution		CL:0008001		93.0	0.325	0.9	CL:0008001	Triage	CL:0008001	32.5033114537478
 Census_immune	cluster_4	CL:0000990	Supported refinement	CL:0000451	CL:0000451	CL:0000990	94.0	0.95	0.9	CL:0000451	clusterProfiler	CL:0000990	100
-Census_immune	cluster_5	CL:0000910	Unresolved disagreement	CL:0000798	CL:0000084		95.0	0.875	0.9	CL:0000798	In-house	CL:0000084	54.23356042937625
+Census_immune	cluster_5	CL:0000910	Unresolved disagreement	CL:0000798	CL:0000084		95.0	0.875	0.9	CL:0000798	clusterProfiler	CL:0000910	100
 Census_immune	cluster_6	CL:0000764	Supported refinement	CL:0000764	CL:0000764	CL:0000038	88.0	0.0453	0.9	CL:0000764	CASSIA, In-house, Triage	CL:0000764	100
 Census_immune	cluster_7	CL:0000556	Incomplete reviewer resolution	CL:0000233	CL:0000556	CL:0000233	95.0	0.975	0.9	CL:0000233	In-house	CL:0000556	100
 Census_immune	cluster_8	CL:0002540	Incomplete reviewer resolution			CL:0000134	95.0		0.9	CL:0000134	clusterProfiler	CL:0000134	79.54950123200263
@@ -31,11 +31,11 @@ TS_kidney	cluster_2	CL:0000625	Reviewer consensus	CL:0000084	CL:0000084	CL:00000
 TS_kidney	cluster_3	CL:0002518	Unresolved disagreement		CL:0000066	CL:4030011		0.15	0.9	CL:0002306	Triage	CL:0002306	77.4812116275862
 TS_kidney	cluster_4	CL:0000235	Unresolved disagreement	CL:0000763	CL:0000763	CL:0002057	92.0	0.75	0.9	CL:0000860	CASSIA, In-house	CL:0000763	80.59941289988123
 TS_pancreas	cluster_1	CL:0000236	Unresolved disagreement	CL:0000236	CL:0000236	CL:0000787	88.0	0.325	0.9	CL:0000236	CASSIA, In-house, Triage	CL:0000236	100
-TS_pancreas	cluster_10	CL:0000169	Unresolved disagreement			CL:0000171			0.7	CL:0000171	clusterProfiler, Triage	CL:0000171	77.9644896778336
+TS_pancreas	cluster_10	CL:0000169	Unresolved disagreement			CL:0000171			0.7	CL:0000171	CASSIA	CL:0008024	87.6180296630766
 TS_pancreas	cluster_2	CL:0000625	Incomplete reviewer resolution		CL:0000084	CL:0000623		0.125	0.9	CL:0000084	In-house	CL:0000084	76.97265210806603
 TS_pancreas	cluster_3	CL:0000860	Incomplete reviewer resolution	CL:0000763	CL:0000763		90.0	0.15	0.9	CL:0000860	Triage	CL:0000860	100
 TS_pancreas	cluster_4	CL:0000115	Supported refinement	CL:0000115	CL:0000115			0.175	0.7	CL:0000115	CASSIA, In-house, Triage	CL:0000115	100
-TS_pancreas	cluster_5	CL:0000057	Unresolved disagreement			CL:0002064			0.7	CL:0008024	Triage	CL:0008024	2.67237875951802
+TS_pancreas	cluster_5	CL:0000057	Unresolved disagreement			CL:0002064			0.7	CL:0008024	In-house	CL:0000125	4.00684894126519
 TS_pancreas	cluster_6	CL:0000235	Unresolved disagreement	CL:0000235	CL:0000763	CL:4047053		0.2	0.9	CL:0000235	CASSIA, Triage	CL:0000235	100
 TS_pancreas	cluster_7	CL:0002064	Incomplete reviewer resolution	CL:0002079	CL:0000066				0.5	CL:0002064	Triage	CL:0002064	100
 TS_pancreas	cluster_8	CL:0002079	Supported refinement	CL:0002079	CL:0000066	CL:0002079			0.9	CL:0002079	CASSIA, clusterProfiler, Triage	CL:0002079	100
