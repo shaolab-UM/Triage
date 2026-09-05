@@ -1,0 +1,51 @@
+dataset	cluster_id	reference_cl_id	reviewer_relationship	cassia_cl_id	in_house_cl_id	clusterprofiler_cl_id	cassia_native_score	in_house_native_score	clusterprofiler_native_score	triage_cl_id	retrospective_oracle_reviewers	retrospective_oracle_cl_id	retrospective_oracle_similarity
+Census_immune	cluster_1	CL:0001054	Supported refinement	CL:0000576	CL:0000576	CL:0000860	98.0	0.95	0.9	CL:0000860	CASSIA, In-house	CL:0000576	87.18556069821263
+Census_immune	cluster_10	CL:0000898	Incomplete reviewer resolution	CL:0000084	CL:0000084			0.375	0.7	CL:0000898	Triage	CL:0000898	100
+Census_immune	cluster_11	CL:0000895	Supported refinement	CL:0000789	CL:0000084		93.0	0.7	0.9	CL:0000789	Triage	CL:0000789	60.1407724153449
+Census_immune	cluster_12	CL:0000623	Reviewer consensus	CL:0000623	CL:0000623	CL:0000623	95.0	1.0	0.9	CL:0000623	CASSIA, In-house, clusterProfiler, Triage	CL:0000623	100
+Census_immune	cluster_13	CL:0000786	Incomplete reviewer resolution		CL:0000945	CL:0000786		0.275	0.9	CL:0000786	clusterProfiler, Triage	CL:0000786	100
+Census_immune	cluster_14	CL:0000784	Supported refinement	CL:0000451	CL:0000451	CL:0000784	95.0	0.9	0.9	CL:0000784	clusterProfiler, Triage	CL:0000784	100
+Census_immune	cluster_15	CL:0000817	Unresolved disagreement	CL:0000236	CL:0000236	CL:0000786	88.0	0.575	0.9	CL:0000236	CASSIA, In-house	CL:0000236	79.21246478644801
+Census_immune	cluster_16	CL:0000826	Unresolved disagreement	CL:0000236	CL:0000236	CL:0000826	93.0	0.475	0.9	CL:0000826	clusterProfiler, Triage	CL:0000826	100
+Census_immune	cluster_2	CL:0000625	Incomplete reviewer resolution		CL:0000084	CL:0000900	96.0	0.5	0.9	CL:0000898	In-house	CL:0000084	76.97265210806603
+Census_immune	cluster_3	CL:1001610	Incomplete reviewer resolution		CL:0008001		93.0	0.325	0.9	CL:0008001	Triage	CL:0008001	32.5033114537478
+Census_immune	cluster_4	CL:0000990	Supported refinement	CL:0000451	CL:0000451	CL:0000990	94.0	0.95	0.9	CL:0000451	clusterProfiler	CL:0000990	100
+Census_immune	cluster_5	CL:0000910	Unresolved disagreement	CL:0000798	CL:0000084		95.0	0.875	0.9	CL:0000798	In-house	CL:0000084	54.23356042937625
+Census_immune	cluster_6	CL:0000764	Supported refinement	CL:0000764	CL:0000764	CL:0000038	88.0	0.0453	0.9	CL:0000764	CASSIA, In-house, Triage	CL:0000764	100
+Census_immune	cluster_7	CL:0000556	Incomplete reviewer resolution	CL:0000233	CL:0000556	CL:0000233	95.0	0.975	0.9	CL:0000233	In-house	CL:0000556	100
+Census_immune	cluster_8	CL:0002540	Incomplete reviewer resolution			CL:0000134	95.0		0.9	CL:0000134	clusterProfiler	CL:0000134	79.54950123200263
+Census_immune	cluster_9	CL:0000788	Unresolved disagreement		CL:0000236	CL:0000788	92.0	0.95	0.9	CL:0000236	clusterProfiler	CL:0000788	100
+Sikkema_lung	cluster_1	CL:0000084	Unresolved disagreement	CL:0000789	CL:0000084			0.325	0.9	CL:0000084	In-house, Triage	CL:0000084	100
+Sikkema_lung	cluster_10	CL:0002063	Unresolved disagreement	CL:0002063	CL:0000066	CL:0002063	88.0	0.1	0.9	CL:0002063	CASSIA, clusterProfiler, Triage	CL:0002063	100
+Sikkema_lung	cluster_11	CL:0000151	Incomplete reviewer resolution	CL:0000077	CL:0000066			0.225	0.5	CL:0000066	In-house, Triage	CL:0000066	4.94236691571295
+Sikkema_lung	cluster_2	CL:0000646	Unresolved disagreement	CL:0002633	CL:0000066	CL:0002329		0.1	0.7	CL:0000646	Triage	CL:0000646	100
+Sikkema_lung	cluster_3	CL:0002144	Supported refinement	CL:0000115	CL:0000115		90.0	0.275	0.7	CL:0000115	CASSIA, In-house, Triage	CL:0000115	79.1260640546
+Sikkema_lung	cluster_4	CL:0000064	Incomplete reviewer resolution	CL:0000067	CL:0000066		88.0	0.125	0.5	CL:0000067	CASSIA	CL:0000067	98.93516491675433
+Sikkema_lung	cluster_5	CL:0000057	Incomplete reviewer resolution	CL:0000057	CL:0008019	CL:0000057	90.0	0.15	0.9	CL:0000057	CASSIA, clusterProfiler, Triage	CL:0000057	100
+Sikkema_lung	cluster_6	CL:0000235	Supported refinement	CL:0000235	CL:0000235	CL:0000583		0.25	0.9	CL:0000235	CASSIA, In-house, Triage	CL:0000235	100
+Sikkema_lung	cluster_7	CL:0000097	Unresolved disagreement	CL:0000236	CL:0000236		88.0		0.5	CL:0000236	Triage	CL:0000236	33.9249576530237
+Sikkema_lung	cluster_8	CL:0000576	Unresolved disagreement	CL:0000763	CL:0000576			0.475	0.7	CL:0000576	In-house, Triage	CL:0000576	100
+Sikkema_lung	cluster_9	CL:0000623	Unresolved disagreement	CL:0000910	CL:0000084	CL:0000939		0.25	0.9	CL:0000623	Triage	CL:0000623	100
+TS_kidney	cluster_1	CL:0000236	Reviewer consensus	CL:0000236	CL:0000236	CL:0000236		0.625	0.9	CL:0000236	CASSIA, In-house, clusterProfiler, Triage	CL:0000236	100
+TS_kidney	cluster_2	CL:0000625	Reviewer consensus	CL:0000084	CL:0000084	CL:0000084		0.375	0.9	CL:0000084	CASSIA, In-house, clusterProfiler	CL:0000084	76.97265210806603
+TS_kidney	cluster_3	CL:0002518	Unresolved disagreement		CL:0000066	CL:4030011		0.15	0.9	CL:0002306	Triage	CL:0002306	77.4812116275862
+TS_kidney	cluster_4	CL:0000235	Unresolved disagreement	CL:0000763	CL:0000763	CL:0002057	92.0	0.75	0.9	CL:0000860	CASSIA, In-house	CL:0000763	80.59941289988123
+TS_pancreas	cluster_1	CL:0000236	Unresolved disagreement	CL:0000236	CL:0000236	CL:0000787	88.0	0.325	0.9	CL:0000236	CASSIA, In-house, Triage	CL:0000236	100
+TS_pancreas	cluster_10	CL:0000169	Unresolved disagreement			CL:0000171			0.7	CL:0000171	clusterProfiler, Triage	CL:0000171	77.9644896778336
+TS_pancreas	cluster_2	CL:0000625	Incomplete reviewer resolution		CL:0000084	CL:0000623		0.125	0.9	CL:0000084	In-house	CL:0000084	76.97265210806603
+TS_pancreas	cluster_3	CL:0000860	Incomplete reviewer resolution	CL:0000763	CL:0000763		90.0	0.15	0.9	CL:0000860	Triage	CL:0000860	100
+TS_pancreas	cluster_4	CL:0000115	Supported refinement	CL:0000115	CL:0000115			0.175	0.7	CL:0000115	CASSIA, In-house, Triage	CL:0000115	100
+TS_pancreas	cluster_5	CL:0000057	Unresolved disagreement			CL:0002064			0.7	CL:0008024	Triage	CL:0008024	2.67237875951802
+TS_pancreas	cluster_6	CL:0000235	Unresolved disagreement	CL:0000235	CL:0000763	CL:4047053		0.2	0.9	CL:0000235	CASSIA, Triage	CL:0000235	100
+TS_pancreas	cluster_7	CL:0002064	Incomplete reviewer resolution	CL:0002079	CL:0000066				0.5	CL:0002064	Triage	CL:0002064	100
+TS_pancreas	cluster_8	CL:0002079	Supported refinement	CL:0002079	CL:0000066	CL:0002079			0.9	CL:0002079	CASSIA, clusterProfiler, Triage	CL:0002079	100
+TS_pancreas	cluster_9	CL:0002410	Unresolved disagreement	CL:0002064	CL:0000188	CL:0002410			0.9	CL:0002410	clusterProfiler, Triage	CL:0002410	100
+Zheng_blood	cluster_1	CL:0000236	Unresolved disagreement	CL:0000236	CL:0000236	CL:0000785	95.0	0.9	0.9	CL:0000236	CASSIA, In-house, Triage	CL:0000236	100
+Zheng_blood	cluster_2	CL:0001054	Supported refinement	CL:0000576	CL:0000576	CL:0000860	97.0	0.95	0.9	CL:0000860	CASSIA, In-house	CL:0000576	87.18556069821263
+Zheng_blood	cluster_3	CL:0000938	Reviewer consensus	CL:0000623	CL:0000623	CL:0000623	96.0	1.0	0.9	CL:0000623	CASSIA, In-house, clusterProfiler	CL:0000623	72.31211247614021
+Zheng_blood	cluster_4	CL:0000792	Incomplete reviewer resolution		CL:0000084				0.7	CL:0000789	Triage	CL:0000789	74.1530209215906
+Zheng_blood	cluster_5	CL:0000794	Unresolved disagreement	CL:0000794	CL:0000084	CL:0000910	95.0	0.75	0.9	CL:0000625	CASSIA	CL:0000794	100
+Zheng_blood	cluster_6	CL:0000905	Supported refinement	CL:0000084	CL:0000084	CL:0000895	88.0	0.425	0.7	CL:0000084	clusterProfiler	CL:0000895	56.27543191296919
+Zheng_blood	cluster_7	CL:0000037	Incomplete reviewer resolution		CL:0008001		95.0	0.325	0.9	CL:0008001	Triage	CL:0008001	76.0971911039702
+Zheng_blood	cluster_8	CL:0000895	Supported refinement	CL:0000084	CL:0000084	CL:0000898	88.0	0.9444	0.9	CL:0000898	clusterProfiler	CL:0000898	89.01635127535505
+Zheng_blood	cluster_9	CL:0000900	Incomplete reviewer resolution		CL:0000084		95.0	0.6786	0.9	CL:0000084	In-house	CL:0000084	54.23356042937625
