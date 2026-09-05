@@ -8,17 +8,15 @@ produces the final adjudication record.
 
 ## Requirements
 
+- `DEEPSEEK_API_KEY` (or point `LLM_API_KEY_ENV` at another variable)
 - An OpenAI-compatible chat-completions endpoint (full URL including
-  `/chat/completions`):
-  - `DEEPSEEK_API_KEY` (or point `LLM_API_KEY_ENV` at another variable)
-  - `LLM_API_BASE_URL` (full chat-completions endpoint URL, e.g.
-    `https://api.deepseek.com/chat/completions`)
-- Model configuration (matches the final manuscript):
-  - Primary workflow: all roles use `deepseek-v4-flash`, temperature 0
-  - Profiling experiment (separate): Handling Editor `deepseek-reasoner`,
-    Chief QC `deepseek-chat`
-  - Alternatives: GPT-5.4 / Gemini-3 Pro Preview / Claude Opus 4.5,
-    same model for both roles, 1 run per dataset (DeepSeek: 5 runs/dataset)
+  `/chat/completions`) in `LLM_API_BASE_URL`, e.g.
+  `https://api.deepseek.com/chat/completions`
+
+The demo uses the package default model unless you pass a different one
+to `run_triage_adjudication(model = ...)`. This example covers only the
+package API path (Handling Editor + deterministic postprocessing); the
+full publication benchmark orchestration is in `reproducibility/scripts/`.
 
 ## Files
 

@@ -18,7 +18,7 @@ fin <- run_triage_adjudication(
   jin,
   ontology = ontology,
   use_api = TRUE,
-  model = "deepseek-v4-flash",   # primary workflow: all roles v4-flash, temp 0
+  model = "deepseek-v4-flash",   # package default
   temperature = 0,
   prompt_profile = "compact",
   dataset_name = "ts_pancreas",

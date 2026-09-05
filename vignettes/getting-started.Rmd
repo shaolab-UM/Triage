@@ -116,10 +116,9 @@ fin <- run_triage_adjudication(
 )
 attr(fin, "gate")$ok
 
-# API path (primary workflow: all roles deepseek-v4-flash, temp 0):
+# API path (uses the package default model):
 # fin <- run_triage_adjudication(jin, ontology = ontology,
-#          use_api = TRUE, model = "deepseek-v4-flash",
-#          temperature = 0, prompt_profile = "compact")
+#          use_api = TRUE, temperature = 0, prompt_profile = "compact")
 ```
 
 ## 7. Validating results

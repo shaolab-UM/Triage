@@ -152,14 +152,8 @@ supplied for Step 11 evaluation.
 
 ## Model configuration
 
-The primary benchmark used `deepseek-v4-flash` for every LLM role
-(CASSIA/In-house/clusterProfiler reviewer-side calls, Handling Editor and
-Chief QC) at temperature 0. A separate profiling / model-comparison
-experiment used `deepseek-reasoner` as Handling Editor and `deepseek-chat`
-as Chief QC; alternatives (GPT-5.4, Gemini-3 Pro Preview, Claude Opus 4.5)
-used the same model for both roles with 1 run per dataset (DeepSeek:
-5 runs/dataset). See `docs/MODEL_CONFIGURATION.md` and
-`reproducibility/config/model_run_provenance.tsv`.
+Model configurations used for the reported analyses are recorded in
+`docs/MODEL_CONFIGURATION.md` and `reproducibility/config/`.
 
 Never commit API credentials; placeholder values are written as `XXXXX`
 (`.env.example` documents the variables, e.g. `DEEPSEEK_API_KEY`).
