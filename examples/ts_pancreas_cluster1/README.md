@@ -8,9 +8,11 @@ produces the final adjudication record.
 
 ## Requirements
 
-- A DeepSeek-compatible endpoint:
+- An OpenAI-compatible chat-completions endpoint (full URL including
+  `/chat/completions`):
   - `DEEPSEEK_API_KEY` (or point `LLM_API_KEY_ENV` at another variable)
-  - `LLM_API_BASE_URL` (default: DeepSeek production endpoint)
+  - `LLM_API_BASE_URL` (full chat-completions endpoint URL, e.g.
+    `https://api.deepseek.com/chat/completions`)
 - Model configuration (matches the final manuscript):
   - Primary workflow: all roles use `deepseek-v4-flash`, temperature 0
   - Profiling experiment (separate): Handling Editor `deepseek-reasoner`,
@@ -26,7 +28,7 @@ produces the final adjudication record.
 
 ```r
 Sys.setenv(DEEPSEEK_API_KEY = "sk-...")       # or use ~/.Renviron
-Sys.setenv(LLM_API_BASE_URL = "https://api.deepseek.com")
+Sys.setenv(LLM_API_BASE_URL = "https://api.deepseek.com/chat/completions")
 source("examples/ts_pancreas_cluster1/run_demo_api.R")
 ```
 

@@ -16,6 +16,9 @@ Before running the workflow, set the corresponding environment variables. In par
 DEEPSEEK_API_KEY=XXXXX
 DISGENET_API_KEY=XXXXX
 LLM_API_BASE_URL=XXXXX
+
+`LLM_API_BASE_URL` is the full chat-completions endpoint URL (including
+`/chat/completions`); it is used as the POST target as-is.
 TRIAGE_HOME=XXXXX
 PROJECT_ROOT=XXXXX
 CL_LOCAL_JSON=XXXXX
