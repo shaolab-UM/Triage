@@ -16,7 +16,7 @@
 # Step 5: risk-based Verifier (high-risk cases only, markers/context/MapperOutput)
 #     Step 6: deterministic ontology validation (frozen CL graph)
 #
-#   Output (a single audit table):
+#   Output (a single mapping registry):
 #     data/primary/reviewer_mapping_registry.tsv
 #
 # Public release version: v1.0.0
@@ -40,9 +40,9 @@ option_list <- list(
   make_option("--temperature", type = "double", default = 0),
   make_option("--no_cache", action = "store_true", default = FALSE),
   make_option("--max_tokens", type = "integer", default = 300L),
-  make_option("--dataset", type = "character", default = "", help = "Process only the specified dataset (test mode)"),
-  make_option("--cluster_id", type = "character", default = "", help = "Process only the specified cluster (test mode)"),
-  make_option("--reviewer", type = "character", default = "", help = "Process only the specified reviewer: cassia/in_house/enrichment (test mode)")
+  make_option("--dataset", type = "character", default = "", help = "Process only the specified dataset (subset run)"),
+  make_option("--cluster_id", type = "character", default = "", help = "Process only the specified cluster (subset run)"),
+  make_option("--reviewer", type = "character", default = "", help = "Process only the specified reviewer: cassia/in_house/enrichment (subset run)")
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 
@@ -465,14 +465,14 @@ scope_parts <- c(if (nzchar(opt$dataset)) opt$dataset else NULL,
                  if (nzchar(opt$cluster_id)) opt$cluster_id else NULL,
                  if (nzchar(opt$reviewer)) opt$reviewer else NULL)
 scope_tag <- if (is_filtered_run) {
-  paste0("_smoke_", gsub("[^A-Za-z0-9_]+", "_", paste(scope_parts, collapse = "_")))
+  paste0("_subset_", gsub("[^A-Za-z0-9_]+", "_", paste(scope_parts, collapse = "_")))
 } else ""
 
 if (nzchar(opt$dataset)) instances <- Filter(function(x) x$dataset == opt$dataset, instances)
 if (nzchar(opt$cluster_id)) instances <- Filter(function(x) x$cluster_id == opt$cluster_id, instances)
 if (nzchar(opt$reviewer)) instances <- Filter(function(x) x$reviewer == opt$reviewer, instances)
-if (length(instances) == 0L) stop("No instances remain after smoke-test filters")
-cat("Total instances:", length(instances), if (is_filtered_run) "(smoke test)" else "(full registry)", "\n")
+if (length(instances) == 0L) stop("No instances remain after subset filters")
+cat("Total instances:", length(instances), if (is_filtered_run) "(subset run)" else "(full registry)", "\n")
 
 registry_filename <- paste0("reviewer_mapping_registry", scope_tag, ".tsv")
 # ============ Resume from partial output (Version) ============

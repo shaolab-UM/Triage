@@ -19,9 +19,9 @@ option_list <- list(
   make_option("--deg", type = "character", help = "User DEG/marker table (csv or tsv)"),
   make_option("--out-dir", type = "character", help = "Output directory"),
   make_option("--cluster-id", type = "character", default = NULL,
-              help = "Optional: restrict preparation to this anonymous cluster id (for example cluster_1; smoke test)"),
+              help = "Optional: restrict preparation to this anonymous cluster id (for example cluster_1; single-cluster preview)"),
   make_option("--n-clusters", type = "numeric", default = NULL,
-              help = "Optional: restrict preparation to the first N clusters after deterministic mapping (smoke test)")
+              help = "Optional: restrict preparation to the first N clusters after deterministic mapping (single-cluster preview)")
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 
