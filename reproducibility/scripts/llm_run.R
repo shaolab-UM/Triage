@@ -17,12 +17,12 @@ suppressPackageStartupMessages({
 PROJECT_ROOT <- Sys.getenv("PROJECT_ROOT", unset = Sys.getenv("TRIAGE_HOME", unset = getwd()))
 
 # --- Optional CL normalization (for candidate CLID enrichment) ---
-cl_normalizer_path <- Sys.getenv("CL_NORMALIZER_PATH", unset = file.path(PROJECT_ROOT, "config", "cl_normalizer.R"))
-if (!file.exists(cl_normalizer_path)) cl_normalizer_path <- file.path(PROJECT_ROOT, "cl_normalizer.R")
-if (file.exists(cl_normalizer_path)) {
+# CL normalization logic ships with the Triage package namespace
+# (loaded by the sourcing scripts); CL_NORMALIZER_PATH is an optional
+# override for advanced users only.
+cl_normalizer_path <- Sys.getenv("CL_NORMALIZER_PATH", unset = "")
+if (nzchar(cl_normalizer_path) && file.exists(cl_normalizer_path)) {
   source(cl_normalizer_path)
-} else {
-  warning("cl_normalizer.R not found; candidate CLID enrichment disabled.")
 }
 
 CL_LOCAL_JSON <- Sys.getenv("CL_LOCAL_JSON", unset = file.path(PROJECT_ROOT, "inputs", "raw", "ontology", "CL-ontology-v2025-07-30.json"))
@@ -31,9 +31,8 @@ CL_GRAPH_CACHE <- NULL
 
 get_cl_cfg <- function() {
   if (!is.null(CL_CFG_CACHE)) return(CL_CFG_CACHE)
-  if (!exists("make_cl_cfg")) return(NULL)
   if (!nzchar(CL_LOCAL_JSON) || !file.exists(CL_LOCAL_JSON)) return(NULL)
-  CL_CFG_CACHE <<- make_cl_cfg(CL_LOCAL_JSON, prefer_ols = FALSE, cache_dir = "")
+  CL_CFG_CACHE <<- Triage:::make_cl_cfg(CL_LOCAL_JSON, prefer_ols = FALSE, cache_dir = "")
   CL_CFG_CACHE
 }
 
@@ -1576,9 +1575,9 @@ build_llm_input_data_object <- function(qid,
     )
 
   cl_cfg <- get_cl_cfg()
-  if (!is.null(cl_cfg) && exists("normalize_cl_three_state")) {
+  if (!is.null(cl_cfg)) {
     norm_clids <- purrr::map_chr(candidates_df_subset$Candidate_Cell_Type, function(lbl) {
-      m <- normalize_cl_three_state(lbl, "", cl_cfg)
+      m <- Triage:::normalize_cl_three_state(lbl, "", cl_cfg)
       as.character(m$final_clid %||% "")
     })
     candidates_df_subset$Cell_Ontology_ID <- ifelse(
@@ -1885,6 +1884,7 @@ generate_expert_report_query <- function(processed_deg_data,
     "CL_CFG_CACHE" = CL_CFG_CACHE,
     "CL_GRAPH_CACHE" = CL_GRAPH_CACHE,
     "CL_LOCAL_JSON" = CL_LOCAL_JSON,
+    "PROJECT_ROOT" = PROJECT_ROOT,
     "get_cl_graph" = get_cl_graph,
     "cl_normalizer_path" = cl_normalizer_path,
     
@@ -1926,11 +1926,9 @@ generate_expert_report_query <- function(processed_deg_data,
       
       step_tag <- "init"
       tryCatch({
-        if (exists("cl_normalizer_path") && nzchar(cl_normalizer_path) && file.exists(cl_normalizer_path)) {
-          if (!exists("normalize_cl_three_state", inherits = FALSE)) {
-            source(cl_normalizer_path)
-          }
-        }
+        # CL normalization comes from the Triage package namespace; the
+        # optional CL_NORMALIZER_PATH override was sourced at load time.
+        NULL
         
         if (!is.null(disgenet_api_key) && nzchar(disgenet_api_key)) {
           Sys.setenv(DISGENET_API_KEY = disgenet_api_key)

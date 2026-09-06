@@ -1,0 +1,452 @@
+{
+  "cluster_id": "cluster_1",
+  "cluster_state": "clean",
+  "final_decision": {
+    "primary_cell_type": "monocyte",
+    "secondary_signals": [
+      "classical monocyte",
+      "Classical CD14⁺ monocyte (CD14⁺⁺ CD16⁻)"
+    ],
+    "mixture_explanation": "No orthogonal lineage or contamination signal is present; the cluster profile is consistent with a single classical monocyte population.",
+    "final_cell_ontology_id": "CL:0000576",
+    "decision_category": "tie",
+    "confidence_primary": 0.96
+  },
+  "method_verdict": {
+    "cassia": {
+      "predicted_cell_type": "classical monocyte",
+      "cell_ontology_id": "CL:0000860",
+      "strengths": [
+        "Maps with high confidence to CL:0000860, which is the most specific ontology-valid identity supported by CD14, S100A8, S100A9, S100A12, FCN1, LYZ, MNDA, and CSF3R.",
+        "Correctly distinguishes classical CD14-high CD16-negative monocytes from intermediate and non-classical CD16-positive subsets."
+      ],
+      "weaknesses": [
+        "Lower-ranked alternatives include intermediate/non-classical monocyte states despite no FCGR3A/CD16 evidence in the original top DEG list."
+      ],
+      "matches_final_label": true,
+      "support_class": "compatible_descendant",
+      "reviewer_cl_id": "CL:0000860",
+      "final_cl_id": "CL:0000576",
+      "is_correct": true
+    },
+    "our_method": {
+      "predicted_cell_type": "myeloid cell",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "The marker profile is clearly myeloid/monocytic, so the broad ancestor label is lineage-supported.",
+        "Its top-k includes monocyte and classical monocyte, agreeing with the more specific branch after hierarchical refinement."
+      ],
+      "weaknesses": [
+        "Top1 selection as 'myeloid cell' is under-resolved; CD14, FCN1, S100A8/S100A9/S100A12 directly support the more specific classical monocyte identity (CL:0000860)."
+      ],
+      "matches_final_label": false,
+      "support_class": "compatible_parent",
+      "reviewer_cl_id": "CL:0000763",
+      "final_cl_id": "CL:0000576",
+      "is_correct": true
+    },
+    "enrich": {
+      "predicted_cell_type": "classical monocyte",
+      "cell_ontology_id": "CL:0000860",
+      "strengths": [
+        "Directly recognizes the CD14/S100/FCN1 classical monocyte signature and returns the exact most specific cell type.",
+        "Reasoning correctly uses absence of T/NK/DC lineage markers as negative evidence."
+      ],
+      "weaknesses": [
+        "Relies on the same marker set as CASSIA; enrichment does not add a substantially independent biological signal beyond marker interpretation."
+      ],
+      "matches_final_label": true,
+      "support_class": "compatible_descendant",
+      "reviewer_cl_id": "CL:0000860",
+      "final_cl_id": "CL:0000576",
+      "is_correct": true
+    },
+    "inter": {
+      "predicted_cell_type": "classical monocyte",
+      "cell_ontology_id": "CL:0000860",
+      "strengths": [
+        "Directly recognizes the CD14/S100/FCN1 classical monocyte signature and returns the exact most specific cell type.",
+        "Reasoning correctly uses absence of T/NK/DC lineage markers as negative evidence."
+      ],
+      "weaknesses": [
+        "Relies on the same marker set as CASSIA; enrichment does not add a substantially independent biological signal beyond marker interpretation."
+      ],
+      "matches_final_label": true,
+      "support_class": "compatible_descendant",
+      "reviewer_cl_id": "CL:0000860",
+      "final_cl_id": "CL:0000576",
+      "is_correct": true
+    },
+    "in_house": {
+      "predicted_cell_type": "myeloid cell",
+      "cell_ontology_id": "CL:0000763",
+      "strengths": [
+        "The marker profile is clearly myeloid/monocytic, so the broad ancestor label is lineage-supported.",
+        "Its top-k includes monocyte and classical monocyte, agreeing with the more specific branch after hierarchical refinement."
+      ],
+      "weaknesses": [
+        "Top1 selection as 'myeloid cell' is under-resolved; CD14, FCN1, S100A8/S100A9/S100A12 directly support the more specific classical monocyte identity (CL:0000860)."
+      ],
+      "matches_final_label": false,
+      "support_class": "compatible_parent",
+      "reviewer_cl_id": "CL:0000763",
+      "final_cl_id": "CL:0000576",
+      "is_correct": true
+    }
+  },
+  "audit_report": {
+    "reviewer_support": {
+      "cassia_supported": true,
+      "our_supported": true,
+      "enrich_supported": true,
+      "inter_supported": true
+    },
+    "flags": [],
+    "notes": "CASSIA and enrichment are directly supported at CL:0000860 by CD14, FCN1, S100A8, S100A9, S100A12, and absence of FCGR3A/CD16. In-house is supported only at the broad ancestor level CL:0000763 but is under-specific; this is resolved by hierarchical refinement to classical monocyte, not by a contradictory lineage. lock_id=CL:0000763; lock_reason=consensus_msca; greedy_target=NA; chosen=monocyte; chosen_clid=CL:0000576; margin=1.7750; reasons=; review=; alternatives=classical monocyte|Classical CD14⁺ monocyte (CD14⁺⁺ CD16⁻)|classical monocyte coerce: cassia:mapped_evidence:CL:0000860->CL:0000860;our:mapped:CL:0000763->CL:0000763;our:mapped:CL:0000576->CL:0000576;our:mapped:CL:0000860->CL:0000860;enrich:mapped:CL:0000860->CL:0000860 branch_gate_reject: classical monocyte|CL:0000860; Classical CD14⁺ monocyte (CD14⁺⁺ CD16⁻)|CL:0000860; classical monocyte|CL:0000860; monocyte|CL:0000576"
+  },
+  "third_party_adjudication": {
+    "primary_cell_type": null,
+    "confidence": 0,
+    "evidence_pointers": [],
+    "why_reviewers_failed": ""
+  },
+  "evidence": {
+    "supporting": [
+      "Original top DEGs include CD14, FCN1, S100A8, S100A9, S100A12, LYZ, MNDA, and CSF3R, directly supporting classical monocyte identity (PMID 27569562).",
+      "CD14-positive and CD16-negative specificity is supported by CD14 presence and lack of FCGR3A/CD16 in the provided top marker list.",
+      "Ontology refinement from CL:0000763 to CL:0000860 is supported by monocyte/classical-monocyte markers present in the original DEG evidence."
+    ],
+    "conflicting": [
+      "No T-cell, B-cell, NK-cell, or erythroid/platelet markers such as CD3D, CD19, FCGR3A/FGFBP2, or HBB appear among the top DEGs, ruling out those alternative lineages.",
+      "Granulocyte/neutrophil-related enrichment terms such as Neutrophil degranulation are best explained by S100 alarmin and shared myeloid expression, not by a separate neutrophil population."
+    ],
+    "enrichment_or_literature": [
+      "PMID 27569562 was used as an allowed literature citation supporting the classical monocyte conclusion.",
+      "Phagocytosis, innate immune activation, TLR regulation, and respiratory-burst terms are consistent with classical monocyte biology but are not used alone to set the identity."
+    ],
+    "cited_pmids": [
+      "27569562"
+    ],
+    "cited_enrichment_terms": []
+  },
+  "post_issues": {
+    "needs_manual_review": false,
+    "flags": [
+      "deterministic_hierarchical_adjustment_from_head",
+      "ontology_id_mismatch"
+    ],
+    "notes": "No unresolved mixture, contamination, or lineage-conflict evidence; annotation is clean classical monocyte. Allowed ontology-hierarchical specificity calibration from Head CL:0000860 to real supported reviewer candidate CL:0000576; relation=deterministic_ancestor_of_head.",
+    "audit_flags": [
+      "deterministic_hierarchical_adjustment_from_head",
+      "input_ontology_disagreement_resolved"
+    ],
+    "auto_qc_flags": [],
+    "release_blockers": [],
+    "release_state": "release_with_audit_note",
+    "policy_version": "auto",
+    "chief_qc_status": "passed",
+    "chief_qc_round": 1
+  },
+  "manual_review_plan": {
+    "priority": null,
+    "goals": [],
+    "actions": []
+  },
+  "method_aliases": {
+    "our_method": "in_house"
+  },
+  "judge_config": {
+    "enabled_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "mode_selected": "aggressive",
+    "script_version": "v1.0.0",
+    "prompt_profile": "compact",
+    "run_timestamp": "2026-09-06T17:35:58+0800"
+  },
+  "judge_params": {
+    "min_depth_for_eligibility": 3,
+    "delta_depth": 2,
+    "disable_aggressive_trigger": false,
+    "gate_mode": "fixed_k",
+    "gate_k": 2,
+    "enable_method_reliability_gate": false,
+    "enable_aggressive_lca_hard_guard": true,
+    "protect_lock_inputs": false,
+    "meta_reviewer_gate": false,
+    "identity_policy": "ontology_guarded",
+    "min_votes": 1,
+    "min_margin": 0.12,
+    "strong_score": 0.6,
+    "expand_depth_k": 3,
+    "score_lambda": 2.5,
+    "lock_beta": 1.5,
+    "conflict_delta": 3,
+    "specificity_eps": 0.05,
+    "branch_gate_slack": 1
+  },
+  "decision_trace": {
+    "mode_selected": "aggressive",
+    "mode_trigger_reason": "Aggressive mode enabled: consensus_msca lock depth gap 3.00 >= 2.",
+    "lock_id_original": "CL:0000763",
+    "lock_id_final_used": "CL:0000763",
+    "lock_id": "CL:0000763",
+    "lock_source": "cassia,our,enrich",
+    "lock_source_methods": [
+      "cassia",
+      "our",
+      "enrich"
+    ],
+    "direct_consensus_clid": "CL:0000860",
+    "direct_consensus_votes": 2,
+    "direct_consensus_fraction": 0.6667,
+    "direct_consensus_reason": "direct_top1_majority_2of3",
+    "reviewer_anchor_id": "CL:0000860",
+    "reviewer_anchor_source": "direct_top1_majority",
+    "identity_policy": "ontology_guarded",
+    "reviewer_candidate_source": "step08_frozen_reviewer_candidates",
+    "head_identity_valid": true,
+    "head_identity_clid": "CL:0000860",
+    "head_identity_label": "classical monocyte",
+    "head_identity_preserved": false,
+    "head_identity_restore_applied": false,
+    "head_identity_candidate_present": true,
+    "head_deterministic_relation": "deterministic_ancestor_of_head",
+    "identity_resolution_action": "hierarchical_broadening_allowed",
+    "hierarchical_adjustment_applied": true,
+    "hierarchical_adjustment_candidate_present": true,
+    "hierarchical_adjustment_candidate_supported": true,
+    "deterministic_pre_preserve_clid": "CL:0000576",
+    "deterministic_pre_preserve_label": "monocyte",
+    "consensus_override_attempted": false,
+    "consensus_override_allowed": null,
+    "consensus_override_reason": "final_matches_direct_consensus_anchor",
+    "override_candidate_clid": "CL:0000860",
+    "override_relation_to_anchor": "same_clid",
+    "contrastive_shared_score": "NA",
+    "contrastive_candidate_unique_score": "NA",
+    "contrastive_anchor_unique_score": "NA",
+    "contrastive_margin": "NA",
+    "contrastive_candidate_total_score": "NA",
+    "contrastive_anchor_total_score": "NA",
+    "contrastive_candidate_real_methods": [],
+    "contrastive_override_min_margin": 0.5,
+    "consensus_override_forced_anchor": false,
+    "consensus_override_gate_stage": "final_pre_canonicalization",
+    "pre_consensus_final_clid": "CL:0000860",
+    "pre_consensus_final_label": "classical monocyte",
+    "direct_consensus_anchor_reintroduced": false,
+    "decision_category_before_consistency": "tie",
+    "decision_category_after_consistency": "tie",
+    "decision_category_consistency_repaired": false,
+    "decision_category_consistency_reason": "",
+    "decision_category_preferred_top1_clid": null,
+    "decision_category_relation_to_final": "",
+    "lock_reason": "consensus_msca",
+    "lock_depth": 2,
+    "supported_lca_clid": "CL:0000860",
+    "supported_lca_depth": 5,
+    "depth_gap": 3,
+    "eligible_n": 2,
+    "support_n": 2,
+    "support_gate_mode": "fixed_k",
+    "support_gate_threshold": 2,
+    "support_gate_threshold_effective": 2,
+    "support_gate_pass": true,
+    "branch_gate_relaxed_due_to_missing_support": null,
+    "decision_category_original": "tie",
+    "decision_category_v2": "tie_or_override",
+    "preferred_method": null,
+    "final_rule": "ontology_guarded_hierarchical_broadening",
+    "final_method_lock_applied": false,
+    "final_method_lock_method": "",
+    "final_method_lock_from_clid": null,
+    "final_method_lock_to_clid": null,
+    "final_method_lock_recommendation": null,
+    "tissue_filter_applied": false,
+    "tissue_filter_reason": "llm_tissue_classifier_missing_keep_all",
+    "tissue_filter_labels": [
+      "blood"
+    ],
+    "tissue_filter_n_before": 5,
+    "tissue_filter_n_after": 5,
+    "tissue_filter_results": [],
+    "tissue_filter_summary": {
+      "n_in": 0,
+      "n_out": 0,
+      "n_uncertain": 0,
+      "suspect_leak": false,
+      "suspect_leak_reason": ""
+    },
+    "tissue_hard_constraint_applied": false,
+    "tissue_hard_constraint_tokens": [],
+    "tissue_hard_constraint_roots": [
+      "blood"
+    ],
+    "tissue_hard_constraint_from_clid": null,
+    "tissue_hard_constraint_to_clid": null,
+    "tissue_hard_constraint_reason": "deprecated_filter_not_applied:llm_tissue_classifier_missing_keep_all",
+    "aggressive_lca_hard_guard_applied": false,
+    "method_reliability": [
+      {
+        "method": "cassia",
+        "score": 1,
+        "is_primary": true,
+        "reasons": []
+      },
+      {
+        "method": "our",
+        "score": 1,
+        "is_primary": true,
+        "reasons": []
+      },
+      {
+        "method": "enrich",
+        "score": 1,
+        "is_primary": true,
+        "reasons": []
+      }
+    ],
+    "meta_reviewer_decisions": [],
+    "anchor_fallback_happened": false,
+    "post_fallback_override_applied": false,
+    "post_fallback_override_reason": "",
+    "post_fallback_why_not_override": "",
+    "post_fallback_rule1_gate_n": 0,
+    "post_fallback_rule1_soft_n": 0,
+    "post_fallback_rule2_gate_n": 0,
+    "post_fallback_rule2_soft_n": 0,
+    "lock_unsteady": false,
+    "lock_unsteady_reasons": "",
+    "instability_pool_n": 0,
+    "gate_pool_n": 0,
+    "soft_pool_n": 0,
+    "shadow_pool_n": 0,
+    "gate_reject_total_n": 0,
+    "gate_reject_descendant_n": 0,
+    "gate_reject_descendant_by_stage": [],
+    "shadow_kept_n": 0,
+    "shadow_stage_flagged_n": 0,
+    "shadow_empty_reason": "no_rejects",
+    "shadow_desc_filter_counts": "{\"missing_clid\":0,\"not_descendant\":0,\"require_deeper_fail\":0,\"generic_filtered\":0,\"pass\":0}",
+    "shadow_desc_ref": {
+      "attempted_n": 0,
+      "kept_n": 0
+    },
+    "shadow_pool_used": false,
+    "support_up": false,
+    "score_ok": false,
+    "score_na_case": "none",
+    "consistency_ok": true,
+    "consistency_ok_reason": "",
+    "score_ok_reason": "",
+    "score_source_base": "",
+    "score_source_new": "",
+    "effective_base_score": "NA",
+    "effective_new_score": "NA",
+    "base_depth": "NA",
+    "candidate_depth": "NA",
+    "base_subtree_size": 0,
+    "base_is_ultra_generic": false,
+    "pool_size": 0,
+    "pool_size_1_strong_margin_used": false,
+    "override_checks": {
+      "support_up": false,
+      "support_not_down_both": true,
+      "support_gate_ok": false,
+      "consistency_ok": true,
+      "consistency_ok_reason": "",
+      "score_ok": false,
+      "score_na_case": "none",
+      "score_ok_reason": "",
+      "score_source_base": "",
+      "score_source_new": "",
+      "effective_base_score": "NA",
+      "effective_new_score": "NA",
+      "candidate_is_descendant": false,
+      "base_depth": "NA",
+      "candidate_depth": "NA",
+      "base_subtree_size": 0,
+      "base_is_ultra_generic": false,
+      "stricter_desc_margin_ok": true,
+      "pool_size": 0,
+      "pool_size_1_strong_margin_used": false,
+      "tie_depth_gain_used": false
+    },
+    "guardrail": {
+      "triggered": false,
+      "gap": "NA",
+      "gap_ratio": "NA",
+      "best_method": null,
+      "best_score": "NA",
+      "judge_score": "NA"
+    },
+    "cassia_too_generic_override": {
+      "triggered": false,
+      "reason": "disabled_in_top2_variant",
+      "cassia_clid": null,
+      "cassia_depth": "NA",
+      "max_other_depth": "NA",
+      "chosen_override_clid": null
+    },
+    "label_tiebreak": {
+      "triggered": false,
+      "reason": "",
+      "candidate_labels": [],
+      "chosen_label": null
+    },
+    "reviewer_diagnostics": [
+      {
+        "reviewer_key": "cassia",
+        "reviewer_name": "cassia",
+        "label": "Classical CD14⁺ monocyte (CD14⁺⁺ CD16⁻)",
+        "raw_clid": "CL:0000860",
+        "coerced_clid": "CL:0000860",
+        "clid_final_for_rules": "CL:0000860",
+        "depth": 5,
+        "method_score": 0.95,
+        "eligible_for_gate": true,
+        "exclude_reason": ""
+      },
+      {
+        "reviewer_key": "our",
+        "reviewer_name": "in-house",
+        "label": "myeloid cell",
+        "raw_clid": "CL:0000763",
+        "coerced_clid": "CL:0000763",
+        "clid_final_for_rules": "CL:0000763",
+        "depth": 2,
+        "method_score": 0.725,
+        "eligible_for_gate": false,
+        "exclude_reason": "depth_below_threshold:2<3"
+      },
+      {
+        "reviewer_key": "enrich",
+        "reviewer_name": "enrich",
+        "label": "classical monocyte",
+        "raw_clid": "CL:0000860",
+        "coerced_clid": "CL:0000860",
+        "clid_final_for_rules": "CL:0000860",
+        "depth": 5,
+        "method_score": 0.9,
+        "eligible_for_gate": true,
+        "exclude_reason": ""
+      }
+    ],
+    "n_raw_candidates_by_method": {
+      "cassia": 1,
+      "enrich": 1,
+      "our": 3
+    },
+    "n_with_valid_clid": 157,
+    "n_after_meta_reviewer_gate": 5,
+    "n_after_anchor_constraints": 16,
+    "n_in_cand_table": 16,
+    "n_in_cand_ordered": 4,
+    "eligibility_drop_reasons_top": {
+      "depth_below_threshold:2<3": 1
+    }
+  }
+}

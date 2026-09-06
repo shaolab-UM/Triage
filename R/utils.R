@@ -28,6 +28,12 @@ triage_home <- function() {
   getwd()
 }
 
+resolve_manifest_run_dir <- function(triage_home, dataset, run_dir) {
+  run_dir <- as.character(run_dir[[1]])
+  is_absolute <- grepl("^/", run_dir) || grepl("^[A-Za-z]:[/\\\\]", run_dir)
+  if (is_absolute) run_dir else file.path(triage_home, "outputs", dataset, run_dir)
+}
+
 # ---- Noise-gene filtering shared by stages 03 and 04 ----
 is_noise_gene <- function(g) {
   g <- toupper(g)

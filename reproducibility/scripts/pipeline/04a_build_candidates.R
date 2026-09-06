@@ -40,10 +40,10 @@ species_label <- if (tolower(opt$species) == "mouse") "Mouse" else "Human"
 # with caching
 cache_dir <- file.path(opt$out_dir, ".kb_cache")
 dir.create(cache_dir, showWarnings = FALSE, recursive = TRUE)
-ontology <- load_cl_ontology(opt$ontology, file.path(cache_dir, "cl_ontology.rds"))
-kb <- load_accordion_kb(species_label, file.path(cache_dir, "accordion_kb.rds"))
+ontology <- Triage:::load_cl_ontology(opt$ontology, file.path(cache_dir, "cl_ontology.rds"))
+kb <- Triage:::load_accordion_kb(species_label, file.path(cache_dir, "accordion_kb.rds"))
 
-deg <- read_deg(opt$deg)
+deg <- Triage:::read_deg(opt$deg)
 # 03a 
 cat("DEG clusters:", length(unique(deg$cluster)), "| rows:", nrow(deg), "\n")
 
@@ -56,9 +56,9 @@ query_degs_list <- deg %>%
 all_results <- list()
 for (query_id in names(query_degs_list)) {
   degs_to_use <- head(query_degs_list[[query_id]], opt$n_degs)
-  rankings_v4 <- annotate_specificity_weighted_V4(degs_to_use, kb = kb, penalty_factor = 2)
+  rankings_v4 <- Triage:::annotate_specificity_weighted_V4(degs_to_use, kb = kb, penalty_factor = 2)
   if (nrow(rankings_v4) == 0 || max(rankings_v4$final_score) < 0.1) {
-    final_res <- annotate_simple_ratio_V1(degs_to_use, kb = kb, penalty_factor = 2)
+    final_res <- Triage:::annotate_simple_ratio_V1(degs_to_use, kb = kb, penalty_factor = 2)
     rescue_info <- "Rescued_by_V1"
   } else {
     final_res <- rankings_v4

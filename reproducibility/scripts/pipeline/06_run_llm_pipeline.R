@@ -188,7 +188,7 @@ if (!is.null(opt$project_root) && dir.exists(opt$project_root)) {
 mode <- tolower(opt$mode)
 dataset_name <- opt$dataset_name %||% Sys.getenv("CASSIA_DATASET", unset = "")
 if (!nzchar(dataset_name)) dataset_name <- basename(getwd())
-cfg <- get_dataset_config(dataset_name, opt$project_root)
+cfg <- Triage:::get_dataset_config(dataset_name, opt$project_root)
 
 # =========================
 # 0) CONFIG
@@ -287,7 +287,7 @@ if (is.null(config$deepseek_api_key) || !nzchar(config$deepseek_api_key)) {
   cat("[WARN] API key is empty. Set env ", config$api_key_env, " before running.\n", sep = "")
 }
 
-cl_cfg <- make_cl_cfg(config$cl_local_json, prefer_ols = config$ols_first, cache_dir = config$ols_cache_dir)
+cl_cfg <- Triage:::make_cl_cfg(config$cl_local_json, prefer_ols = config$ols_first, cache_dir = config$ols_cache_dir)
 prompt_context_config <- list(
   species = cfg$species,
   tissue = cfg$tissue,
@@ -905,7 +905,7 @@ normalize_core_labels <- function(step1_obj, cl_cfg) {
     if (is.null(sec) || !is.list(sec)) return(sec)
     lbl <- as.character(sec[[label_key]] %||% NA_character_)[1]
     if (is.na(lbl) || !nzchar(lbl)) return(sec)
-    norm <- normalize_cl_three_state(lbl, "", cl_cfg)
+    norm <- Triage:::normalize_cl_three_state(lbl, "", cl_cfg)
     sec[[label_key]] <- norm$final_name %||% lbl
     sec[[clid_key]] <- norm$final_clid %||% sec[[clid_key]] %||% ""
     sec
@@ -937,7 +937,7 @@ patch_fill_only_clid <- function(report, cl_cfg) {
     if (nzchar(sec[[clid_key]] %||% "")) return(sec)
     lbl <- as.character(sec[[label_key]] %||% NA_character_)[1]
     if (!nzchar(lbl)) return(sec)
-    m <- normalize_cl_three_state(lbl, "", cl_cfg)
+    m <- Triage:::normalize_cl_three_state(lbl, "", cl_cfg)
     sec[[clid_key]] <- as.character(m$final_clid %||% "")
     sec
   }
@@ -993,7 +993,7 @@ patch_repair_schema_contradiction <- function(report, cl_cfg, top15_genes = NULL
     report$subtype_level_1_schema$cell_ontology_id <- ow_clid
     report$subtype_level_2_schema$core_identity$cell_ontology_id <- ow_clid
   } else if (!is.null(cl_cfg)) {
-    m <- normalize_cl_three_state(report$open_world_summary$best_cell_type, "", cl_cfg)
+    m <- Triage:::normalize_cl_three_state(report$open_world_summary$best_cell_type, "", cl_cfg)
     clid <- as.character(m$final_clid %||% "")
     if (nzchar(clid)) {
       report$main_type_schema$cell_ontology_id <- clid
@@ -1030,7 +1030,7 @@ patch_program_triggered_refine <- function(report, top15_genes = NULL, cl_cfg = 
   report$subtype_level_1_schema$candidate_cell_type <- target_lbl
   report$subtype_level_2_schema$core_identity$candidate_cell_type <- target_lbl
   if (!is.null(cl_cfg)) {
-    m <- normalize_cl_three_state(target_lbl, "", cl_cfg)
+    m <- Triage:::normalize_cl_three_state(target_lbl, "", cl_cfg)
     clid <- as.character(m$final_clid %||% "")
     if (nzchar(clid)) {
       report$subtype_level_1_schema$cell_ontology_id <- clid
@@ -1093,7 +1093,7 @@ patch_repair_cross_lineage <- function(report) {
   if (ow_lin != "unknown" && ow_lin != main_lin && nzchar(main_lbl)) {
     report$open_world_summary$best_cell_type <- main_lbl
     if (!is.null(cl_cfg)) {
-      m <- normalize_cl_three_state(main_lbl, "", cl_cfg)
+      m <- Triage:::normalize_cl_three_state(main_lbl, "", cl_cfg)
       clid <- as.character(m$final_clid %||% "")
       if (nzchar(clid)) report$open_world_summary$cell_ontology_id <- clid
     }
@@ -1119,7 +1119,7 @@ patch_repair_cross_lineage <- function(report) {
   report$subtype_level_2_schema$core_identity$candidate_cell_type <- target_lbl
 
   if (nzchar(target_lbl) && !is.null(cl_cfg)) {
-    m <- normalize_cl_three_state(target_lbl, "", cl_cfg)
+    m <- Triage:::normalize_cl_three_state(target_lbl, "", cl_cfg)
     clid <- as.character(m$final_clid %||% "")
     if (nzchar(clid)) {
       report$subtype_level_1_schema$cell_ontology_id <- clid
@@ -1195,10 +1195,10 @@ apply_openxtopk_fusion <- function(step1_obj, cl_cfg, log_file = NULL, prefix = 
     as.character(sub2_sec$core_identity$cell_ontology_id %||% NA_character_)[1]
   )
 
-  open_norm <- norm_name(open_label)
-  topk_norms <- vapply(topk_labels, norm_name, character(1))
+  open_norm <- Triage:::norm_name(open_label)
+  topk_norms <- vapply(topk_labels, Triage:::norm_name, character(1))
 
-  open_map <- normalize_cl_three_state(open_label, "", cl_cfg)
+  open_map <- Triage:::normalize_cl_three_state(open_label, "", cl_cfg)
   open_clid <- as.character(open_map$final_clid %||% NA_character_)[1]
 
   allowed_effective <- setdiff(allowed_lineages %||% character(0), "unknown")
@@ -1218,7 +1218,7 @@ apply_openxtopk_fusion <- function(step1_obj, cl_cfg, log_file = NULL, prefix = 
   for (i in seq_along(topk_clids)) {
     if (is.na(topk_clids[i]) || !nzchar(topk_clids[i])) {
       if (!is.na(topk_labels[i]) && nzchar(topk_labels[i])) {
-        m <- normalize_cl_three_state(topk_labels[i], "", cl_cfg)
+        m <- Triage:::normalize_cl_three_state(topk_labels[i], "", cl_cfg)
         topk_clids[i] <- as.character(m$final_clid %||% NA_character_)[1]
       }
     }
@@ -1251,7 +1251,7 @@ apply_openxtopk_fusion <- function(step1_obj, cl_cfg, log_file = NULL, prefix = 
       if (is.finite(d_open_to_tc) && d_open_to_tc == 1) {
         parent_clid <- tc
         child_clid <- open_clid
-        parent_label <- local_lookup_by_clid(parent_clid, cl_cfg) %||% topk_labels[i]
+        parent_label <- Triage:::local_lookup_by_clid(parent_clid, cl_cfg) %||% topk_labels[i]
         child_label <- open_label
         chosen_label <- parent_label
         chosen_clid <- parent_clid
@@ -1260,7 +1260,7 @@ apply_openxtopk_fusion <- function(step1_obj, cl_cfg, log_file = NULL, prefix = 
         parent_clid <- open_clid
         child_clid <- tc
         parent_label <- open_label
-        child_label <- local_lookup_by_clid(child_clid, cl_cfg) %||% topk_labels[i]
+        child_label <- Triage:::local_lookup_by_clid(child_clid, cl_cfg) %||% topk_labels[i]
         chosen_label <- parent_label
         chosen_clid <- parent_clid
         reason <- "onehop_topk_child"
@@ -1275,19 +1275,19 @@ apply_openxtopk_fusion <- function(step1_obj, cl_cfg, log_file = NULL, prefix = 
     sub2_key <- if (!is.null(step1_obj$subtype_level_2)) "subtype_level_2" else if (!is.null(step1_obj$subtype_level_2_schema)) "subtype_level_2_schema" else NULL
 
     if (!is.null(main_key)) {
-      norm_main <- normalize_cl_three_state(chosen_label, "", cl_cfg)
+      norm_main <- Triage:::normalize_cl_three_state(chosen_label, "", cl_cfg)
       step1_obj[[main_key]]$candidate_cell_type <- norm_main$final_name %||% chosen_label
       step1_obj[[main_key]]$cell_ontology_id <- norm_main$final_clid %||% ""
     }
 
     if (!is.null(child_label) && nzchar(child_label)) {
       if (!is.null(sub1_key)) {
-        norm_sub1 <- normalize_cl_three_state(child_label, "", cl_cfg)
+        norm_sub1 <- Triage:::normalize_cl_three_state(child_label, "", cl_cfg)
         step1_obj[[sub1_key]]$candidate_cell_type <- norm_sub1$final_name %||% child_label
         step1_obj[[sub1_key]]$cell_ontology_id <- norm_sub1$final_clid %||% ""
       }
       if (!is.null(sub2_key) && is.list(step1_obj[[sub2_key]]$core_identity)) {
-        norm_sub2 <- normalize_cl_three_state(child_label, "", cl_cfg)
+        norm_sub2 <- Triage:::normalize_cl_three_state(child_label, "", cl_cfg)
         step1_obj[[sub2_key]]$core_identity$candidate_cell_type <- norm_sub2$final_name %||% child_label
         step1_obj[[sub2_key]]$core_identity$cell_ontology_id <- norm_sub2$final_clid %||% ""
       }
@@ -1436,7 +1436,7 @@ process_cluster <- function(step1_file, config) {
     step15_clean <- extract_first_json_object_stack(resp15$text)
     if (is.na(step15_clean)) return(list(cluster=prefix, final_pass=FALSE, fail_stage=paste0("step15_nonjson_round", round)))
     step15_obj <- jsonlite::fromJSON(step15_clean, simplifyVector = FALSE)
-    step15_obj <- normalize_step15_cl(step15_obj, cl_cfg)
+    step15_obj <- Triage:::normalize_step15_cl(step15_obj, cl_cfg)
     step15_obj <- normalize_core_labels(step15_obj, cl_cfg)
     step15_obj <- patch_fill_only_clid(step15_obj, cl_cfg)
   step15_obj <- apply_openxtopk_fusion(step15_obj, cl_cfg, log_file = log_file, prefix = prefix, allowed_lineages = prompt_context_config$allowed_lineages)

@@ -92,7 +92,7 @@ opt <- parse_args(OptionParser(option_list=option_list))
 
 dataset_name <- if (nzchar(opt$dataset_name)) opt$dataset_name else basename(getwd())
 project_root <- Sys.getenv("PROJECT_ROOT", unset = getwd())
-cfg <- get_dataset_config(dataset_name, project_root)
+cfg <- Triage:::get_dataset_config(dataset_name, project_root)
 root <- opt$out_root
 if (!nzchar(root)) root <- cfg$judge_outputs_root
 final_dir <- file.path(root, "final")

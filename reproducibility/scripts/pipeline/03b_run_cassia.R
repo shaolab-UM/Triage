@@ -47,7 +47,7 @@ setLLMApiKey(api_key, provider = api_provider, persist = FALSE)
 
 workers <- if (opt$workers > 0) opt$workers else max(1L, floor(parallel::detectCores() * 0.2))
 
-deg <- read_deg(opt$deg)
+deg <- Triage:::read_deg(opt$deg)
 cat("DEG clusters:", length(unique(deg$cluster)), "| rows:", nrow(deg), "\n")
 
 additional_info <- paste(
@@ -74,6 +74,8 @@ runCASSIA_pipeline(
   score_provider = api_provider,
   annotationboost_model = opt$model,
   annotationboost_provider = api_provider,
+  merge_model = opt$model,
+  merge_provider = api_provider,
   score_threshold = opt$score_threshold,
   additional_info = additional_info
 )

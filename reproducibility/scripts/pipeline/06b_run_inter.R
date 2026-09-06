@@ -84,7 +84,7 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 dataset_name <- if (nzchar(opt$dataset_name %||% "")) opt$dataset_name else basename(getwd())
 project_root <- Sys.getenv("PROJECT_ROOT", unset = getwd())
-cfg <- get_dataset_config(dataset_name, project_root)
+cfg <- Triage:::get_dataset_config(dataset_name, project_root)
 if (is.null(opt$step1_dir) || !nzchar(opt$step1_dir)) {
   opt$step1_dir <- file.path(cfg$llm_inputs_root, "step1_report_queries")
 }
@@ -117,7 +117,7 @@ ensure_dir(file.path(opt$out_dir, "debug_failed"))
 
 ols_cache_dir <- opt$ols_cache_dir
 if (!nzchar(ols_cache_dir)) ols_cache_dir <- file.path(opt$out_dir, ".ols_cache")
-cl_cfg <- make_cl_cfg(opt$cl_local_json, prefer_ols = isTRUE(opt$ols_first), cache_dir = ols_cache_dir)
+cl_cfg <- Triage:::make_cl_cfg(opt$cl_local_json, prefer_ols = isTRUE(opt$ols_first), cache_dir = ols_cache_dir)
 
 get_step1_cluster_ids <- function(step1_dir) {
   if (!dir.exists(step1_dir)) return(character(0))
@@ -344,7 +344,7 @@ process_cluster <- function(cid, opt, cl_cfg) {
     return(NULL)
   }
 
-  cl_norm <- normalize_cl_three_state(label, "", cl_cfg)
+  cl_norm <- Triage:::normalize_cl_three_state(label, "", cl_cfg)
   terms <- parsed$terms %||% character(0)
   markers <- parsed$markers %||% character(0)
 

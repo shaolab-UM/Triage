@@ -65,19 +65,19 @@ as_list_vec <- function(x, k = 5L) {
 }
 
 cl_json <- Sys.getenv("CL_LOCAL_JSON", unset = file.path(Sys.getenv("TRIAGE_HOME", unset = getwd()), "inputs", "raw", "ontology", "CL-ontology-v2025-07-30.json"))
-cl_cfg <- if (file.exists(cl_json)) make_cl_cfg(cl_json, prefer_ols = FALSE, cache_dir = "") else NULL
-cl_graph <- if (!is.null(cl_cfg)) load_cl_graph(cl_cfg) else NULL
-cl_idx <- if (file.exists(cl_json)) build_cl_index(cl_json) else NULL
+cl_cfg <- if (file.exists(cl_json)) Triage:::make_cl_cfg(cl_json, prefer_ols = FALSE, cache_dir = "") else NULL
+cl_graph <- if (!is.null(cl_cfg)) Triage:::load_cl_graph(cl_cfg) else NULL
+cl_idx <- if (file.exists(cl_json)) Triage:::build_cl_index(cl_json) else NULL
 
 map_label_to_clid <- function(label, cl_cfg) {
   if (is.null(label) || !nzchar(label) || is.null(cl_cfg)) return(NA_character_)
-  res <- normalize_cl_three_state(label, "", cl_cfg)
+  res <- Triage:::normalize_cl_three_state(label, "", cl_cfg)
   res$final_clid %||% NA_character_
 }
 
 get_onehop_parent_labels <- function(label, cl_graph, cl_cfg) {
   if (is.null(label) || is.null(cl_graph) || is.null(cl_graph$cl)) return(character(0))
-  res <- normalize_cl_three_state(label, "", cl_cfg)
+  res <- Triage:::normalize_cl_three_state(label, "", cl_cfg)
   clid <- res$final_clid %||% NA_character_
   if (is.na(clid) || !nzchar(clid)) return(character(0))
   term <- cl_graph$cl[[clid]]
@@ -133,7 +133,7 @@ extract_report_labels <- function(obj) {
 
 get_hop_parent_labels <- function(label, cl_graph, cl_cfg, hop = 1L) {
   if (is.null(label) || is.null(cl_graph) || is.null(cl_graph$cl)) return(character(0))
-  res <- normalize_cl_three_state(label, "", cl_cfg)
+  res <- Triage:::normalize_cl_three_state(label, "", cl_cfg)
   clid <- res$final_clid %||% NA_character_
   if (is.na(clid) || !nzchar(clid)) return(character(0))
   term <- cl_graph$cl[[clid]]
@@ -219,7 +219,7 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list))
 dataset_name <- if (nzchar(opt$dataset_name)) opt$dataset_name else basename(getwd())
 project_root <- Sys.getenv("PROJECT_ROOT", unset = getwd())
-cfg <- get_dataset_config(dataset_name, project_root)
+cfg <- Triage:::get_dataset_config(dataset_name, project_root)
 if (!nzchar(opt$in_house_summary_csv)) opt$in_house_summary_csv <- file.path(cfg$llm_outputs_root, "post_summary", "summary.csv")
 if (!nzchar(opt$enrichment_summary_csv)) opt$enrichment_summary_csv <- file.path(cfg$llm_outputs_root, "inter", "post_summary", "summary.csv")
 if (!nzchar(opt$mapping_registry_csv)) opt$mapping_registry_csv <- file.path(triageHome, "reports", "cl_mapping", "reviewer_mapping_registry.tsv")
@@ -1030,7 +1030,7 @@ map_topk_label_once_08 <- function(label, mapping_bundle) {
   }
 
   m <- tryCatch(
-    cl_link(label, NA_character_, cl_idx),
+    Triage:::cl_link(label, NA_character_, cl_idx),
     error = function(e) NULL
   )
   cid <- as.character(m$cl_id %||% NA_character_)

@@ -4145,8 +4145,8 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     cand
   }
 
-  stage_root_clids <- get0("STAGE_ROOT_CLIDS", ifnotfound = character(0), inherits = TRUE)
-  allow_stage_token_fallback <- isTRUE(get0("ALLOW_STAGE_TOKEN_FALLBACK", ifnotfound = FALSE, inherits = TRUE))
+  stage_root_clids <- STAGE_ROOT_CLIDS
+  allow_stage_token_fallback <- isTRUE(ALLOW_STAGE_TOKEN_FALLBACK)
   if (is.null(stage_root_clids)) stage_root_clids <- character(0)
   stage_root_clids <- unique(as.character(stage_root_clids))
   stage_root_clids <- stage_root_clids[!is.na(stage_root_clids) & nzchar(stage_root_clids)]
