@@ -44,9 +44,8 @@ reviewers; the deterministic rules resolved the panel to the consensus-locked
 parent identity recorded in `final_adjudication.json` (see its
 `decision_trace` for the full reasoning trace).
 
-Source-path provenance columns inside `reviewer_mapping_registry.tsv` were
-generalized to `<run_dir>` so that no local temporary paths are embedded; all
-scientific fields are unchanged.
+Provenance path columns in `reviewer_mapping_registry.tsv` use `<run_dir>` as
+the run-directory placeholder.
 
 ## Reproducing
 

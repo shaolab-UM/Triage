@@ -14,7 +14,7 @@
 #     --deg path/to/markers.csv --species human --tissue pancreas --out results/
 #   optional: --study-context normal_adult --dataset-name my_dataset
 #             --reference-labels reference.csv --workers 4
-#             --cluster-id cluster_3 --n-clusters 1   (anonymous-ID smoke test)
+#             --cluster-id cluster_3 --n-clusters 1   (single-cluster preview)
 #             --preflight-only
 #
 # Benchmark mode (bundled release data):
@@ -50,9 +50,9 @@ option_list <- list(
   make_option("--run-tag", type = "character", default = NULL,
               help = "Run tag; defaults to a timestamp."),
   make_option("--cluster-id", type = "character", default = NULL,
-              help = "Restrict a generic run to one anonymous cluster id (for example cluster_1; smoke test, applied after anonymization)."),
+              help = "Restrict a generic run to one anonymous cluster id (for example cluster_1; single-cluster preview, applied after anonymization)."),
   make_option("--n-clusters", type = "numeric", default = NULL,
-              help = "Restrict a generic run to the first N anonymous clusters after deterministic anonymization (smoke test)."),
+              help = "Restrict a generic run to the first N anonymous clusters after deterministic anonymization (single-cluster preview)."),
   make_option("--preflight-only", action = "store_true", default = FALSE,
               help = "Run the full-workflow preflight check and exit without analysis.")
 )

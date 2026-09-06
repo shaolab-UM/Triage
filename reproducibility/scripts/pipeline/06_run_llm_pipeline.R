@@ -255,7 +255,7 @@ config <- list(
   enable_step2  = TRUE,
   enable_repair = FALSE,
   
-  # Single cluster smoke test
+  # Single-cluster run
   test_one_cluster = FALSE,
   test_cluster_prefix = NULL
 )
