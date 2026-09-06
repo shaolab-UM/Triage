@@ -18,7 +18,8 @@ The repository has **two components**:
 ## Navigation
 
 - [Installation](#installation)
-- [Quick start](#quick-start)
+- [Full workflow from a DEG input](#full-workflow-from-a-deg-input)
+- [Minimal package API example](#minimal-package-api-example)
 - [What Triage does](#what-triage-does)
 - [Example workflows](#example-workflows)
 - [Package structure](#package-structure)
@@ -38,10 +39,78 @@ R CMD INSTALL Triage_1.0.0.tar.gz
 
 Or from GitHub: `remotes::install_github("shaolab-UM/Triage")`.
 
-## Quick start
+## Full workflow from a DEG input
 
-Deterministic demonstration — postprocessing of a precomputed Handling
-Editor draft, no API key required (see `examples/census_immune_cluster1/`):
+The primary entry point is the single-command workflow runner. Provide a
+cluster-level DEG/marker table, a species and a tissue; Triage performs
+deterministic cluster anonymization, candidate generation, reviewer
+generation, CL-Linker mapping, adjudication and post-summary in one pass:
+
+```bash
+Rscript reproducibility/scripts/run_triage.R \
+  --deg path/to/markers.csv \
+  --species human \
+  --tissue pancreas \
+  --out results/
+```
+
+Optional flags: `--study-context normal_adult`, `--dataset-name my_dataset`,
+`--workers 4`.
+
+The DEG table (csv/tsv) must contain these columns:
+
+| Column | Content |
+|---|---|
+| `cluster` | original cluster identifier (any labels) |
+| `gene` | gene symbol |
+| `avg_log2FC` | log2 fold change |
+| `p_val` | nominal p-value |
+| `p_val_adj` | adjusted p-value |
+| `pct.1` | fraction expressing in-cluster |
+| `pct.2` | fraction expressing out-of-cluster |
+
+Original cluster identifiers are deterministically anonymized to
+`cluster_1 ... cluster_N` before any analysis stage. The mapping is written
+locally (`cluster_map.csv`) for traceability; original names never reach the
+reviewer, CL-Linker or adjudication stages.
+
+You do **not** provide candidate tables, reviewer outputs, CL-Linker
+mappings, judge-input JSON, Handling Editor output or final adjudication
+JSON — the workflow generates all of these internally. Reference labels are
+optional evaluation inputs (supplied via `--reference-labels` for
+post-adjudication evaluation only) and are never used by the adjudication
+stages.
+
+API setup for the LLM-backed stages (never commit real credentials):
+
+```bash
+export DEEPSEEK_API_KEY="..."                                            # your key
+export LLM_API_BASE_URL="https://api.deepseek.com/chat/completions"      # full endpoint
+```
+
+To try the workflow on the bundled benchmark without preparing input:
+
+```bash
+Rscript reproducibility/scripts/run_triage.R \
+  --benchmark Census_immune \
+  --cluster-id cluster_1 \
+  --out results/
+```
+
+Before any analysis the runner executes a preflight check (all required R
+packages, API key, endpoint contract and external resources; run
+`reproducibility/scripts/preflight_check.R` directly, or pass
+`--preflight-only` to check and exit). Required packages and external
+resources are described in `docs/DEPENDENCIES.md` and
+`resources/README.md`. A real archived one-cluster end-to-end run is bundled
+under `examples/census_immune_cluster1/full_workflow/`.
+
+## Minimal package API example
+
+This example demonstrates the deterministic package API on a precomputed
+Handling Editor draft. It is **not** the full manuscript workflow; use the
+runner above for that. No API key required
+(`examples/census_immune_cluster1/`):
 
 ```r
 library(Triage)
@@ -87,6 +156,9 @@ Full manuscript workflow orchestration is available under `reproducibility/scrip
   `Census_immune` cluster 1 (released identity: classical monocyte,
   CL:0000860). The precomputed draft is supplied for demonstration; it is
   not an archived Handling Editor round output from the original run.
+- `examples/census_immune_cluster1/full_workflow/` — a real archived
+  one-cluster end-to-end run (anonymized DEG input through final
+  adjudication; no reference labels; see its README).
 - `examples/ts_pancreas_cluster1/` — Handling Editor API call for
   `TS_pancreas` cluster 1 (released identity: B cell, CL:0000236; requires
   `DEEPSEEK_API_KEY`; not part of the test suite).

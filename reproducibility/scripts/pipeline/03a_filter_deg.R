@@ -26,8 +26,8 @@ suppressMessages(library(Triage))
 if (!file.exists(opt$deg)) stop("deg file does not exist: ", opt$deg)
 dir.create(opt$out_dir, showWarnings = FALSE, recursive = TRUE)
 
-deg <- read_deg(opt$deg)
-filtered <- filter_deg(deg)
+deg <- Triage:::read_deg(opt$deg)
+filtered <- Triage:::filter_deg(deg)
 
 readr::write_csv(filtered, file.path(opt$out_dir, "filtered_deg.csv"))
 cat("[OK] filtered_deg.csv -> ", file.path(opt$out_dir, "filtered_deg.csv"),

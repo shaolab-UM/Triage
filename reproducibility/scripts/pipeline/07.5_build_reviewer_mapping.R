@@ -77,7 +77,7 @@ get_run <- function(ds) {
   m <- manifest %>% filter(dataset == ds)
   if (nrow(m) == 0L) stop("Manifest is missing dataset: ", ds)
   if (nrow(m) > 1L) stop("Dataset appears more than once in manifest: ", ds)
-  run_dir <- file.path(triageHome, "outputs", ds, as.character(m$run_dir[1]))
+  run_dir <- Triage:::resolve_manifest_run_dir(triageHome, ds, m$run_dir[1])
   if (!dir.exists(run_dir)) stop("Run directory referenced by the manifest does not exist: ", run_dir)
   run_dir
 }
@@ -86,7 +86,16 @@ get_run <- function(ds) {
 suppressMessages(library(Triage))
 suppressMessages(library(Triage))
 suppressMessages(library(Triage))
-idx <- build_cl_index(opt$cl_json)
+# Package-internal null coalescing is used throughout this script.
+`%||%` <- Triage:::`%||%`
+
+# ---- Load packaged mapper/verifier prompts (single source of truth) ----
+prompts_path <- system.file("prompts", "cl_mapper_prompts.R", package = "Triage")
+if (!nzchar(prompts_path) || !file.exists(prompts_path)) {
+  stop("Installed Triage package is missing inst/prompts/cl_mapper_prompts.R; reinstall the package.")
+}
+source(prompts_path, local = TRUE)
+idx <- Triage:::build_cl_index(opt$cl_json)
 ontology_checksum <- unname(tools::md5sum(opt$cl_json))
 
 # ---- Deterministic methods ( CL-Linker Return) ----
@@ -294,7 +303,7 @@ safe_meta_value <- function(x) {
 }
 
 get_ds_meta <- function(ds) {
-  cfg <- tryCatch(get_dataset_config(ds, triageHome), error = function(e) NULL)
+  cfg <- tryCatch(Triage:::get_dataset_config(ds, triageHome), error = function(e) NULL)
   if (is.null(cfg)) {
     return(list(
       tissue = "not provided",
@@ -501,7 +510,7 @@ for (inst in instances) {
               inst$reviewer, substr(inst$raw_label, 1, 40))); flush.console()
 
   # ---- Step 1: ----
-  m <- cl_link(inst$raw_label, inst$provided_clid %||% NA_character_, idx)
+  m <- Triage:::cl_link(inst$raw_label, inst$provided_clid %||% NA_character_, idx)
   det_clid <- as.character(m$cl_id %||% NA_character_)[1]
   det_method <- as.character(m$mapping_method %||% NA_character_)[1]
   det_label <- as.character(m$canonical_label %||% NA_character_)[1]
@@ -545,7 +554,7 @@ for (inst in instances) {
   }
 
   # ---- Step 2: lexical top-k ----
-  cands <- lexical_candidates(inst$raw_label, idx, top_k = TOP_K_CANDIDATES)
+  cands <- Triage:::lexical_candidates(inst$raw_label, idx, top_k = TOP_K_CANDIDATES)
   markers <- get_markers(inst$dataset, inst$cluster_id)
   meta <- get_ds_meta(inst$dataset)
   context_lines <- paste(sprintf("Species: %s\nTissue: %s\nDisease/condition: %s\nDataset: %s\nCluster: %s",

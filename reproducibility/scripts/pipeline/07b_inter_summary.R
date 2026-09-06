@@ -45,7 +45,7 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 dataset_name <- if (nzchar(opt$dataset_name)) opt$dataset_name else basename(getwd())
 project_root <- Sys.getenv("PROJECT_ROOT", unset = getwd())
-cfg <- get_dataset_config(dataset_name, project_root)
+cfg <- Triage:::get_dataset_config(dataset_name, project_root)
 if (!nzchar(opt$in_dir)) opt$in_dir <- file.path(cfg$llm_outputs_root, "inter", "final_passed")
 if (!nzchar(opt$out_dir)) opt$out_dir <- file.path(cfg$llm_outputs_root, "inter", "post_summary")
 ensure_dir(opt$out_dir)

@@ -142,7 +142,7 @@ compute_method_evidence_alignment <- function(judge_input_obj, marker_map, tiers
     specificity_score <- 0
     has_cl <- !is.null(cl_graph) && !is.null(cl_cfg)
     if (has_cl) {
-      res <- tryCatch(normalize_cl_three_state(pred_label, "", cl_cfg), error = function(e) NULL)
+      res <- tryCatch(Triage:::normalize_cl_three_state(pred_label, "", cl_cfg), error = function(e) NULL)
       clid <- res$final_clid %||% NA_character_
       if (!is.na(clid) && nzchar(clid)) {
         depth <- get_depth_to_root(clid, cl_graph)
@@ -1301,9 +1301,9 @@ ontology_relation_record <- function(a, b, cl_graph) {
 
   relation <- if (identical(a, b)) {
     "same"
-  } else if (isTRUE(is_ancestor_of(a, b, cl_graph))) {
+  } else if (isTRUE(Triage:::is_ancestor_of(a, b, cl_graph))) {
     "a_is_ancestor_of_b"
-  } else if (isTRUE(is_ancestor_of(b, a, cl_graph))) {
+  } else if (isTRUE(Triage:::is_ancestor_of(b, a, cl_graph))) {
     "b_is_ancestor_of_a"
   } else {
     "non_hierarchical"
@@ -1997,7 +1997,7 @@ coerce_clid <- function(label, clid, cl_cfg, cl_graph, min_best = 0.6, min_delta
   
   if (raw_present) {
     if (!is.na(candidate_id) && nzchar(candidate_id)) {
-      if (isTRUE(candidate_id == raw) || isTRUE(is_ancestor_of(raw, candidate_id, cl_graph))) {
+      if (isTRUE(candidate_id == raw) || isTRUE(Triage:::is_ancestor_of(raw, candidate_id, cl_graph))) {
         return(list(clid = candidate_id, status = "raw_used", candidates = candidates, coerced_clid = candidate_id))
       }
       return(list(clid = raw, status = "raw_incompatible", candidates = candidates, coerced_clid = candidate_id))
@@ -2646,7 +2646,7 @@ is_developmental_stage <- function(clid = NA_character_, label = NA_character_, 
     x <- as.character(clid)
     for (r in stage_root_clids) {
       if (is.na(r) || !nzchar(r)) next
-      if (identical(x, r) || is_descendant_of(x, r, cl_graph)) return(TRUE)
+      if (identical(x, r) || Triage:::is_descendant_of(x, r, cl_graph)) return(TRUE)
     }
     return(FALSE)
   }
@@ -2660,7 +2660,7 @@ normalize_judge_final_decision_cl_preserve <- function(final_obj, cl_cfg) {
   if (is.null(final_obj) || !is.list(final_obj)) return(final_obj)
   if (!is.list(final_obj$final_decision)) return(final_obj)
   fd <- final_obj$final_decision
-  res <- normalize_cl_three_state(fd$primary_cell_type %||% "", fd$final_cell_ontology_id %||% "", cl_cfg)
+  res <- Triage:::normalize_cl_three_state(fd$primary_cell_type %||% "", fd$final_cell_ontology_id %||% "", cl_cfg)
   if (is.null(fd$final_cell_ontology_id) || !nzchar(fd$final_cell_ontology_id)) {
     fd$final_cell_ontology_id <- res$final_clid %||% fd$final_cell_ontology_id
   }
@@ -2668,7 +2668,7 @@ normalize_judge_final_decision_cl_preserve <- function(final_obj, cl_cfg) {
     fd$primary_cell_type <- res$final_name %||% fd$primary_cell_type
   }
   if (!is.null(fd$greedy_cell_type) || !is.null(fd$greedy_cell_ontology_id)) {
-    resg <- normalize_cl_three_state(fd$greedy_cell_type %||% "", fd$greedy_cell_ontology_id %||% "", cl_cfg)
+    resg <- Triage:::normalize_cl_three_state(fd$greedy_cell_type %||% "", fd$greedy_cell_ontology_id %||% "", cl_cfg)
     if (is.null(fd$greedy_cell_ontology_id) || !nzchar(fd$greedy_cell_ontology_id)) {
       fd$greedy_cell_ontology_id <- resg$final_clid %||% fd$greedy_cell_ontology_id
     }
@@ -3197,7 +3197,7 @@ compute_supported_lca_stats <- function(eligible, gate_k, cl_graph) {
       }
     }
     if (!is.na(supported_lca_clid) && nzchar(supported_lca_clid)) {
-      support_n <- sum(vapply(eligible, function(x) isTRUE(is_descendant_of(x$clid, supported_lca_clid, cl_graph)) || identical(x$clid, supported_lca_clid), logical(1)))
+      support_n <- sum(vapply(eligible, function(x) isTRUE(Triage:::is_descendant_of(x$clid, supported_lca_clid, cl_graph)) || identical(x$clid, supported_lca_clid), logical(1)))
       support_gate_pass <- (support_n >= gate_k)
     }
   }
@@ -3242,7 +3242,7 @@ pick_best_supported_clid_from_eligible <- function(eligible) {
 in_lock_scope <- function(clid, lock_id, cl_graph) {
   if (is.na(lock_id) || !nzchar(lock_id)) return(TRUE)
   if (is.na(clid) || !nzchar(clid)) return(FALSE)
-  isTRUE(is_ancestor_of(lock_id, clid, cl_graph)) || isTRUE(clid == lock_id)
+  isTRUE(Triage:::is_ancestor_of(lock_id, clid, cl_graph)) || isTRUE(clid == lock_id)
 }
 
 compute_anchor_clid_from_candidates <- function(cands, lock_id, cl_graph) {
@@ -3505,7 +3505,7 @@ build_candidate_pools <- function(cand_ordered,
     clid <- x$clid %||% NA_character_
     label <- x$label %||% ""
     if (is.na(clid) || !nzchar(clid)) return(list(ok = FALSE, reason = "missing_clid", stage_flag = FALSE))
-    if (!is_descendant_of(clid, chosen_clid, cl_graph)) return(list(ok = FALSE, reason = "not_descendant", stage_flag = FALSE))
+    if (!Triage:::is_descendant_of(clid, chosen_clid, cl_graph)) return(list(ok = FALSE, reason = "not_descendant", stage_flag = FALSE))
     if (isTRUE(require_deeper)) {
       xd <- get_depth_to_root(clid, cl_graph)
       if (!is.finite(xd) || !is.finite(chosen_depth) || xd <= chosen_depth) return(list(ok = FALSE, reason = "require_deeper_fail", stage_flag = FALSE))
@@ -3562,7 +3562,7 @@ build_candidate_pools <- function(cand_ordered,
     cand <- d$candidate %||% list()
     clid <- cand$clid %||% NA_character_
     if (is.na(clid) || !nzchar(clid)) return(FALSE)
-    isTRUE(is_descendant_of(clid, chosen_clid, cl_graph))
+    isTRUE(Triage:::is_descendant_of(clid, chosen_clid, cl_graph))
   }, rejected_all)
 
   shadow_desc_filter_counts <- list(
@@ -3693,7 +3693,7 @@ compute_base_structure_guard <- function(base, candidate, cl_graph, cfg_override
       base_subtree_ratio <- as.numeric(base_subtree_size / total_nodes)
     }
     if (nzchar(cand_clid)) {
-      candidate_is_descendant <- isTRUE(is_descendant_of(cand_clid, base_clid, cl_graph))
+      candidate_is_descendant <- isTRUE(Triage:::is_descendant_of(cand_clid, base_clid, cl_graph))
       candidate_depth <- as.numeric(get_depth_to_root(cand_clid, cl_graph))
     }
   }
@@ -4229,7 +4229,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     }
 
     label <- cand$label %||% NA_character_
-    res <- tryCatch(normalize_cl_three_state(label, "", cl_cfg), error = function(e) NULL)
+    res <- tryCatch(Triage:::normalize_cl_three_state(label, "", cl_cfg), error = function(e) NULL)
     norm_clid <- res$final_clid %||% NA_character_
     if (!is.na(norm_clid) && nzchar(norm_clid)) {
       if (is.na(cand$clid) || !nzchar(cand$clid)) {
@@ -4244,8 +4244,8 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     cand
   }
 
-  stage_root_clids <- get0("STAGE_ROOT_CLIDS", ifnotfound = character(0), inherits = TRUE)
-  allow_stage_token_fallback <- isTRUE(get0("ALLOW_STAGE_TOKEN_FALLBACK", ifnotfound = FALSE, inherits = TRUE))
+  stage_root_clids <- Triage:::STAGE_ROOT_CLIDS
+  allow_stage_token_fallback <- isTRUE(Triage:::ALLOW_STAGE_TOKEN_FALLBACK)
   if (is.null(stage_root_clids)) stage_root_clids <- character(0)
   stage_root_clids <- unique(as.character(stage_root_clids))
   stage_root_clids <- stage_root_clids[!is.na(stage_root_clids) & nzchar(stage_root_clids)]
@@ -4384,7 +4384,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       cands <- cands[!is.na(cands) & nzchar(cands)]
       if (length(cands) == 0) return(cand)
 
-      desc <- Filter(function(x) is_descendant_of(x, lock_id, cl_graph), cands)
+      desc <- Filter(function(x) Triage:::is_descendant_of(x, lock_id, cl_graph), cands)
       if (length(desc) > 0) {
         depths <- vapply(desc, function(x) get_depth_to_root(x, cl_graph), numeric(1))
         best <- desc[which.max(depths)][[1]]
@@ -4392,7 +4392,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
         best <- lock_id
       } else {
         dists <- vapply(cands, function(x) {
-          get_ontology_distance(lock_id, x, cl_graph)
+          Triage:::get_ontology_distance(lock_id, x, cl_graph)
         }, numeric(1))
         best <- cands[which.min(dists)][[1]]
       }
@@ -4420,7 +4420,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       expanded_candidates <- lapply(seq_len(nrow(expanded)), function(i) {
         cid <- expanded$clid[[i]]
         list(
-          label = local_lookup_by_clid(cid, cl_cfg) %||% NA_character_,
+          label = Triage:::local_lookup_by_clid(cid, cl_cfg) %||% NA_character_,
           clid = cid,
           raw_clid = NA_character_,
           coerced_status = "expanded",
@@ -4474,7 +4474,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       dist_to_lock <- NA_real_
       dist_score <- 0
       if (has_clid && !is.na(lock_id) && nzchar(lock_id)) {
-        dist_to_lock <- suppressWarnings(as.numeric(get_ontology_distance(lock_id, m_clid, cl_graph)))
+        dist_to_lock <- suppressWarnings(as.numeric(Triage:::get_ontology_distance(lock_id, m_clid, cl_graph)))
         if (is.finite(dist_to_lock)) {
           dist_score <- max(0, 1 - min(dist_to_lock, 8) / 8)
         }
@@ -4559,10 +4559,10 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     mq_rank <- max(0, mq_base - (1.5 * (cand$rank %||% 1L - 1L)))
     depth_to_root <- if (!is.na(clid) && nzchar(clid)) get_depth_to_root(clid, cl_graph) else 0
     dist_to_lock <- if (!is.na(lock_id) && nzchar(lock_id) && !is.na(clid) && nzchar(clid)) {
-      get_ontology_distance(lock_id, clid, cl_graph)
+      Triage:::get_ontology_distance(lock_id, clid, cl_graph)
     } else NA_real_
     in_lock_candidate <- if (!is.na(lock_id) && nzchar(lock_id) && !is.na(clid) && nzchar(clid)) {
-      isTRUE(is_ancestor_of(lock_id, clid, cl_graph)) || isTRUE(clid == lock_id)
+      isTRUE(Triage:::is_ancestor_of(lock_id, clid, cl_graph)) || isTRUE(clid == lock_id)
     } else FALSE
     depth_from_lock <- if (!is.null(cand$depth_from_lock)) {
       cand$depth_from_lock
@@ -4689,7 +4689,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     over_conservative_penalty <- 0
     anchor_dist_min <- NA_real_
     if (length(anchor_clids) > 0 && !is.na(cand$clid) && nzchar(cand$clid)) {
-      dists <- vapply(anchor_clids, function(a) get_ontology_distance(cand$clid, a, cl_graph), numeric(1))
+      dists <- vapply(anchor_clids, function(a) Triage:::get_ontology_distance(cand$clid, a, cl_graph), numeric(1))
       dists <- dists[is.finite(dists)]
       if (length(dists) > 0) {
         anchor_dist_min <- min(dists)
@@ -4711,7 +4711,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
           strong_anchors <- anchor_clids[vapply(anchor_clids, function(a) (anchor_support[[a]] %||% 0) >= anchor_strong_threshold, logical(1))]
           if (length(strong_anchors) > 0) {
             anchor_depths_desc <- vapply(strong_anchors, function(a) {
-              if (isTRUE(is_ancestor_of(cand$clid, a, cl_graph))) anchor_depths[[a]] %||% 0 else NA_real_
+              if (isTRUE(Triage:::is_ancestor_of(cand$clid, a, cl_graph))) anchor_depths[[a]] %||% 0 else NA_real_
             }, numeric(1))
             anchor_depths_desc <- anchor_depths_desc[is.finite(anchor_depths_desc)]
             if (length(anchor_depths_desc) > 0) {
@@ -4739,7 +4739,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
   if (length(strong_anchor_clids) > 0) {
     cand_table_strong <- Filter(function(cand) {
       if (is.na(cand$clid) || !nzchar(cand$clid)) return(FALSE)
-      dists <- vapply(strong_anchor_clids, function(a) get_ontology_distance(cand$clid, a, cl_graph), numeric(1))
+      dists <- vapply(strong_anchor_clids, function(a) Triage:::get_ontology_distance(cand$clid, a, cl_graph), numeric(1))
       dists <- dists[is.finite(dists)]
       length(dists) > 0 && min(dists) <= 1
     }, cand_table)
@@ -4759,7 +4759,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     for (i in seq_along(strong_anchor_clids)) {
       for (j in seq_along(strong_anchor_clids)) {
         if (i >= j) next
-        d <- get_ontology_distance(strong_anchor_clids[[i]], strong_anchor_clids[[j]], cl_graph)
+        d <- Triage:::get_ontology_distance(strong_anchor_clids[[i]], strong_anchor_clids[[j]], cl_graph)
         if (is.finite(d)) dist_mat <- c(dist_mat, d)
       }
     }
@@ -4781,7 +4781,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     cand_table <- Filter(function(cand) {
       if (is.na(cand$clid) || !nzchar(cand$clid)) return(TRUE)
       for (a in strong_anchor_clids) {
-        if (isTRUE(is_ancestor_of(cand$clid, a, cl_graph))) {
+        if (isTRUE(Triage:::is_ancestor_of(cand$clid, a, cl_graph))) {
           depth_gap <- (anchor_depths[[a]] %||% 0) - (cand$depth_to_root %||% 0)
           if (depth_gap >= 2) return(FALSE)
         }
@@ -4978,7 +4978,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
   gate_decisions <- lapply(cand_ordered, function(cand) {
     is_desc <- FALSE
     if (!is.na(lock_id) && nzchar(lock_id) && !is.na(cand$clid) && nzchar(cand$clid)) {
-      is_desc <- isTRUE(is_descendant_of(cand$clid, lock_id, cl_graph)) || identical(cand$clid, lock_id)
+      is_desc <- isTRUE(Triage:::is_descendant_of(cand$clid, lock_id, cl_graph)) || identical(cand$clid, lock_id)
     }
     ok <- TRUE
     if (!isTRUE(fragile_anchor_case && isTRUE(is_desc))) {
@@ -5053,7 +5053,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
 
   markers_for_clid <- function(clid) {
     if (is.null(clid) || is.na(clid) || !nzchar(as.character(clid))) return(character(0))
-    lbl <- local_lookup_by_clid(as.character(clid), cl_cfg) %||% ""
+    lbl <- Triage:::local_lookup_by_clid(as.character(clid), cl_cfg) %||% ""
     key <- normalize_candidate_label(lbl)
     if (is.na(key) || !nzchar(key) || !key %in% names(marker_map)) return(character(0))
     normalize_gene_list(marker_map[[key]] %||% character(0))
@@ -5084,8 +5084,8 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       return(res)
     }
 
-    related <- isTRUE(is_descendant_of(cand, anchor, cl_graph)) ||
-      isTRUE(is_ancestor_of(cand, anchor, cl_graph))
+    related <- isTRUE(Triage:::is_descendant_of(cand, anchor, cl_graph)) ||
+      isTRUE(Triage:::is_ancestor_of(cand, anchor, cl_graph))
     if (related) {
       res$relation <- "ancestor_or_descendant"
       res$reason <- "hierarchical_refinement_or_broadening"
@@ -5194,12 +5194,12 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     # specific, supported descendants available in the gated candidate pool.
     if (isTRUE(parity_mode) && !is.na(fallback_clid) && nzchar(fallback_clid)) {
       fallback_depth <- get_depth_to_root(fallback_clid, cl_graph)
-      generic_fallback <- is_generic_label(fallback_clid, local_lookup_by_clid(fallback_clid, cl_cfg) %||% "") ||
+      generic_fallback <- is_generic_label(fallback_clid, Triage:::local_lookup_by_clid(fallback_clid, cl_cfg) %||% "") ||
         (is.finite(fallback_depth) && fallback_depth <= 2)
       if (generic_fallback) {
         specific_pool <- Filter(function(x) {
           if (is.na(x$clid) || !nzchar(x$clid)) return(FALSE)
-          if (!is_descendant_of(x$clid, fallback_clid, cl_graph)) return(FALSE)
+          if (!Triage:::is_descendant_of(x$clid, fallback_clid, cl_graph)) return(FALSE)
           if ((x$map_quality %||% 0) < 2) return(FALSE)
       if (is_generic_label(x$clid, x$label %||% "")) return(FALSE)
           if (is_developmental_stage(clid = x$clid, label = x$label %||% "", cl_graph = cl_graph, cl_cfg = cl_cfg, stage_root_clids = stage_root_clids, allow_token_fallback = allow_stage_token_fallback)) return(FALSE)
@@ -5222,7 +5222,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
           # non-generic descendant from pre-gate ordered candidates.
           specific_pool_relaxed <- Filter(function(x) {
             if (is.na(x$clid) || !nzchar(x$clid)) return(FALSE)
-            if (!is_descendant_of(x$clid, fallback_clid, cl_graph)) return(FALSE)
+            if (!Triage:::is_descendant_of(x$clid, fallback_clid, cl_graph)) return(FALSE)
             if ((x$map_quality %||% 0) < 1) return(FALSE)
             if (is_generic_label(x$clid, x$label %||% "")) return(FALSE)
             if (is_developmental_stage(clid = x$clid, label = x$label %||% "", cl_graph = cl_graph, cl_cfg = cl_cfg, stage_root_clids = stage_root_clids, allow_token_fallback = allow_stage_token_fallback)) return(FALSE)
@@ -5250,7 +5250,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       if (is.null(chosen) && is.finite(fallback_depth)) {
         lineage_pool <- Filter(function(x) {
           if (is.na(x$clid) || !nzchar(x$clid)) return(FALSE)
-          if (!is_descendant_of(x$clid, fallback_clid, cl_graph)) return(FALSE)
+          if (!Triage:::is_descendant_of(x$clid, fallback_clid, cl_graph)) return(FALSE)
           if ((x$map_quality %||% 0) < 2) return(FALSE)
           if (is_generic_label(x$clid, x$label %||% "")) return(FALSE)
           if (is_developmental_stage(clid = x$clid, label = x$label %||% "", cl_graph = cl_graph, cl_cfg = cl_cfg, stage_root_clids = stage_root_clids, allow_token_fallback = allow_stage_token_fallback)) return(FALSE)
@@ -5331,7 +5331,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
                    !is.na(fallback_clid) && nzchar(fallback_clid) &&
                    identical(supported_lca_clid, fallback_clid)) {
           chosen <- list(
-            label = local_lookup_by_clid(supported_lca_clid, cl_cfg) %||% NA_character_,
+            label = Triage:::local_lookup_by_clid(supported_lca_clid, cl_cfg) %||% NA_character_,
             clid = supported_lca_clid
           )
           chosen_support <- list(pass = TRUE, reasons = c("aggressive_supported_lca_hard_guard"), margin = NA_real_)
@@ -5339,7 +5339,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
           aggressive_lca_hard_guard_applied <- TRUE
           final_rule <- "aggressive_supported_lca_hard_guard"
         } else {
-          chosen <- list(label = local_lookup_by_clid(fallback_clid, cl_cfg) %||% NA_character_, clid = fallback_clid)
+          chosen <- list(label = Triage:::local_lookup_by_clid(fallback_clid, cl_cfg) %||% NA_character_, clid = fallback_clid)
           chosen_support <- list(pass = TRUE, reasons = c("anchor_fallback"), margin = NA_real_)
           anchor_fallback_happened <- TRUE
           if (identical(mode_selected, "balanced")) final_rule <- "balanced_anchor_fallback"
@@ -5351,7 +5351,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
   if (!is.null(chosen) && identical(final_rule, "balanced_anchor_fallback") && !is.na(chosen$clid) && nzchar(chosen$clid)) {
     lock_present <- !is.na(lock_id) && nzchar(lock_id)
     chosen_depth <- get_depth_to_root(chosen$clid, cl_graph)
-    chosen_generic <- is_generic_label(chosen$clid, local_lookup_by_clid(chosen$clid, cl_cfg) %||% "") ||
+    chosen_generic <- is_generic_label(chosen$clid, Triage:::local_lookup_by_clid(chosen$clid, cl_cfg) %||% "") ||
       (is.finite(chosen_depth) && chosen_depth <= 2)
 
     stage_fn <- function(clid, label) {
@@ -5398,10 +5398,10 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
         is.finite(supported_lca_depth) && is.finite(chosen_depth) &&
         supported_lca_depth > chosen_depth) {
       # Check if supported_lca is a descendant of chosen (more specific)
-      if (is_descendant_of(supported_lca_clid, chosen$clid, cl_graph)) {
+      if (Triage:::is_descendant_of(supported_lca_clid, chosen$clid, cl_graph)) {
         # Prefer the more specific supported_lca over the generic lock
         chosen <- list(
-          label = local_lookup_by_clid(supported_lca_clid, cl_cfg) %||% NA_character_, 
+          label = Triage:::local_lookup_by_clid(supported_lca_clid, cl_cfg) %||% NA_character_,
           clid = supported_lca_clid
         )
         chosen_support <- list(pass = TRUE, reasons = c("depth_gap_1_refinement"), margin = NA_real_)
@@ -5565,7 +5565,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     chosen_evidence <- as.numeric(chosen$evidence_support %||% 0)
     refine_pool <- Filter(function(x) {
       if (is.na(x$clid) || !nzchar(x$clid)) return(FALSE)
-      if (!is_descendant_of(x$clid, chosen$clid, cl_graph)) return(FALSE)
+      if (!Triage:::is_descendant_of(x$clid, chosen$clid, cl_graph)) return(FALSE)
       if ((x$map_quality %||% 0) < 2) return(FALSE)
       x_depth <- get_depth_to_root(x$clid, cl_graph)
       if (!is.finite(x_depth) || x_depth <= chosen_depth) return(FALSE)
@@ -5596,7 +5596,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
   if (length(strong_anchor_clids) > 0) {
     in_strong_branch <- function(clid) {
       if (is.na(clid) || !nzchar(clid)) return(FALSE)
-      dists <- vapply(strong_anchor_clids, function(a) get_ontology_distance(clid, a, cl_graph), numeric(1))
+      dists <- vapply(strong_anchor_clids, function(a) Triage:::get_ontology_distance(clid, a, cl_graph), numeric(1))
       dists <- dists[is.finite(dists)]
       length(dists) > 0 && min(dists) <= 1
     }
@@ -5624,11 +5624,11 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     if (!is.na(c1$map_quality) && !is.na(c2$map_quality) && c1$map_quality >= 2 && c2$map_quality >= 2) {
       if (isTRUE(c1$method_count == c2$method_count) && isTRUE(c1$map_quality_rank == c2$map_quality_rank)) {
         if (!is.na(c1$score_adj) && !is.na(c2$score_adj) && abs(c1$score_adj - c2$score_adj) <= specificity_eps) {
-          if (is_ancestor_of(c1$clid, c2$clid, cl_graph)) {
+          if (Triage:::is_ancestor_of(c1$clid, c2$clid, cl_graph)) {
             chosen <- c2
             chosen_support <- evaluate_candidate_support(c2, cand_table, candidates, lock_id, min_margin, strong_score, cl_graph)
             specificity_tiebreak <- TRUE
-          } else if (is_ancestor_of(c2$clid, c1$clid, cl_graph)) {
+          } else if (Triage:::is_ancestor_of(c2$clid, c1$clid, cl_graph)) {
             chosen <- c1
       chosen_support <- evaluate_candidate_support(c1, cand_table, candidates, lock_id, min_margin, strong_score, cl_graph)
             specificity_tiebreak <- TRUE
@@ -5655,7 +5655,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     if (!is.na(chosen$clid) && nzchar(chosen$clid) && identical(chosen$clid, lock_id)) {
       subtype_candidates <- Filter(function(x) {
         if (is.na(x$clid) || !nzchar(x$clid)) return(FALSE)
-        if (!is_descendant_of(x$clid, lock_id, cl_graph)) return(FALSE)
+        if (!Triage:::is_descendant_of(x$clid, lock_id, cl_graph)) return(FALSE)
         if (is_developmental_stage(clid = x$clid, label = x$label, cl_graph = cl_graph, cl_cfg = cl_cfg, stage_root_clids = stage_root_clids, allow_token_fallback = allow_stage_token_fallback)) return(FALSE)
         if (is_unsupported_only(x$clid)) return(FALSE)
         TRUE
@@ -5666,7 +5666,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       if (length(subtype_candidates) == 0) {
         subtype_candidates <- Filter(function(x) {
           if (is.na(x$clid) || !nzchar(x$clid)) return(FALSE)
-          if (!is_descendant_of(x$clid, lock_id, cl_graph)) return(FALSE)
+          if (!Triage:::is_descendant_of(x$clid, lock_id, cl_graph)) return(FALSE)
           if ((x$map_quality %||% 0) < 1) return(FALSE)
           if (is_generic_label(x$clid, x$label %||% "")) return(FALSE)
           if (is_developmental_stage(clid = x$clid, label = x$label, cl_graph = cl_graph, cl_cfg = cl_cfg, stage_root_clids = stage_root_clids, allow_token_fallback = allow_stage_token_fallback)) return(FALSE)
@@ -5728,13 +5728,13 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
   chosen_clid <- chosen$clid
   chosen_label <- chosen$label
   if (is.na(chosen_label) || !nzchar(chosen_label)) {
-    chosen_label <- local_lookup_by_clid(chosen_clid, cl_cfg) %||% head_out$final_decision$primary_cell_type
+    chosen_label <- Triage:::local_lookup_by_clid(chosen_clid, cl_cfg) %||% head_out$final_decision$primary_cell_type
   }
 
   set_choice <- function(clid, label = NULL, rule_name = NULL) {
     chosen_clid <<- as.character(clid %||% NA_character_)
     if (is.null(label) || is.na(label) || !nzchar(as.character(label))) {
-      chosen_label <<- as.character(local_lookup_by_clid(chosen_clid, cl_cfg) %||% chosen_label)
+      chosen_label <<- as.character(Triage:::local_lookup_by_clid(chosen_clid, cl_cfg) %||% chosen_label)
     } else {
       chosen_label <<- as.character(label)
     }
@@ -5816,7 +5816,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
 
     promo_pool <- Filter(function(x) {
       if (is.na(x$clid) || !nzchar(x$clid)) return(FALSE)
-      if (!isTRUE(is_descendant_of(x$clid, lock_id, cl_graph))) return(FALSE)
+      if (!isTRUE(Triage:::is_descendant_of(x$clid, lock_id, cl_graph))) return(FALSE)
       if ((x$rank %||% 1L) <= 1L) return(FALSE)
       # Do not promote synthetic expanded descendants.
       if (identical(as.character(x$method %||% ""), "expanded")) return(FALSE)
@@ -5927,7 +5927,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
             decreasing = TRUE
           )
           anchor_choice <- anchor_pool[[ord_anchor[[1]]]]
-          set_choice(anchor_id, anchor_choice$label %||% local_lookup_by_clid(anchor_id, cl_cfg),
+          set_choice(anchor_id, anchor_choice$label %||% Triage:::local_lookup_by_clid(anchor_id, cl_cfg),
                      "consensus_anchor_retained_contrastive_gate")
           chosen_support <- evaluate_candidate_support(anchor_choice, cand_table_all, candidates, lock_id, min_margin, strong_score, cl_graph)
           consensus_override_forced_anchor <- TRUE
@@ -6027,8 +6027,8 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       final_rule <- "head_editor_deterministic_agree"
 
     } else {
-      det_is_descendant <- isTRUE(is_ancestor_of(llm_anchor_clid, det_clid, cl_graph))
-      det_is_ancestor <- isTRUE(is_ancestor_of(det_clid, llm_anchor_clid, cl_graph))
+      det_is_descendant <- isTRUE(Triage:::is_ancestor_of(llm_anchor_clid, det_clid, cl_graph))
+      det_is_ancestor <- isTRUE(Triage:::is_ancestor_of(det_clid, llm_anchor_clid, cl_graph))
 
       if (isTRUE(det_is_descendant) || isTRUE(det_is_ancestor)) {
         head_deterministic_relation <- if (isTRUE(det_is_descendant)) {
@@ -6138,9 +6138,9 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
         nzchar(deterministic_pre_preserve_clid)) {
       if (identical(deterministic_pre_preserve_clid, llm_anchor_clid)) {
         head_deterministic_relation <- "exact"
-      } else if (isTRUE(is_ancestor_of(llm_anchor_clid, deterministic_pre_preserve_clid, cl_graph))) {
+      } else if (isTRUE(Triage:::is_ancestor_of(llm_anchor_clid, deterministic_pre_preserve_clid, cl_graph))) {
         head_deterministic_relation <- "deterministic_descendant_of_head"
-      } else if (isTRUE(is_ancestor_of(deterministic_pre_preserve_clid, llm_anchor_clid, cl_graph))) {
+      } else if (isTRUE(Triage:::is_ancestor_of(deterministic_pre_preserve_clid, llm_anchor_clid, cl_graph))) {
         head_deterministic_relation <- "deterministic_ancestor_of_head"
       } else {
         head_deterministic_relation <- "non_hierarchical"
@@ -6179,7 +6179,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
   }
 
   # Canonicalize final primary label to CL label for stable wording.
-  canonical_primary <- local_lookup_by_clid(chosen_clid, cl_cfg)
+  canonical_primary <- Triage:::local_lookup_by_clid(chosen_clid, cl_cfg)
   if (!is.na(canonical_primary) && nzchar(canonical_primary)) {
     chosen_label <- canonical_primary
     if (identical(final_rule, "balanced_default") || identical(final_rule, "same_clid_finer_label") || identical(final_rule, "atomic_primary_label")) {
@@ -6217,7 +6217,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
         final_rule <- "atomic_primary_label"
       }
     } else {
-      canonical <- local_lookup_by_clid(chosen_clid, cl_cfg)
+      canonical <- Triage:::local_lookup_by_clid(chosen_clid, cl_cfg)
       if (!is.na(canonical) && nzchar(canonical)) {
         chosen_label <- canonical
         if (identical(final_rule, "balanced_default") || identical(final_rule, "same_clid_finer_label")) {
@@ -6272,11 +6272,11 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     c1 <- cand_ordered[[1]]
     c2 <- cand_ordered[[2]]
     if (!is.na(c1$clid) && !is.na(c2$clid)) {
-      related <- is_ancestor_of(c1$clid, c2$clid, cl_graph) || is_ancestor_of(c2$clid, c1$clid, cl_graph)
+      related <- Triage:::is_ancestor_of(c1$clid, c2$clid, cl_graph) || Triage:::is_ancestor_of(c2$clid, c1$clid, cl_graph)
       if (!related) {
         msca <- get_msca_two(c1$clid, c2$clid, cl_graph)
-        if (!is.na(msca$id) && is_descendant_of(msca$id, lock_id, cl_graph)) {
-          dist <- get_ontology_distance(c1$clid, c2$clid, cl_graph)
+        if (!is.na(msca$id) && Triage:::is_descendant_of(msca$id, lock_id, cl_graph)) {
+          dist <- Triage:::get_ontology_distance(c1$clid, c2$clid, cl_graph)
           if (!is.infinite(dist) && dist >= 2) {
             diff_adj <- abs((c1$score_adj %||% 0) - (c2$score_adj %||% 0))
             if (diff_adj < conflict_delta) conflict_fallback <- TRUE
@@ -6373,7 +6373,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
         method = lock_method,
         from_clid = final_method_lock_from_clid,
         to_clid = final_method_lock_to_clid,
-        to_label = as.character(lock_cand$label %||% local_lookup_by_clid(lock_cand$clid, cl_cfg) %||% NA_character_),
+        to_label = as.character(lock_cand$label %||% Triage:::local_lookup_by_clid(lock_cand$clid, cl_cfg) %||% NA_character_),
         note = "diagnostic_only"
       )
     }
@@ -6422,8 +6422,8 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
       decision_category_preferred_top1_clid <- pref_clid
       if (identical(pref_clid, as.character(chosen_clid))) {
         decision_category_relation_to_final <- "exact"
-      } else if (isTRUE(is_ancestor_of(pref_clid, as.character(chosen_clid), cl_graph)) ||
-                 isTRUE(is_ancestor_of(as.character(chosen_clid), pref_clid, cl_graph))) {
+      } else if (isTRUE(Triage:::is_ancestor_of(pref_clid, as.character(chosen_clid), cl_graph)) ||
+                 isTRUE(Triage:::is_ancestor_of(as.character(chosen_clid), pref_clid, cl_graph))) {
         decision_category_relation_to_final <- "hierarchical"
       } else {
         decision_category_relation_to_final <- "incompatible"
@@ -6457,7 +6457,7 @@ apply_consensus_subtype_policy <- function(head_out, judge_input_obj, cl_cfg, cl
     s <- gsub("\\bcells\\b", "cell", s)
     stringr::str_squish(s)
   }
-  canonical_primary <- local_lookup_by_clid(chosen_clid, cl_cfg)
+  canonical_primary <- Triage:::local_lookup_by_clid(chosen_clid, cl_cfg)
   if (!is.na(canonical_primary) && nzchar(canonical_primary)) {
     chosen_label <- canonical_primary
   }
@@ -6792,8 +6792,8 @@ run_single_cluster_test <- function(input_json_path,
   cid <- as.character(jin$cluster_id %||% NA_character_)
 
   if (is.null(cl_cfg) || is.null(cl_graph)) {
-    cl_cfg <- make_cl_cfg(Sys.getenv("CL_LOCAL_JSON", unset = file.path(Sys.getenv("TRIAGE_HOME", unset = getwd()), "inputs", "raw", "ontology", "CL-ontology-v2025-07-30.json")), prefer_ols = FALSE, cache_dir = ".ols_cache")
-    cl_graph <- load_cl_graph(cl_cfg)
+    cl_cfg <- Triage:::make_cl_cfg(Sys.getenv("CL_LOCAL_JSON", unset = file.path(Sys.getenv("TRIAGE_HOME", unset = getwd()), "inputs", "raw", "ontology", "CL-ontology-v2025-07-30.json")), prefer_ols = FALSE, cache_dir = ".ols_cache")
+    cl_graph <- Triage:::load_cl_graph(cl_cfg)
   }
 
   head_out <- NULL
@@ -6892,7 +6892,7 @@ run_single_cluster_test <- function(input_json_path,
   in_lock <- function(clid) {
     if (is.na(lock_id) || !nzchar(lock_id)) return(TRUE)
     if (is.na(clid) || !nzchar(clid)) return(FALSE)
-    isTRUE(is_ancestor_of(lock_id, clid, cl_graph)) || isTRUE(clid == lock_id)
+    isTRUE(Triage:::is_ancestor_of(lock_id, clid, cl_graph)) || isTRUE(clid == lock_id)
   }
 
   pool <- candidates
@@ -7882,7 +7882,7 @@ run_head_and_chief <- function(judge_input_path, api_key,
       lock_label <- as.character(repair_identity_lock$label %||% NA_character_)
       if (!is.na(lock_clid) && nzchar(lock_clid)) {
         head_out$final_decision$final_cell_ontology_id <- lock_clid
-        canonical_lock_label <- local_lookup_by_clid(lock_clid, cl_cfg)
+        canonical_lock_label <- Triage:::local_lookup_by_clid(lock_clid, cl_cfg)
         if (!is.na(canonical_lock_label) && nzchar(canonical_lock_label)) {
           lock_label <- canonical_lock_label
         }
@@ -8515,7 +8515,7 @@ if (isTRUE(opt$run_rules_tests) || nzchar(Sys.getenv("RUN_RULES_TESTS"))) {
 }
 dataset_name <- if (nzchar(opt$dataset_name)) opt$dataset_name else basename(getwd())
 project_root <- Sys.getenv("PROJECT_ROOT", unset = getwd())
-cfg <- get_dataset_config(dataset_name, project_root)
+cfg <- Triage:::get_dataset_config(dataset_name, project_root)
   if (!nzchar(opt$judge_input_dir)) {
     v3_dir <- file.path(cfg$llm_outputs_root, "llm_judge_inputs_v3")
     v2_dir <- file.path(cfg$llm_outputs_root, "llm_judge_inputs_v2")
@@ -8526,8 +8526,8 @@ if (!nzchar(opt$out_root)) opt$out_root <- cfg$judge_outputs_root
 
 ols_cache_dir <- opt$ols_cache_dir
 if (!nzchar(ols_cache_dir)) ols_cache_dir <- file.path(opt$out_root, ".ols_cache")
-  cl_cfg <- make_cl_cfg(opt$cl_local_json, prefer_ols = isTRUE(opt$ols_first), cache_dir = ols_cache_dir)
-  cl_graph <- load_cl_graph(cl_cfg)
+  cl_cfg <- Triage:::make_cl_cfg(opt$cl_local_json, prefer_ols = isTRUE(opt$ols_first), cache_dir = ols_cache_dir)
+  cl_graph <- Triage:::load_cl_graph(cl_cfg)
 
 api_key_env <- Sys.getenv("LLM_API_KEY_ENV", unset = Sys.getenv("CASSIA_API_KEY_ENV", unset = "DEEPSEEK_API_KEY"))
 api_key <- Sys.getenv(api_key_env)
@@ -8621,10 +8621,9 @@ if (isTRUE(opt$repair_only)) {
   
   results <- future.apply::future_lapply(files, function(f) {
     # NOTE: console output interleaves under parallel; that's expected.
-    # Re-source config in worker process to ensure STAGE_ROOT_CLIDS is available
-    pr <- Sys.getenv("TRIAGE_HOME", unset = Sys.getenv("PROJECT_ROOT", unset = getwd()))
-    source(file.path(pr, "config", "cl_normalizer.R"), local = FALSE)
-    source(file.path(pr, "config", "dataset_config.R"), local = FALSE)
+    # STAGE_ROOT_CLIDS and dataset config come from the Triage package
+    # namespace; future workers load the package with the serialized closure.
+    suppressMessages(library(Triage))
     vlog("[DEBUG] Processing: ", basename(f))
     run_head_and_chief(
       judge_input_path = f,

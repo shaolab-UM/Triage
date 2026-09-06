@@ -88,8 +88,8 @@ cfg_value() {
   local key="$1"
   Rscript -e '
     args <- commandArgs(trailingOnly=TRUE)
-    source(file.path(args[2], "config", "dataset_config.R"))
-    x <- get_dataset_config(args[1], args[2])
+    suppressMessages(library(Triage))
+    x <- Triage:::get_dataset_config(args[1], project_root = args[2])
     v <- x[[args[3]]]
     if (is.null(v) || length(v) == 0) quit(status=3)
     cat(as.character(v[[1]]))

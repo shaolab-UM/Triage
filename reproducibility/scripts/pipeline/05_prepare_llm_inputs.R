@@ -34,7 +34,7 @@ suppressMessages(library(Triage))
 # --- 2. Load custom functions ---
 # Required build_validator_instructions() / generate_expert_report_query() /
 # generate_citation_fix_query() are implemented in llm_run.R; no separate llm_simple.R is required.
-source(file.path(triageHome, "scripts", "llm_run.R"))
+source(file.path(triageHome, "reproducibility", "scripts", "llm_run.R"))
 
 # --- 2b. CLI args (adds dryrun mode) ---
 option_list <- list(
@@ -77,7 +77,7 @@ set.seed(opt$seed)
 
 # ##--- 3a. 【Core】Input ---
 current_dataset_name <- if (!is.null(opt$dataset_name) && nzchar(opt$dataset_name)) opt$dataset_name else basename(getwd())
-cfg <- get_dataset_config(current_dataset_name, opt$project_root)
+cfg <- Triage:::get_dataset_config(current_dataset_name, opt$project_root)
 # Release structure：does not switch into final/<dataset>（paths are supplied explicitly via CLI）
 deg_file_path <- cfg$deg_file
 candidates_file_path <- cfg$candidates_file
