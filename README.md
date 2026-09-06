@@ -81,12 +81,21 @@ optional evaluation inputs (supplied via `--reference-labels` for
 post-adjudication evaluation only) and are never used by the adjudication
 stages.
 
-API setup for the LLM-backed stages (never commit real credentials):
+Provide an API key and an OpenAI-compatible chat-completions endpoint for
+the LLM-backed stages directly on the command line:
 
 ```bash
-export DEEPSEEK_API_KEY="..."                                            # your key
-export LLM_API_BASE_URL="https://api.deepseek.com/chat/completions"      # full endpoint
+Rscript reproducibility/scripts/run_triage.R \
+  --deg path/to/markers.csv \
+  --species human \
+  --tissue pancreas \
+  --api-key "YOUR_API_KEY" \
+  --api-base-url "https://api.deepseek.com/chat/completions" \
+  --out results/
 ```
+
+Alternatively, `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` can be set as
+environment variables.
 
 To try the workflow on the bundled benchmark without preparing input:
 

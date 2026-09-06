@@ -11,6 +11,7 @@ run_triage_adjudication(
   head_output = NULL,
   model = "deepseek-v4-flash",
   api_key = NULL,
+  api_base_url = NULL,
   temperature = 0,
   prompt_profile = "compact",
   species_value = "human",
@@ -36,6 +37,10 @@ or list); required for the deterministic path.}
 
 \item{api_key}{API key for the API path; defaults to the environment
 variable named by \code{TRIAGE_LLM_API_KEY_ENV} (default \code{DEEPSEEK_API_KEY}).}
+
+\item{api_base_url}{Full chat-completions endpoint URL for the API path;
+defaults to the \code{LLM_API_BASE_URL} environment variable (with the
+documented fallback).}
 
 \item{temperature}{Sampling temperature (primary pipeline: 0).}
 

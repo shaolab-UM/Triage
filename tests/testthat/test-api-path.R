@@ -13,7 +13,7 @@ test_that("API path sends the serialized Handling Editor query (not a nested req
   calls <- list()
   stub <- function(prompt_json_string, api_key, model = "deepseek-v4-flash",
                    temperature = 0, timeout_seconds = 1200, max_retries = 4,
-                   retry_delay = 4, system_prompt = NULL) {
+                   retry_delay = 4, system_prompt = NULL, base_url = NULL) {
     calls[[length(calls) + 1L]] <<- list(
       prompt = prompt_json_string, model = model, temperature = temperature,
       system_prompt = system_prompt)
@@ -57,7 +57,7 @@ test_that("API path fails informatively when the model returns non-JSON text", {
   jin <- read_triage_input(test_path("fixtures", "cluster_1_round1.json"))
   stub_non_json <- function(prompt_json_string, api_key, model = "deepseek-v4-flash",
                             temperature = 0, timeout_seconds = 1200, max_retries = 4,
-                            retry_delay = 4, system_prompt = NULL) {
+                            retry_delay = 4, system_prompt = NULL, base_url = NULL) {
     list(ok = TRUE, text = "no json here at all", usage = NULL, status = 200L,
          model = model, error = NULL, retry_count = 0L, error_class = NULL)
   }

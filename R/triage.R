@@ -239,6 +239,9 @@ build_adjudication_input <- function(cluster_id, reviewers,
 #'   `deepseek-v4-flash`).
 #' @param api_key API key for the API path; defaults to the environment
 #'   variable named by `TRIAGE_LLM_API_KEY_ENV` (default `DEEPSEEK_API_KEY`).
+#' @param api_base_url Full chat-completions endpoint URL for the API path;
+#'   defaults to the `LLM_API_BASE_URL` environment variable (with the
+#'   documented fallback).
 #' @param temperature Sampling temperature (primary pipeline: 0).
 #' @param prompt_profile Head-editor prompt profile: "compact" (primary
 #'   pipeline default) or "default".
@@ -258,6 +261,7 @@ run_triage_adjudication <- function(input,
                                     head_output = NULL,
                                     model = "deepseek-v4-flash",
                                     api_key = NULL,
+                                    api_base_url = NULL,
                                     temperature = 0,
                                     prompt_profile = "compact",
                                     species_value = "human",
@@ -292,7 +296,8 @@ run_triage_adjudication <- function(input,
     # receives the system prompt separately.
     query_str <- jsonlite::toJSON(query, auto_unbox = TRUE, null = "null")
     raw <- invoke_deepseek_api(query_str, api_key = key, model = model,
-                               temperature = temperature, system_prompt = sys_prompt)
+                               temperature = temperature, system_prompt = sys_prompt,
+                               base_url = api_base_url)
     if (!isTRUE(raw$ok)) {
       stop("run_triage_adjudication: Handling Editor API request failed (status: ",
            raw$status, "; error: ", raw$error, ")")

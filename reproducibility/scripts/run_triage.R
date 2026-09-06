@@ -54,11 +54,25 @@ option_list <- list(
   make_option("--n-clusters", type = "numeric", default = NULL,
               help = "Restrict a generic run to the first N anonymous clusters after deterministic anonymization (single-cluster preview)."),
   make_option("--preflight-only", action = "store_true", default = FALSE,
-              help = "Run the full-workflow preflight check and exit without analysis.")
+              help = "Run the full-workflow preflight check and exit without analysis."),
+  make_option("--api-key", type = "character", default = NULL,
+              help = "API key for the LLM-backed stages (overrides the DEEPSEEK_API_KEY environment variable)."),
+  make_option("--api-base-url", type = "character", default = NULL,
+              help = "Full chat-completions endpoint URL for the LLM-backed stages (overrides the LLM_API_BASE_URL environment variable).")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list,
                                usage = "run_triage.R [options]"))
+
+# Map CLI API configuration onto the existing environment contract so that
+# every downstream stage keeps its validated environment-variable interface.
+# CLI values take precedence over inherited environment variables.
+if (!is.null(opt$`api-key`) && nzchar(opt$`api-key`)) {
+  Sys.setenv(DEEPSEEK_API_KEY = opt$`api-key`)
+}
+if (!is.null(opt$`api-base-url`) && nzchar(opt$`api-base-url`)) {
+  Sys.setenv(LLM_API_BASE_URL = opt$`api-base-url`)
+}
 
 script_dir <- dirname(normalizePath(sub("^--file=", "",
   grep("^--file=", commandArgs(FALSE), value = TRUE)[1]), winslash = "/"))
