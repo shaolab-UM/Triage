@@ -42,17 +42,25 @@ Or from GitHub: `remotes::install_github("shaolab-UM/Triage")`.
 ## Full workflow from a DEG input
 
 The primary entry point is the single-command workflow runner. Provide a
-cluster-level DEG/marker table, a species and a tissue; Triage performs
-deterministic cluster anonymization, candidate generation, reviewer
-generation, CL-Linker mapping, adjudication and post-summary in one pass:
+cluster-level DEG/marker table, a species and a tissue. The runner executes
+the upstream reviewer-generation stages, maps reviewer labels with
+CL-Linker, and runs Triage adjudication in one workflow; deterministic
+cluster anonymization and the final post-summary are included:
 
 ```bash
 Rscript reproducibility/scripts/run_triage.R \
   --deg path/to/markers.csv \
   --species human \
   --tissue pancreas \
+  --api-key "YOUR_API_KEY" \
+  --api-base-url "https://api.deepseek.com/chat/completions" \
   --out results/
 ```
+
+Provide an API key and an OpenAI-compatible chat-completions endpoint for
+the LLM-backed stages. The `--api-key` and `--api-base-url` arguments can be
+omitted when `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` are already set as
+environment variables.
 
 Optional flags: `--study-context normal_adult`, `--dataset-name my_dataset`,
 `--workers 4`.
@@ -103,6 +111,8 @@ To try the workflow on the bundled benchmark without preparing input:
 Rscript reproducibility/scripts/run_triage.R \
   --benchmark Census_immune \
   --cluster-id cluster_1 \
+  --api-key "YOUR_API_KEY" \
+  --api-base-url "https://api.deepseek.com/chat/completions" \
   --out results/
 ```
 
@@ -170,7 +180,7 @@ Full manuscript workflow orchestration is available under `reproducibility/scrip
   adjudication; no reference labels; see its README).
 - `examples/ts_pancreas_cluster1/` — Handling Editor API call for
   `TS_pancreas` cluster 1 (released identity: B cell, CL:0000236; requires
-  `DEEPSEEK_API_KEY`; not part of the test suite).
+  an API key; not part of the test suite).
 
 ## Package structure
 

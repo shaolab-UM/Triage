@@ -216,9 +216,10 @@ build_adjudication_input <- function(cluster_id, reviewers,
 #' \itemize{
 #'   \item `use_api = TRUE` invokes the Handling Editor stage and then runs
 #'     the deterministic downstream processing (release policy, CL
-#'     normalization, citation gates, local validation gate). Requires
-#'     `DEEPSEEK_API_KEY` (or an explicit `api_key`) and `LLM_API_BASE_URL`;
-#'     fails with a clear message when credentials are missing.
+#'     normalization, citation gates, local validation gate). Requires an
+#'     API key and a chat-completions endpoint, supplied either through
+#'     `api_key` / `api_base_url` or the corresponding environment
+#'     variables; fails with a clear message when credentials are missing.
 #'   \item `use_api = FALSE` requires a precomputed Handling Editor output
 #'     (`head_output`: a path to JSON, a JSON string, or a parsed list) and
 #'     executes only the deterministic downstream processing. No network

@@ -1,6 +1,8 @@
 # Data layout
 
-Each reported dataset has a publication-facing `final/` directory. Individual cleaned JSON records are stored one file per cluster. This preserves the dataset/cluster organization used by the workflow while avoiding publication of internal engineering traces.
+Each reported dataset contains a publication-facing `final/` directory with
+one adjudication JSON per cluster, preserving the dataset/cluster organization
+used by the workflow.
 
 ## Primary benchmark
 
@@ -23,7 +25,10 @@ Expected total: 42 cluster JSON files.
 
 ## Publication-facing JSON records
 
-The released JSON files are retained publication-facing records. The historical transformation step used to prepare these cleaned public records is not included as an executable release step. The public package therefore validates the retained records directly with `reproducibility/scripts/release/check_public_json_counts.R` and `reproducibility/scripts/release/validate_public_release.R`.
+These final records are the authoritative publication-facing outputs and are
+validated by the release validation scripts
+`reproducibility/scripts/release/check_public_json_counts.R` and
+`reproducibility/scripts/release/validate_public_release.R`.
 
 
 ## Reviewer metadata in publication-facing JSON
