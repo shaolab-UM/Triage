@@ -46,8 +46,10 @@ Declared in `DESCRIPTION` (`Imports`):
 - tibble (tested 3.3.1)
 - withr (environment restoration in `run_triage()`)
 
-The package loads and its deterministic paths run without any API key;
-network access is needed only for the optional API-backed adjudication path.
+The package loads without an API key, and the deterministic Quick Start
+runs offline after installation. The full workflow requires network access
+for dependency and resource acquisition, literature retrieval and
+LLM-backed stages.
 
 ## 2. Full workflow (pipeline stages 03a–10)
 
