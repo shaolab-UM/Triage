@@ -129,7 +129,8 @@
 #' Validates everything `run_triage()` needs in one pass, before any
 #' analysis: required R packages (pipeline stages 03a-10), CASSIA
 #' availability (including its Python backend via
-#' `CASSIA::check_python_env()`), external resources under the Triage
+#' a version-compatible lookup of CASSIA's internal
+#' `check_python_env()`), external resources under the Triage
 #' user-data directory
 #' (STRING, CollecTRI, CellMarkerDB), the bundled Cell Ontology, an API
 #' key, and a full chat-completions endpoint. No analysis and no LLM calls
@@ -188,7 +189,13 @@ triage_preflight <- function(species = "human",
   if (!requireNamespace("CASSIA", quietly = TRUE)) {
     missing <- c(missing, "R package: CASSIA (stage 03b; install with install_triage_dependencies())")
   } else {
-    py_ok <- tryCatch(isTRUE(CASSIA::check_python_env()), error = function(e) FALSE)
+    # Version-compatible lookup: check_python_env is present in the tested
+    # CASSIA revision (b008c0ac); getFromNamespace works whether or not the
+    # historical revision exports it.
+    py_ok <- tryCatch({
+      check_fun <- utils::getFromNamespace("check_python_env", "CASSIA")
+      isTRUE(check_fun())
+    }, error = function(e) FALSE)
     if (!py_ok) {
       missing <- c(missing,
                    "CASSIA Python backend (run CASSIA::setup_cassia_env() once, then re-run preflight)")

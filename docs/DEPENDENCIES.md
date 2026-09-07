@@ -26,8 +26,11 @@ R 4.5.2. Versions are recorded as *tested* versions, not requirements.
 
 Declared in `DESCRIPTION` (`Imports`):
 
-- cellmarkeraccordion (pinned `TebaldiLab/cellmarkeraccordion@v1.0.0` in
-  `Remotes`; tested 1.0.0)
+- cellmarkeraccordion (pinned
+  `TebaldiLab/cellmarkeraccordion@df19b668b26b3718bb8d760e013674ae39d811c0`
+  in `Remotes`; package version label 1.0.0; the tested commit is 21
+  commits after the `v1.0.0` git tag, whose target is `de85d37e…`, so the
+  exact SHA is pinned rather than the tag)
 - data.table (tested 1.18.2)
 - dplyr (tested 1.2.1)
 - httr (tested 1.4.8)
@@ -65,7 +68,8 @@ preflight check reports all missing entries together before analysis:
   (`remotes::install_github("ElliotXie/CASSIA", ref = ..., subdir =
   "CASSIA_R")`), installed by `install_triage_dependencies()`. CASSIA also
   needs its Python backend (`CASSIA::setup_cassia_env()` once; the
-  preflight verifies with `CASSIA::check_python_env()` and compares the
+  preflight verifies via a version-compatible lookup of CASSIA's internal
+  `check_python_env()` (present in the tested revision) and compares the
   installed revision against the tested SHA).
 - clusterProfiler (tested 4.19.4.8), DOSE (tested 4.4.0),
   ReactomePA (tested 1.52.0), enrichR (tested 3.4)

@@ -176,3 +176,18 @@ test_that("the resolved Rscript runs scripts and arguments containing spaces", {
     stdout = TRUE, stderr = "")
   expect_match(paste(out, collapse = "\n"), "GOT: value with spaces")
 })
+
+test_that("CASSIA Python readiness uses a version-compatible lookup", {
+  skip_if_not(requireNamespace("CASSIA", quietly = TRUE))
+  # fresh-install provenance of the tested revision must be intact
+  pd <- utils::packageDescription("CASSIA")
+  sha <- if (!is.null(pd$RemoteSha) && nzchar(pd$RemoteSha)) pd$RemoteSha else pd$GithubSHA1
+  skip_if_not(identical(sha, "b008c0ac3dd81b2c2dff131d20f5081a58aca027"),
+              "CASSIA not installed from the pinned tested revision")
+  # getFromNamespace works regardless of export status at that revision
+  fun <- tryCatch(utils::getFromNamespace("check_python_env", "CASSIA"),
+                  error = function(e) NULL)
+  expect_false(is.null(fun))
+  res <- tryCatch(isTRUE(fun()), error = function(e) NA)
+  expect_true(is.logical(res) && !is.na(res))
+})

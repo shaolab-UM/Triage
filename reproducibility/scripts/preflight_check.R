@@ -70,8 +70,13 @@ if (!requireNamespace("CASSIA", quietly = TRUE)) {
   ok("R package: CASSIA")
 }
 if (requireNamespace("CASSIA", quietly = TRUE)) {
-  py_ok <- tryCatch(suppressWarnings(CASSIA::check_python_env()),
-                    error = function(e) FALSE)
+  # Version-compatible lookup: check_python_env is present in the tested
+  # CASSIA revision (b008c0ac); getFromNamespace works whether or not the
+  # historical revision exports it.
+  py_ok <- tryCatch({
+    check_fun <- utils::getFromNamespace("check_python_env", "CASSIA")
+    suppressWarnings(isTRUE(check_fun()))
+  }, error = function(e) FALSE)
   if (isTRUE(py_ok)) {
     ok("CASSIA Python backend")
   } else {

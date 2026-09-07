@@ -47,7 +47,8 @@ Loading CASSIA at this revision may itself invoke CASSIA's own
 \code{setup_cassia_env()} when its environment is absent (its
 \code{.onLoad()} does this); this helper does not call
 \code{setup_cassia_env()} itself. The workflow preflight verifies
-readiness with \code{CASSIA::check_python_env()} and checks the
+readiness via a version-compatible lookup of CASSIA's internal
+\code{check_python_env()} (present in the tested revision) and checks the
 installed CASSIA provenance against the tested revision.
 \item \code{disgenet2r} is optional (only used for the optional
 DISGENET disease-evidence step and requires a

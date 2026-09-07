@@ -29,7 +29,7 @@ Description: Triage is a downstream workflow for adjudicating cell type
 License: MIT + file LICENSE
 Encoding: UTF-8
 Remotes:
-    TebaldiLab/cellmarkeraccordion@v1.0.0
+    TebaldiLab/cellmarkeraccordion@df19b668b26b3718bb8d760e013674ae39d811c0
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.9
 Depends:

@@ -29,7 +29,8 @@
 #'     `setup_cassia_env()` when its environment is absent (its
 #'     `.onLoad()` does this); this helper does not call
 #'     `setup_cassia_env()` itself. The workflow preflight verifies
-#'     readiness with `CASSIA::check_python_env()` and checks the
+#'     readiness via a version-compatible lookup of CASSIA's internal
+#'     `check_python_env()` (present in the tested revision) and checks the
 #'     installed CASSIA provenance against the tested revision.
 #'   \item `disgenet2r` is optional (only used for the optional
 #'     DISGENET disease-evidence step and requires a
@@ -159,7 +160,8 @@ install_triage_dependencies <- function(species = "human",
     "when its environment is absent. This helper does not call ",
     "setup_cassia_env() itself, but it cannot prevent CASSIA from doing ",
     "so at load time. The workflow preflight verifies readiness with ",
-    "CASSIA::check_python_env()."))
+    "a version-compatible lookup of CASSIA's internal check_python_env ",
+    "(present in the tested revision)."))
   if (!requireNamespace("CASSIA", quietly = TRUE) && !install_cassia) {
     notes <- c(notes, "CASSIA not installed (install_cassia = FALSE); ",
                "stage 03b requires it.")
