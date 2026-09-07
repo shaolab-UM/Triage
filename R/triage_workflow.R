@@ -231,6 +231,30 @@ triage_preflight <- function(species = "human",
     missing <- c(missing,
                  "R package: reactome.db (Reactome enrichment stage 05; install with install_triage_dependencies())")
   }
+  # GOSemSim: the pinned clusterProfiler revision lazy-loads get_organism(),
+  # which only exists in the tested GOSemSim revision.
+  gs_sha <- .triage_tested_gosemsim_sha()
+  if (!requireNamespace("GOSemSim", quietly = TRUE) ||
+      !.triage_gosemsim_sha_matches(gs_sha)) {
+    missing <- c(missing,
+                 paste0("R package: GOSemSim at the tested revision (GitHub sha ",
+                        gs_sha, "; required by the pinned clusterProfiler revision; ",
+                        "install with remotes::install_github(\"YuLab-SMU/GOSemSim\", ref = \"",
+                        gs_sha, "\"))"))
+  }
+  # clusterProfiler: the enrichment reviewer requires the interpret() API
+  # (clusterProfiler >= 4.19.4; the Bioconductor 3.22 release is 4.18.x and
+  # does not export interpret()) at the tested fanyi-routed revision.
+  cp_sha <- .triage_tested_clusterprofiler_sha()
+  if (!requireNamespace("clusterProfiler", quietly = TRUE) ||
+      !"interpret" %in% getNamespaceExports("clusterProfiler") ||
+      !.triage_clusterprofiler_sha_matches(cp_sha)) {
+    missing <- c(missing,
+                 paste0("R package: clusterProfiler at the tested revision (GitHub sha ",
+                        cp_sha, "; the enrichment reviewer stage 06b requires its ",
+                        "interpret() API; install with remotes::install_github(\"YuLab-SMU/clusterProfiler\", ref = \"",
+                        cp_sha, "\"))"))
+  }
   disgenet_key <- Sys.getenv("DISGENET_API_KEY", unset = "")
   if (nzchar(disgenet_key) && !requireNamespace("disgenet2r", quietly = TRUE)) {
     missing <- c(missing,
@@ -533,7 +557,12 @@ run_triage <- function(deg,
   # TSVs relative to its working directory (= run_dir) under
   # intermediate_outputs/<dataset>_LLM_Input_Run/bioinformatics_tsv; both
   # downstream consumers (06b and 08) are pointed at exactly that directory.
-  intermediate_run_dir <- file.path(run_dir, "intermediate_outputs",
+  # Stage 05 changes its own working directory (PROJECT_ROOT/resource root),
+  # so the intermediate TSV root is passed explicitly and wired through
+  # TRIAGE_INTERMEDIATE_ROOT inside the stage.
+  intermediate_root <- file.path(run_dir, "intermediate_outputs")
+  dir.create(intermediate_root, recursive = TRUE, showWarnings = FALSE)
+  intermediate_run_dir <- file.path(intermediate_root,
                                    paste0(dataset_name, "_LLM_Input_Run"))
 
   # 03a: deterministic DEG filtering
@@ -568,7 +597,8 @@ run_triage <- function(deg,
       "--candidates_file", candidates_csv,
       "--out_root", file.path(run_dir, "05c_llm_queries"),
       "--dataset_name", dataset_name,
-      "--project_root", runtime_home
+      "--project_root", runtime_home,
+      "--intermediate_root", intermediate_root
     ), "05")
   })
 

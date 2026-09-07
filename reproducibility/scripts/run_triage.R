@@ -267,7 +267,12 @@ deg_filtered <- file.path(run_dir, "filtered_deg.csv")
 # TSVs relative to its working directory (= run_dir) under
 # intermediate_outputs/<dataset>_LLM_Input_Run/bioinformatics_tsv; both
 # downstream consumers (06b and 08) are pointed at exactly that directory.
-intermediate_run_dir <- file.path(run_dir, "intermediate_outputs",
+# Stage 05 changes its own working directory (PROJECT_ROOT/resource root),
+# so the intermediate TSV root is passed explicitly and wired through
+# TRIAGE_INTERMEDIATE_ROOT inside the stage.
+intermediate_root <- file.path(run_dir, "intermediate_outputs")
+dir.create(intermediate_root, recursive = TRUE, showWarnings = FALSE)
+intermediate_run_dir <- file.path(intermediate_root,
                                   paste0(dataset_name, "_LLM_Input_Run"))
 run_stage("03a_filter_deg.R", c("--deg", deg_for_stages,
                                 "--out_dir", run_dir), "03a")
@@ -299,7 +304,8 @@ withr::with_dir(run_dir, {
     "--candidates_file", candidates_csv,
     "--out_root", file.path(run_dir, "05c_llm_queries"),
     "--dataset_name", dataset_name,
-    "--project_root", triage_home
+    "--project_root", triage_home,
+    "--intermediate_root", intermediate_root
   ), "05")
 })
 

@@ -1,3 +1,36 @@
+# The enrichment reviewer (stage 06b) requires the interpret() API that only
+# exists from clusterProfiler 4.19.4 onward, and the tested execution route
+# is the fanyi-backed interpret() at this exact revision. Never install a
+# moving HEAD: modern revisions rerouted interpret() through aisdk.
+.triage_tested_clusterprofiler_sha <- function() {
+  "f9f0d502508cacd258ac1a1cba6d5d497b98fe6c"
+}
+
+.triage_clusterprofiler_sha_matches <- function(sha = .triage_tested_clusterprofiler_sha()) {
+  if (!requireNamespace("clusterProfiler", quietly = TRUE)) return(FALSE)
+  desc <- tryCatch(utils::packageDescription("clusterProfiler"),
+                   error = function(e) NULL)
+  if (is.null(desc)) return(FALSE)
+  found <- desc$RemoteSha %||% desc$GithubSHA1 %||% ""
+  nzchar(found) && identical(found, sha)
+}
+
+# The pinned clusterProfiler revision lazy-loads get_organism(), which only
+# exists in the tested GOSemSim revision; the Bioconductor 3.22 release
+# (GOSemSim 2.36.0) does not export it.
+.triage_tested_gosemsim_sha <- function() {
+  "67e3da1dd3ee9d7c5067b2044fcf979e0cf6480d"
+}
+
+.triage_gosemsim_sha_matches <- function(sha = .triage_tested_gosemsim_sha()) {
+  if (!requireNamespace("GOSemSim", quietly = TRUE)) return(FALSE)
+  desc <- tryCatch(utils::packageDescription("GOSemSim"),
+                   error = function(e) NULL)
+  if (is.null(desc)) return(FALSE)
+  found <- desc$RemoteSha %||% desc$GithubSHA1 %||% ""
+  nzchar(found) && identical(found, sha)
+}
+
 #' Install Triage workflow dependencies
 #'
 #' Installs the R packages needed by the full manuscript workflow scripts
@@ -15,6 +48,19 @@
 #'     `BiocManager::install()` (`BiocManager` is installed automatically
 #'     if missing). `reactome.db` (Reactome enrichment, stage 05) is part
 #'     of the current Bioconductor release.
+#'   \item `GOSemSim` and `clusterProfiler` are installed at the tested
+#'     revisions `67e3da1dd3ee9d7c5067b2044fcf979e0cf6480d` and
+#'     `f9f0d502508cacd258ac1a1cba6d5d497b98fe6c`
+#'     (`remotes::install_github(...)`; GOSemSim first, because the pinned
+#'     clusterProfiler revision lazy-loads `get_organism()`, which only
+#'     exists in the tested GOSemSim revision and is absent from the
+#'     Bioconductor 3.22 release GOSemSim 2.36.0), not from the
+#'     Bioconductor releases and not at a moving HEAD. The
+#'     enrichment reviewer (stage 06b) requires the `interpret()` API that
+#'     only exists from clusterProfiler 4.19.4 onward (the Bioconductor
+#'     3.22 release is 4.18.x and does not export `interpret()`), and the
+#'     tested `interpret()` routes model calls through the `fanyi`
+#'     backend; modern revisions rerouted `interpret()` through `aisdk`.
 #'   \item `KEGG.db` is required for canonical KEGG evidence (stage 05
 #'     `enrichKEGG(use_internal_data = TRUE)` is backed by KEGG.db) but
 #'     was removed from Bioconductor with release 3.11. It is installed
@@ -60,8 +106,19 @@ install_triage_dependencies <- function(species = "human",
   bioc_pkgs <- c("AnnotationDbi",
                  if (species == "mouse") c("org.Mm.eg.db", "org.Hs.eg.db")
                  else "org.Hs.eg.db",
-                 "clusterProfiler", "DOSE", "ReactomePA", "decoupleR",
+                 "DOSE", "ReactomePA", "decoupleR",
                  "reactome.db")
+
+  # GOSemSim + clusterProfiler: pinned GitHub revisions (see roxygen
+  # above). Installed when missing OR when provenance does not match the
+  # tested revision. GOSemSim is installed first because the pinned
+  # clusterProfiler revision requires its get_organism() export.
+  gs_sha <- .triage_tested_gosemsim_sha()
+  gs_ok <- requireNamespace("GOSemSim", quietly = TRUE) &&
+    .triage_gosemsim_sha_matches(gs_sha)
+  cp_sha <- .triage_tested_clusterprofiler_sha()
+  cp_ok <- requireNamespace("clusterProfiler", quietly = TRUE) &&
+    .triage_clusterprofiler_sha_matches(cp_sha)
 
   missing_cran <- cran_pkgs[!vapply(cran_pkgs, requireNamespace,
                                     logical(1), quietly = TRUE)]
@@ -70,6 +127,32 @@ install_triage_dependencies <- function(species = "human",
 
   failed <- character(0)
   installed <- character(0)
+
+  if (!gs_ok || !cp_ok) {
+    if (!requireNamespace("remotes", quietly = TRUE)) {
+      utils::install.packages("remotes", quiet = TRUE)
+    }
+    if (!gs_ok) {
+      message("Installing GOSemSim at the tested revision (", gs_sha, ") ...")
+      remotes::install_github("YuLab-SMU/GOSemSim", ref = gs_sha,
+                              upgrade = "never", quiet = TRUE)
+      if (requireNamespace("GOSemSim", quietly = TRUE) &&
+          .triage_gosemsim_sha_matches(gs_sha)) {
+        installed <- c(installed, "GOSemSim")
+      } else {
+        failed <- c(failed, "GOSemSim")
+      }
+    }
+    message("Installing clusterProfiler at the tested revision (", cp_sha, ") ...")
+    remotes::install_github("YuLab-SMU/clusterProfiler", ref = cp_sha,
+                            upgrade = "never", quiet = TRUE)
+    if (requireNamespace("clusterProfiler", quietly = TRUE) &&
+        .triage_clusterprofiler_sha_matches(cp_sha)) {
+      installed <- c(installed, "clusterProfiler")
+    } else {
+      failed <- c(failed, "clusterProfiler")
+    }
+  }
 
   if (length(missing_cran) > 0) {
     message("Installing CRAN packages: ", paste(missing_cran, collapse = ", "))

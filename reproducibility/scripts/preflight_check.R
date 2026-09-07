@@ -123,6 +123,39 @@ if (!requireNamespace("reactome.db", quietly = TRUE)) {
 } else {
   ok("R package: reactome.db")
 }
+# GOSemSim: the pinned clusterProfiler revision lazy-loads get_organism(),
+# which only exists in the tested GOSemSim revision.
+{
+  gs_sha <- Triage:::.triage_tested_gosemsim_sha()
+  gs_ok <- requireNamespace("GOSemSim", quietly = TRUE) &&
+    Triage:::.triage_gosemsim_sha_matches(gs_sha)
+  if (!gs_ok) {
+    bad(paste0("R package: GOSemSim at the tested revision (GitHub sha ",
+               gs_sha, "; required by the pinned clusterProfiler revision; ",
+               "install with remotes::install_github(\"YuLab-SMU/GOSemSim\", ref = \"",
+               gs_sha, "\"))"))
+  } else {
+    ok("R package: GOSemSim (tested revision, get_organism() available)")
+  }
+}
+
+# clusterProfiler: the enrichment reviewer requires the interpret() API
+# (clusterProfiler >= 4.19.4; the Bioconductor 3.22 release is 4.18.x and
+# does not export interpret()) at the tested fanyi-routed revision.
+{
+  cp_sha <- Triage:::.triage_tested_clusterprofiler_sha()
+  cp_ok <- requireNamespace("clusterProfiler", quietly = TRUE) &&
+    "interpret" %in% getNamespaceExports("clusterProfiler") &&
+    Triage:::.triage_clusterprofiler_sha_matches(cp_sha)
+  if (!cp_ok) {
+    bad(paste0("R package: clusterProfiler at the tested revision (GitHub sha ",
+               cp_sha, "; the enrichment reviewer stage 06b requires its interpret() ",
+               "API; install with remotes::install_github(\"YuLab-SMU/clusterProfiler\", ref = \"",
+               cp_sha, "\"))"))
+  } else {
+    ok("R package: clusterProfiler (tested revision, interpret() available)")
+  }
+}
 soft("Seurat is required only for 01a --mode seurat (not for the CSV workflow)")
 if (species == "mouse" && !requireNamespace("org.Mm.eg.db", quietly = TRUE)) {
   bad("R package: org.Mm.eg.db (required for mouse evidence analysis; install with BiocManager::install(\"org.Mm.eg.db\"))")

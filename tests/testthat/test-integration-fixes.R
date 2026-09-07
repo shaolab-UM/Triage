@@ -134,29 +134,71 @@ test_that("context JSON wins over manuscript profiles for colliding names", {
   unlink(rr_mouse, recursive = TRUE)
 })
 
-# --- D: one canonical intermediate directory for 06b and 08 ----------------
-test_that("both runners pass one canonical intermediate directory", {
+# --- D: stage-05 intermediate root is honored by the real resolver ---------
+test_that("stage-05 writes enrichment TSVs under the requested intermediate root", {
   skip_if_runner_scripts_unavailable()
+  llm_run <- script_path("llm_run.R")
+  # Execute the REAL resolver and writer from llm_run.R in a subprocess:
+  # parse the actual script, evaluate resolve_bioinfo_dir +
+  # save_enrichment_tsv from it, write through save_enrichment_tsv, and
+  # verify the file lands under the explicit TRIAGE_INTERMEDIATE_ROOT.
+  driver <- tempfile("drv_", fileext = ".R")
+  ok_file <- tempfile("drvok_", fileext = ".txt")
+  root <- tempfile("tsv_root_")
+  dir.create(root)
+  tmpl <- '
+    Sys.setenv(TRIAGE_INTERMEDIATE_ROOT = %1$s)
+    src <- parse(%2$s)
+    fns <- Filter(function(e) is.call(e) && length(e) == 3 &&
+      e[[1]] == quote("<-") && identical(e[[2]], quote(save_enrichment_tsv)), src)
+    resv <- Filter(function(e) is.call(e) && length(e) == 3 &&
+      e[[1]] == quote("<-") && identical(e[[2]], quote(resolve_bioinfo_dir)), src)
+    stopifnot(length(fns) == 1, length(resv) == 1)
+    save_enrichment_tsv <- eval(fns[[1]])
+    resolve_bioinfo_dir <- eval(resv[[1]])
+    d <- resolve_bioinfo_dir("user_dataset_LLM_Input_Run", "cluster_1")
+    stopifnot(identical(d, file.path(%1$s, "user_dataset_LLM_Input_Run",
+                                   "bioinformatics_tsv", "cluster_1")))
+    save_enrichment_tsv(data.frame(ID = "x", p = 0.01),
+                        "go_biological_process", d)
+    f <- file.path(d, "go_biological_process_full_results.tsv")
+    stopifnot(file.exists(f))
+    # without the env var the historical cwd-relative default is preserved
+    Sys.unsetenv("TRIAGE_INTERMEDIATE_ROOT")
+    stopifnot(identical(resolve_bioinfo_dir("user_dataset_LLM_Input_Run", "cluster_1"),
+                        file.path("intermediate_outputs", "user_dataset_LLM_Input_Run",
+                                  "bioinformatics_tsv", "cluster_1")))
+    writeLines("SUBPROCESS_OK", %3$s)
+  '
+  writeLines(sprintf(tmpl, dQuote(root), dQuote(llm_run), dQuote(ok_file)), driver)
+  rscript <- file.path(R.home("bin"), "Rscript")
+  status <- system2(rscript, shQuote(c("--vanilla", driver)),
+                    stdout = "", stderr = "")
+  expect_identical(as.integer(status), 0L)
+  expect_true(file.exists(ok_file) &&
+              grepl("SUBPROCESS_OK", readLines(ok_file, warn = FALSE)[1]))
+  # both orchestrators pass an explicit absolute intermediate root
   for (runner in c(script_path("run_triage.R"),
-                   system.file("workflow", "not-needed", package = "Triage"))) {
+                   file.path(system.file("workflow", package = "Triage"),
+                             "..", "..", "R", "triage_workflow.R"))) {
     if (!file.exists(runner)) next
     txt <- paste(readLines(runner, warn = FALSE), collapse = "\n")
-    # the <dataset>_LLM_Input_Run construction appears exactly once (definition)
+    expect_true(grepl('"--intermediate_root", intermediate_root', txt,
+                      fixed = TRUE), info = runner)
     expect_identical(
       length(gregexpr("paste0(dataset_name, \"_LLM_Input_Run\")", txt,
                       fixed = TRUE)[[1]]), 1L,
       info = runner)
-    # 06b and 08 both reference the canonical variable
-    expect_true(grepl("intermediate_run_dir, \"bioinformatics_tsv\"", txt,
+    expect_true(grepl('intermediate_run_dir, "bioinformatics_tsv"', txt,
                       fixed = TRUE), info = runner)
-    expect_true(grepl("\"--intermediate_outputs_dir\", intermediate_run_dir",
+    expect_true(grepl('"--intermediate_outputs_dir", intermediate_run_dir',
                       txt, fixed = TRUE), info = runner)
   }
-  # stage 05 writes its enrichment TSVs relative to its working directory
-  llm_run_txt <- paste(readLines(script_path("llm_run.R"), warn = FALSE),
-                       collapse = "\n")
-  expect_true(grepl("file.path(\"intermediate_outputs\", run_name_prefix",
-                    llm_run_txt, fixed = TRUE))
+  # stage 05 declares the option and wires the env contract
+  s05 <- paste(readLines(script_path("pipeline", "05_prepare_llm_inputs.R"),
+                         warn = FALSE), collapse = "\n")
+  expect_true(grepl("TRIAGE_INTERMEDIATE_ROOT", s05, fixed = TRUE))
+  unlink(c(root, driver), recursive = TRUE)
 })
 
 # --- E: run manifests carry an absolute run_dir -----------------------------
@@ -173,4 +215,41 @@ test_that("run manifests are written from an absolute run_dir", {
   absolute <- normalizePath(tempdir(), winslash = "/", mustWork = TRUE)
   expect_identical(
     Triage:::resolve_manifest_run_dir(tempdir(), "ds", absolute), absolute)
+})
+
+# --- F: pinned GOSemSim + clusterProfiler provenance contract ---------------
+test_that("tested-revision provenance helpers and pins are wired everywhere", {
+  expect_true(Triage:::.triage_clusterprofiler_sha_matches())
+  expect_false(
+    Triage:::.triage_clusterprofiler_sha_matches("deadbeef"))
+  expect_identical(Triage:::.triage_tested_clusterprofiler_sha(),
+                   "f9f0d502508cacd258ac1a1cba6d5d497b98fe6c")
+  expect_identical(Triage:::.triage_tested_gosemsim_sha(),
+                   "67e3da1dd3ee9d7c5067b2044fcf979e0cf6480d")
+  # both preflights and stage 06b reference the tested pins
+  skip_if_runner_scripts_unavailable()
+  pf_txt <- paste(readLines(script_path("preflight_check.R"), warn = FALSE),
+                  collapse = "\n")
+  expect_true(grepl(".triage_tested_clusterprofiler_sha()", pf_txt,
+                    fixed = TRUE))
+  expect_true(grepl(".triage_tested_gosemsim_sha()", pf_txt,
+                    fixed = TRUE))
+  for (f in c("pipeline/06b_run_inter.R",
+              file.path("pipeline", "06b_run_inter.R"))) {
+    txt <- paste(readLines(script_path(f), warn = FALSE), collapse = "\n")
+    expect_true(grepl("f9f0d502508cacd258ac1a1cba6d5d497b98fe6c", txt,
+                      fixed = TRUE), info = f)
+  }
+  wf_txt <- paste(readLines(system.file("workflow", "README.md",
+                                        package = "Triage"), warn = FALSE),
+                  collapse = "\n")
+  # installer carries both pins (source-level, from the repository file)
+  ih_txt <- paste(readLines(test_path("..", "..", "R", "install_helpers.R"),
+                            warn = FALSE), collapse = "\n")
+  expect_true(grepl("67e3da1dd3ee9d7c5067b2044fcf979e0cf6480d", ih_txt,
+                    fixed = TRUE))
+  expect_true(grepl("remotes::install_github(\"YuLab-SMU/GOSemSim\"", ih_txt,
+                    fixed = TRUE))
+  expect_true(grepl("remotes::install_github(\"YuLab-SMU/clusterProfiler\"", ih_txt,
+                    fixed = TRUE))
 })

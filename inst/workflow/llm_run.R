@@ -163,6 +163,19 @@ build_program_evidence_from_markers <- function(degs_state_df, degs_df) {
 # SECTION 1: Five-dimension hybrid analysis module (MODIFIED)
 ###################################################################
 
+# Explicit intermediate-output root (backward compatible). When
+# TRIAGE_INTERMEDIATE_ROOT is set to an absolute path, enrichment TSVs are
+# written under that root regardless of worker working directories; when it
+# is unset, the historical working-directory-relative location is preserved.
+resolve_bioinfo_dir <- function(run_name_prefix, masked_qid) {
+  explicit_root <- Sys.getenv("TRIAGE_INTERMEDIATE_ROOT", unset = "")
+  if (nzchar(explicit_root)) {
+    file.path(explicit_root, run_name_prefix, "bioinformatics_tsv", masked_qid)
+  } else {
+    file.path("intermediate_outputs", run_name_prefix, "bioinformatics_tsv", masked_qid)
+  }
+}
+
 save_enrichment_tsv <- function(result_obj, analysis_name, output_dir) {
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
   file_path <- file.path(output_dir, glue::glue("{analysis_name}_full_results.tsv"))
@@ -1914,6 +1927,7 @@ generate_expert_report_query <- function(processed_deg_data,
     "summarize_enrich" = summarize_enrich,
     "get_species_resources" = get_species_resources,
     "save_enrichment_tsv" = save_enrichment_tsv,
+    "resolve_bioinfo_dir" = resolve_bioinfo_dir,
     "analyze_ppi_from_local_file" = analyze_ppi_from_local_file,
     "analyze_disgenet_enrichment" = analyze_disgenet_enrichment,
     "run_decoupleR_gsea" = run_decoupleR_gsea,
@@ -2067,7 +2081,7 @@ generate_expert_report_query <- function(processed_deg_data,
         # --- Step 2.2: Save TSV + Summarize ---
         tictoc::tic("  -> Step 2.2/4: Saving TSV files & Summarizing for Dossier")
         
-        tsv_output_dir <- file.path("intermediate_outputs", run_name_prefix, "bioinformatics_tsv", masked_qid)
+        tsv_output_dir <- resolve_bioinfo_dir(run_name_prefix, masked_qid)
         
         save_enrichment_tsv(bioinfo$go_bp, "go_biological_process", tsv_output_dir)
         save_enrichment_tsv(bioinfo$go_cc, "go_cellular_component", tsv_output_dir)
