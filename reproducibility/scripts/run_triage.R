@@ -150,8 +150,16 @@ if (!is.null(opt$benchmark)) {
 }
 
 run_tag <- opt$`run-tag` %||% format(Sys.time(), "%Y%m%d_%H%M%S")
+# Canonicalize the DEG source and the output root to absolute paths so the
+# runner behaves identically from any working directory and downstream
+# stage-to-stage handoffs (and the 07.5 run manifest) stay absolute.
+if (!is.null(deg_source)) {
+  deg_source <- normalizePath(deg_source, mustWork = TRUE)
+}
 out_root <- file.path(opt$out, dataset_name, run_tag)
 dir.create(out_root, recursive = TRUE, showWarnings = FALSE)
+# The run directory now exists, so it canonicalizes to an absolute path.
+out_root <- normalizePath(out_root, mustWork = TRUE)
 message("run_triage: dataset = ", dataset_name,
         " | species = ", species, " | tissue = ", tissue,
         " | study context = ", study_context)
@@ -230,8 +238,37 @@ deg_for_stages <- maskdeg
 # ------------------------------- stages ---------------------------------
 run_dir <- out_root
 
+# Generic mode: write a neutral per-run dataset context and wire it through
+# DATASET_CONTEXT_JSON_PATH (an explicit override in get_dataset_config) so
+# generic runs never inherit manuscript dataset profiles. Benchmark mode
+# keeps the released dataset configuration untouched.
+if (is.null(opt$benchmark)) {
+  ctx_json <- file.path(run_dir, "dataset_context.json")
+  jsonlite::write_json(list(
+    species = species,
+    tissue = tissue,
+    study_context = study_context,
+    dataset_scope = "mixed_unknown",
+    scope_profile = "mixed_unknown",
+    gate_mode = "flag_only",
+    allowed_lineages = character(0),
+    user_notes = paste(
+      "User-supplied dataset; generic workflow context.",
+      "Goal: marker-based candidate cell type annotation at cluster/state level.",
+      "Context is a soft prior; scope gating is flag-only: out-of-scope evidence is contamination-only and must not change core identity."
+    )
+  ), ctx_json, auto_unbox = TRUE, pretty = TRUE)
+  Sys.setenv(DATASET_CONTEXT_JSON_PATH = ctx_json)
+}
+
 # 03a: deterministic DEG filtering
 deg_filtered <- file.path(run_dir, "filtered_deg.csv")
+# ONE canonical per-run evidence directory. Stage 05 writes its enrichment
+# TSVs relative to its working directory (= run_dir) under
+# intermediate_outputs/<dataset>_LLM_Input_Run/bioinformatics_tsv; both
+# downstream consumers (06b and 08) are pointed at exactly that directory.
+intermediate_run_dir <- file.path(run_dir, "intermediate_outputs",
+                                  paste0(dataset_name, "_LLM_Input_Run"))
 run_stage("03a_filter_deg.R", c("--deg", deg_for_stages,
                                 "--out_dir", run_dir), "03a")
 
@@ -282,9 +319,7 @@ run_stage("06_run_llm_pipeline.R", c(
 run_stage("06b_run_inter.R", c(
   "--marker_csv", deg_filtered,
   "--step1_dir", file.path(run_dir, "05c_llm_queries", "step1_report_queries"),
-  "--bioinfo_dir", file.path(run_dir, "intermediate_outputs",
-                             paste0(dataset_name, "_LLM_Input_Run"),
-                             "bioinformatics_tsv"),
+  "--bioinfo_dir", file.path(intermediate_run_dir, "bioinformatics_tsv"),
   "--out_dir", file.path(run_dir, "06b_inter"),
   "--dataset_name", dataset_name,
   "--species", species,
@@ -331,8 +366,7 @@ run_stage("08_build_judge_inputs.R", c(
   "--in_house_summary_csv", file.path(run_dir, "07_our_summary", "summary.csv"),
   "--enrichment_summary_csv", file.path(run_dir, "07b_inter_summary", "summary.csv"),
   "--mapping_registry_csv", registry_csv,
-  "--intermediate_outputs_dir", file.path(run_dir, "intermediate_outputs",
-                                          paste0(dataset_name, "_LLM_Input_Run")),
+  "--intermediate_outputs_dir", intermediate_run_dir,
   "--step1_dir", file.path(run_dir, "05c_llm_queries", "step1_report_queries"),
   "--out_dir", file.path(run_dir, "08_judge_inputs"),
   "--dataset_name", dataset_name
@@ -360,9 +394,10 @@ run_stage("10_judge_post_summary.R", c(
 
 # 11: optional evaluation (reference labels enter ONLY here)
 if (!is.null(opt$`reference-labels`)) {
+  reference_labels <- normalizePath(opt$`reference-labels`, mustWork = TRUE)
   run_stage("11_eval_accuracy.R", c(
     "--dataset_name", dataset_name,
-    "--true_label_csv", opt$`reference-labels`,
+    "--true_label_csv", reference_labels,
     "--cassia_csv", file.path(cassia_out,
       list.files(cassia_out, pattern = "annotation_cassia_FINAL_RESULTS.csv$",
                  recursive = TRUE)[1]),

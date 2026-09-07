@@ -42,6 +42,18 @@ library(Triage)
 The package loads without any API keys; keys are only needed for the
 optional API path (section 6).
 
+Triage provides three distinct entry points, in increasing scope:
+
+- **A. Deterministic quick start** — `run_triage_example()`: runs the
+  packaged, fully deterministic example end-to-end. No API key and no
+  repository checkout required (section 3).
+- **B. Lightweight adjudication API** — `run_triage_adjudication()` for a
+  single cluster (sections 4-5).
+- **C. Full DEG-input workflow** — `run_triage()`: the complete
+  multi-stage workflow starting from a cluster-level DEG/marker table
+  (section 7). Repository checkout is only needed for manuscript
+  reproduction (section 9), not for any of these entry points.
+
 ## 2. Loading the Cell Ontology
 
 Triage ships the Cell Ontology JSON snapshot used by the manuscript
@@ -52,7 +64,20 @@ local; OLS web queries are never required.
 ontology <- load_triage_ontology()
 ```
 
-## 3. Reading reviewer inputs
+## 3. Deterministic quick start
+
+```{r quickstart}
+fin_example <- run_triage_example()
+```
+
+`run_triage_example()` loads the bundled Cell Ontology, reads reviewer
+fixtures shipped inside the installed package
+(`system.file("extdata", "examples", "census_immune_cluster1", ...)`),
+executes the deterministic adjudication chain, validates the result, and
+returns it invisibly. No API key, network call, or repository checkout is
+involved.
+
+## 4. Reading reviewer inputs
 
 Reviewer input dossiers for the released benchmark are assembled by the
 stage-08 pipeline script of the manuscript workflow (repository
@@ -67,7 +92,7 @@ jin <- read_triage_input(input_path)
 `read_triage_input()` accepts a file path, a JSON string, or a parsed
 list, and validates the required `cluster_id` / `inputs` fields.
 
-## 4. CL-Linker: deterministic label mapping
+## 5. CL-Linker: deterministic label mapping
 
 CL-Linker maps free-text reviewer labels to Cell Ontology terms:
 
@@ -75,7 +100,7 @@ CL-Linker maps free-text reviewer labels to Cell Ontology terms:
 run_cl_linker(c("macrophage", "T cell"), c("", "CL:0000084"))
 ```
 
-## 5. Assembling an adjudication input
+## 6. Building and running an adjudication
 
 ```{r build}
 ain <- build_adjudication_input(
@@ -129,7 +154,37 @@ attr(fin, "gate")$ok
 # LLM_API_BASE_URL environment variables are set.
 ```
 
-## 7. Validating results
+## 7. Full DEG-input workflow (R-only)
+
+`run_triage()` runs the complete multi-stage workflow from a
+cluster-level DEG/marker table (columns: `cluster`, `gene`, `avg_log2FC`,
+`p_val`, `p_val_adj`, `pct.1`, `pct.2`), through upstream LLM-backed
+reviewer stages to the final adjudication, entirely from R (no repository
+checkout, no shell scripts):
+
+```{r fullworkflow, eval=FALSE}
+# One-time per machine:
+install_triage_dependencies(species = "human")
+resources <- setup_triage_resources(species = "human")   # downloads STRING
+                                                          # + CollecTRI
+# Per run:
+triage_preflight(species = "human", deg = "path/to/markers.csv",
+                 api_key = "YOUR_API_KEY",
+                 api_base_url = "https://api.deepseek.com/chat/completions")
+res <- run_triage(deg = "path/to/markers.csv", species = "human",
+                  tissue = "pancreas", out = "results")
+res$summary
+```
+
+Original cluster identifiers are deterministically anonymized to
+`cluster_1...N` before any stage runs (the mapping is kept locally in
+`cluster_map.csv`); reference labels are never used for adjudication and
+are only consumed when explicitly supplied for optional evaluation.
+API keys and a chat-completions endpoint can be passed as arguments or
+through the `DEEPSEEK_API_KEY` / `LLM_API_BASE_URL` environment
+variables.
+
+## 8. Validating results
 
 ```{r validate}
 validate_triage_result(fin, jin)
@@ -139,11 +194,12 @@ validate_triage_result(fin, jin)
 (schema, banned tokens, citation policy, reviewer-support logic) and
 stops with the failing reasons if anything is wrong.
 
-## 8. Reproducing the manuscript
+## 9. Reproducing the manuscript
 
-The reproduction resources (data, deterministic release checks, and
-manuscript workflow scripts) live in the GitHub repository checkout under
-`reproducibility/`; see its README plus `docs/SELECTOR_REPRODUCTION.md`,
+Repository checkout is required only for manuscript reproduction. The
+reproduction resources (data, deterministic release checks, and
+manuscript workflow scripts) live under `reproducibility/` in the GitHub
+repository checkout; see its README plus `docs/SELECTOR_REPRODUCTION.md`,
 `docs/CL_LINKER_EVALUATION.md`, and `docs/CELLMARKERDB_SENSITIVITY.md`.
 All release validation scripts are deterministic (no LLM calls) and the
 manuscript workflow scripts are separate from the package API.

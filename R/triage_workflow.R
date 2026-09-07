@@ -11,7 +11,7 @@
 .triage_resource_root <- function(resource_root = NULL) {
   root <- resource_root %||% Sys.getenv("TRIAGE_DATA_ROOT", unset = "")
   if (!nzchar(root)) root <- tools::R_user_dir("Triage", "data")
-  root
+  normalizePath(root, winslash = "/", mustWork = FALSE)
 }
 
 .triage_workflow_dir <- function() {
@@ -395,6 +395,10 @@ run_triage <- function(deg,
   if (is.null(deg) || !nzchar(deg) || !file.exists(deg)) {
     stop("run_triage: deg file not found: ", deg)
   }
+  # Canonicalize every path the child stages will receive so that relative
+  # arguments (and the default out = "results") resolve identically from any
+  # working directory, and stage-to-stage handoffs stay absolute.
+  deg <- normalizePath(deg, mustWork = TRUE)
   if (is.null(tissue) || !nzchar(tissue)) {
     stop("run_triage: tissue is required (e.g. tissue = \"pancreas\").")
   }
@@ -423,8 +427,10 @@ run_triage <- function(deg,
   }
   run_tag <- run_tag %||% format(Sys.time(), "%Y%m%d_%H%M%S")
   out_root <- file.path(out, dataset_name, run_tag)
-  runtime_home <- file.path(out_root, "runtime_home")
   dir.create(out_root, recursive = TRUE, showWarnings = FALSE)
+  # The run directory now exists, so it canonicalizes to an absolute path.
+  out_root <- normalizePath(out_root, mustWork = TRUE)
+  runtime_home <- file.path(out_root, "runtime_home")
 
   message("run_triage: dataset = ", dataset_name,
           " | species = ", species, " | tissue = ", tissue,
@@ -453,6 +459,28 @@ run_triage <- function(deg,
   cm_dest <- file.path(cm_dir, cm_name)
   file.copy(cm_src, cm_dest, overwrite = TRUE)
 
+  # --- per-run generic dataset context ------------------------------------
+  # Generic runs must NOT inherit any manuscript dataset profile merely
+  # because the dataset name collides with a benchmark alias. A neutral
+  # context file is written into the run's runtime home and wired through
+  # DATASET_CONTEXT_JSON_PATH (supported by get_dataset_config as an
+  # explicit override applied on top of every other profile source).
+  ctx_json <- file.path(runtime_home, "dataset_context.json")
+  jsonlite::write_json(list(
+    species = species,
+    tissue = tissue,
+    study_context = study_context,
+    dataset_scope = "mixed_unknown",
+    scope_profile = "mixed_unknown",
+    gate_mode = "flag_only",
+    allowed_lineages = character(0),
+    user_notes = paste(
+      "User-supplied dataset; generic workflow context.",
+      "Goal: marker-based candidate cell type annotation at cluster/state level.",
+      "Context is a soft prior; scope gating is flag-only: out-of-scope evidence is contamination-only and must not change core identity."
+    )
+  ), ctx_json, auto_unbox = TRUE, pretty = TRUE)
+
   # Stage-specific environment variables are also restored on exit (withr
   # registers an exit handler on this frame); child Rscript processes
   # inherit the staged values while the function runs.
@@ -461,7 +489,8 @@ run_triage <- function(deg,
     PROJECT_ROOT = runtime_home,
     CL_LOCAL_JSON = cl_json,
     TRIAGE_PPI_ROOT = file.path(resource_root, "ppi"),
-    TRIAGE_WORKFLOW_DIR = workflow_dir
+    TRIAGE_WORKFLOW_DIR = workflow_dir,
+    DATASET_CONTEXT_JSON_PATH = ctx_json
   )
 
   # --- preflight (installed-package runtime) ------------------------------
@@ -500,6 +529,12 @@ run_triage <- function(deg,
   maskdeg <- file.path(map_dir, "maskdeg.csv")
   deg_for_stages <- maskdeg
   run_dir <- out_root
+  # ONE canonical per-run evidence directory. Stage 05 writes its enrichment
+  # TSVs relative to its working directory (= run_dir) under
+  # intermediate_outputs/<dataset>_LLM_Input_Run/bioinformatics_tsv; both
+  # downstream consumers (06b and 08) are pointed at exactly that directory.
+  intermediate_run_dir <- file.path(run_dir, "intermediate_outputs",
+                                   paste0(dataset_name, "_LLM_Input_Run"))
 
   # 03a: deterministic DEG filtering
   deg_filtered <- file.path(run_dir, "filtered_deg.csv")
@@ -553,9 +588,7 @@ run_triage <- function(deg,
   run_stage("06b_run_inter.R", c(
     "--marker_csv", deg_filtered,
     "--step1_dir", file.path(run_dir, "05c_llm_queries", "step1_report_queries"),
-    "--bioinfo_dir", file.path(run_dir, "intermediate_outputs",
-                               paste0(dataset_name, "_LLM_Input_Run"),
-                               "bioinformatics_tsv"),
+    "--bioinfo_dir", file.path(intermediate_run_dir, "bioinformatics_tsv"),
     "--out_dir", file.path(run_dir, "06b_inter"),
     "--dataset_name", dataset_name,
     "--species", species,
@@ -604,8 +637,7 @@ run_triage <- function(deg,
     "--in_house_summary_csv", file.path(run_dir, "07_our_summary", "summary.csv"),
     "--enrichment_summary_csv", file.path(run_dir, "07b_inter_summary", "summary.csv"),
     "--mapping_registry_csv", registry_csv,
-    "--intermediate_outputs_dir", file.path(run_dir, "intermediate_outputs",
-                                            paste0(dataset_name, "_LLM_Input_Run")),
+    "--intermediate_outputs_dir", intermediate_run_dir,
     "--step1_dir", file.path(run_dir, "05c_llm_queries", "step1_report_queries"),
     "--out_dir", file.path(run_dir, "08_judge_inputs"),
     "--dataset_name", dataset_name
@@ -633,6 +665,7 @@ run_triage <- function(deg,
 
   # 11: optional evaluation (reference labels enter ONLY here)
   if (!is.null(reference_labels) && nzchar(reference_labels)) {
+    reference_labels <- normalizePath(reference_labels, mustWork = TRUE)
     run_stage("11_eval_accuracy.R", c(
       "--dataset_name", dataset_name,
       "--true_label_csv", reference_labels,

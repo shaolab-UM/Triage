@@ -112,7 +112,8 @@ test_that("run_triage preflight_only stages resources and resolves installed pat
   # environment contract: variables are set for the child stages and
   # RESTORED to their pre-call values after run_triage() returns
   env_pre <- vapply(c("TRIAGE_HOME", "PROJECT_ROOT", "CL_LOCAL_JSON",
-                      "TRIAGE_PPI_ROOT", "TRIAGE_WORKFLOW_DIR"),
+                      "TRIAGE_PPI_ROOT", "TRIAGE_WORKFLOW_DIR",
+                      "DATASET_CONTEXT_JSON_PATH"),
                     function(v) Sys.getenv(v, unset = ""), character(1))
   res <- withr::with_envvar(
     c(DEEPSEEK_API_KEY = "test-key", LLM_API_KEY_ENV = "DEEPSEEK_API_KEY",
@@ -122,7 +123,7 @@ test_that("run_triage preflight_only stages resources and resolves installed pat
                dataset_name = "user_dataset", preflight_only = TRUE,
                resource_root = rr))
   expect_true(res$preflight$ok)
-  expect_true(dir.exists(file.path(res$out_root, "01_input_prep")) || TRUE)
+  expect_false(dir.exists(file.path(res$out_root, "01_input_prep")))
 
   # setup output paths are exactly the paths consumed by run_triage:
   # collectri + cellmarker staged from the resource root into runtime home
@@ -146,7 +147,8 @@ test_that("run_triage preflight_only stages resources and resolves installed pat
                                  mustWork = FALSE))
   # environment contract: restored to pre-call values after the call
   env_post <- vapply(c("TRIAGE_HOME", "PROJECT_ROOT", "CL_LOCAL_JSON",
-                       "TRIAGE_PPI_ROOT", "TRIAGE_WORKFLOW_DIR"),
+                       "TRIAGE_PPI_ROOT", "TRIAGE_WORKFLOW_DIR",
+                       "DATASET_CONTEXT_JSON_PATH"),
                      function(v) Sys.getenv(v, unset = ""), character(1))
   expect_identical(env_post, env_pre)
   # no stage outputs beyond preflight

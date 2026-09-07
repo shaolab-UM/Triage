@@ -39,10 +39,9 @@ test_that("user preparation anonymizes biological-looking cluster names", {
   masked <- readr::read_csv(file.path(out, "maskdeg.csv"), show_col_types = FALSE)
   expect_equal(map$cluster_id, c("cluster_1", "cluster_2"))
   expect_true(all(c("Activated T cell", "Malignant epithelial") %in% map$cluster_label))
-  expect_false("cluster" %in% names(masked))
-  expect_equal(names(masked), c("cluster_anon", "gene", "avg_log2FC", "p_val",
+  expect_equal(names(masked), c("cluster", "gene", "avg_log2FC", "p_val",
                                 "p_val_adj", "pct.1", "pct.2"))
-  expect_true(all(masked$cluster_anon %in% c("cluster_1", "cluster_2")))
+  expect_true(all(masked$cluster %in% c("cluster_1", "cluster_2")))
   expect_false(file.exists(file.path(out, "true_label.csv")))
   expect_false(any(grepl("Malignant|Activated", unlist(masked), fixed = FALSE)))
 })
