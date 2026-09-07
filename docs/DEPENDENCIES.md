@@ -44,7 +44,6 @@ Declared in `DESCRIPTION` (`Imports`):
 - stringdist
 - stringr (tested 1.6.0)
 - tibble (tested 3.3.1)
-- R.utils (resource-helper decompression)
 - withr (environment restoration in `run_triage()`)
 
 The package loads and its deterministic paths run without any API key;

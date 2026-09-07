@@ -10,8 +10,10 @@ maps free-text reviewer labels to Cell Ontology terms.
 The repository has **two components**:
 
 1. **The `Triage` R package** — an installable package exposing a compact
-   public API. It loads without any API keys; network access is only needed
-   for the optional API-backed adjudication path.
+   public API. The package loads without an API key, and the deterministic
+   Quick Start runs offline after installation. The full workflow requires
+   network access for dependency and resource acquisition, literature
+   retrieval and LLM-backed stages.
 2. **`reproducibility/`** — manuscript data, validation scripts and expected
    results for the Triage v1.0.0 publication release.
 
