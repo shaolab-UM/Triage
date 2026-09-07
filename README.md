@@ -15,9 +15,15 @@ The repository has **two components**:
 2. **`reproducibility/`** — manuscript data, validation scripts and expected
    results for the Triage v1.0.0 publication release.
 
+The `reproducibility/` tree is **not installed with the package**: installing
+from GitHub gives you the package API only. The repository checkout is
+required for the full DEG-input workflow and for reproducing the manuscript
+analyses.
+
 ## Navigation
 
 - [Installation](#installation)
+- [Quick start](#quick-start)
 - [Full workflow from a DEG input](#full-workflow-from-a-deg-input)
 - [Minimal package API example](#minimal-package-api-example)
 - [What Triage does](#what-triage-does)
@@ -32,14 +38,51 @@ The repository has **two components**:
 
 ## Installation
 
+From R / RStudio:
+
+```r
+install.packages("remotes")
+remotes::install_github("shaolab-UM/Triage")
+library(Triage)
+```
+
+Advanced (from a local clone):
+
 ```bash
 R CMD build .
 R CMD INSTALL Triage_1.0.0.tar.gz
 ```
 
-Or from GitHub: `remotes::install_github("shaolab-UM/Triage")`.
+## Quick start
+
+No API key, no clone and no working-directory assumptions are required —
+the example ships inside the installed package and runs deterministically:
+
+```r
+result <- run_triage_example()
+# Local gate OK
+# Result: classical monocyte | CL:0000860
+```
+
+This reproduces the reported primary benchmark identity for `Census_immune`
+cluster 1 (classical monocyte, CL:0000860, confidence 0.93) by running the
+deterministic adjudication core on packaged fixtures. Helper functions for
+the full workflow environment:
+
+- `install_triage_dependencies()` — installs the CRAN/Bioconductor packages
+  and CASSIA needed by the full DEG-input workflow.
+- `setup_triage_resources()` — downloads STRING PPI and CollecTRI resources
+  for the full workflow; CellMarkerDB requires a manual download.
 
 ## Full workflow from a DEG input
+
+This section uses the repository checkout (the `reproducibility/` scripts are
+not installed with the package). First install the full-workflow environment:
+
+```r
+install_triage_dependencies()   # CRAN/Bioconductor packages + CASSIA
+setup_triage_resources()        # STRING PPI + CollecTRI (CellMarkerDB: manual)
+```
 
 The primary entry point is the single-command workflow runner. Provide a
 cluster-level DEG/marker table, a species and a tissue. The runner executes
@@ -89,22 +132,6 @@ optional evaluation inputs (supplied via `--reference-labels` for
 post-adjudication evaluation only) and are never used by the adjudication
 stages.
 
-Provide an API key and an OpenAI-compatible chat-completions endpoint for
-the LLM-backed stages directly on the command line:
-
-```bash
-Rscript reproducibility/scripts/run_triage.R \
-  --deg path/to/markers.csv \
-  --species human \
-  --tissue pancreas \
-  --api-key "YOUR_API_KEY" \
-  --api-base-url "https://api.deepseek.com/chat/completions" \
-  --out results/
-```
-
-Alternatively, `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` can be set as
-environment variables.
-
 To try the workflow on the bundled benchmark without preparing input:
 
 ```bash
@@ -128,27 +155,31 @@ bundled under `examples/census_immune_cluster1/outputs/`.
 
 This example demonstrates the deterministic package API on a precomputed
 Handling Editor draft. It is **not** the full manuscript workflow; use the
-runner above for that. No API key required
-(`examples/census_immune_cluster1/`):
+runner above for that. No API key required; fixtures ship with the installed
+package (`system.file`), so no repository paths are used:
 
 ```r
 library(Triage)
 
+base <- system.file("extdata", "examples", "census_immune_cluster1",
+                    package = "Triage")
 ontology <- load_triage_ontology()
-jin <- read_triage_input("examples/census_immune_cluster1/cluster_1_round1.json")
+jin <- read_triage_input(file.path(base, "cluster_1_round1.json"))
 
 fin <- run_triage_adjudication(
   jin,
   ontology = ontology,
   use_api = FALSE,
-  head_output = "examples/census_immune_cluster1/head_round1.json",
+  head_output = file.path(base, "head_round1.json"),
   dataset_name = "census_immune",
-  project_root = "reproducibility/primary"
+  project_root = tempdir()
 )
 attr(fin, "gate")$ok                      # deterministic local gate
 fin$final_decision$primary_cell_type      # classical monocyte
 validate_triage_result(fin, jin)
 ```
+
+`run_triage_example()` wraps exactly this sequence (see Quick start).
 
 See the vignette: `vignette("getting-started", package = "Triage")`.
 

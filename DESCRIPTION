@@ -46,8 +46,16 @@ Imports:
     tibble,
     utils
 Suggests:
+    BiocManager,
+    CASSIA,
+    KEGG.db,
+    R.utils,
+    Seurat,
+    decoupleR,
+    disgenet2r,
     httr2,
     knitr,
+    remotes,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
