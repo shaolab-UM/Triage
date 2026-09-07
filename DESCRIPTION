@@ -44,7 +44,8 @@ Imports:
     stringdist,
     stringr,
     tibble,
-    utils
+    utils,
+    withr
 Suggests:
     BiocManager,
     CASSIA,
@@ -55,6 +56,7 @@ Suggests:
     disgenet2r,
     httr2,
     knitr,
+    readxl,
     remotes,
     rmarkdown,
     testthat (>= 3.0.0)

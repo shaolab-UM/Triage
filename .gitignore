@@ -23,3 +23,9 @@ inputs/raw/cellmarker/*.xlsx
 
 # Generated reproduction outputs
 results/
+
+# R build artifacts
+Triage.Rcheck/
+Triage_*.tar.*
+.Triage_1.0.0.tar.gz
+*.tar.gz

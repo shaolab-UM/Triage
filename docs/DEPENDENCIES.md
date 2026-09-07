@@ -4,11 +4,20 @@ Dependencies fall into two distinct groups:
 
 1. **`Triage` package core** — declared in `DESCRIPTION` and installed with
    the package.
-2. **Full workflow** — the additional R packages used by the
-   `reproducibility/scripts/` pipeline (stages 03a–10). These are checked by
-   `reproducibility/scripts/preflight_check.R` before a run starts; they are
-   intentionally **not** declared in `DESCRIPTION`, so a plain package
-   install stays lightweight.
+2. **Full workflow** — the additional R packages used by the pipeline
+   stages (03a–10). These are checked by `triage_preflight()` (installed
+   package) or `reproducibility/scripts/preflight_check.R` (repository
+   runner) before a run starts; they are intentionally **not** declared in
+   `DESCRIPTION`, so a plain package install stays lightweight. Install
+   them with `install_triage_dependencies()`.
+
+The installed-package workflow runtime (`run_triage()`) executes the same
+stage scripts bundled byte-identically under `inst/workflow/` (see
+`inst/workflow/README.md`); the repository `reproducibility/` tree is the
+manuscript reproduction layer. External resources are resolved from the
+Triage user-data directory (`tools::R_user_dir("Triage", "data")`)
+populated by `setup_triage_resources()`; STRING is additionally honored
+via `TRIAGE_PPI_ROOT`.
 
 The manuscript reports R 4.5.1; the versions below were tested on
 R 4.5.2. Versions are recorded as *tested* versions, not requirements.

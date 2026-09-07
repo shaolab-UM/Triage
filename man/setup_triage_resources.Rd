@@ -7,7 +7,8 @@
 setup_triage_resources(
   species = "human",
   download_string = TRUE,
-  download_collectri = TRUE
+  download_collectri = TRUE,
+  cellmarker_file = NULL
 )
 }
 \arguments{
@@ -16,6 +17,13 @@ setup_triage_resources(
 \item{download_string}{logical; download the two STRING v12.0 files.}
 
 \item{download_collectri}{logical; retrieve CollecTRI via decoupleR.}
+
+\item{cellmarker_file}{optional path to a locally downloaded CellMarkerDB
+spreadsheet (\code{Cell_marker_Human.xlsx} / \code{Cell_marker_Mouse.xlsx}).
+CellMarkerDB has no machine-readable official download endpoint, so it
+cannot be fetched automatically; supply the file you downloaded
+manually (e.g. \code{cellmarker_file = file.choose()}) and it is registered
+under the Triage user-data directory with the canonical file name.}
 }
 \value{
 Invisibly, the target directory (a character path).
@@ -47,12 +55,12 @@ functional downloads.
 
 Wiring notes printed by this function:
 \itemize{
-\item STRING: set the environment variable
-\code{TRIAGE_PPI_ROOT} to the returned \code{ppi} directory (the pipeline
-honors this override).
-\item CollecTRI and CellMarkerDB: the pipeline reads them from
-\verb{<repository>/inputs/raw/collectri/} and
-\verb{<repository>/inputs/raw/cellmarker/} (not environment-overridable);
-copy the downloaded files into a checkout of the Triage repository.
+\item Installed-package workflow (\code{run_triage()}): no wiring needed —
+resources under the Triage user-data directory are resolved
+automatically at run time.
+\item Repository workflow (\verb{Rscript reproducibility/scripts/run_triage.R}): set \code{TRIAGE_PPI_ROOT} to the
+STRING directory and copy the CollecTRI RDS and CellMarkerDB xlsx
+into \verb{<repository>/inputs/raw/collectri/} and
+\verb{<repository>/inputs/raw/cellmarker/}.
 }
 }

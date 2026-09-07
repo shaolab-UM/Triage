@@ -24,7 +24,7 @@ analyses.
 
 - [Installation](#installation)
 - [Quick start](#quick-start)
-- [Full workflow from a DEG input](#full-workflow-from-a-deg-input)
+- [Run Triage on your data](#run-triage-on-your-data)
 - [Minimal package API example](#minimal-package-api-example)
 - [What Triage does](#what-triage-does)
 - [Example workflows](#example-workflows)
@@ -74,39 +74,53 @@ the full workflow environment:
 - `setup_triage_resources()` — downloads STRING PPI and CollecTRI resources
   for the full workflow; CellMarkerDB requires a manual download.
 
-## Full workflow from a DEG input
+## Run Triage on your data
 
-This section uses the repository checkout (the `reproducibility/` scripts are
-not installed with the package). First install the full-workflow environment:
+One-time environment setup (all from R — no clone, terminal or shell
+scripts required):
 
 ```r
-install_triage_dependencies()   # CRAN/Bioconductor packages + CASSIA
-setup_triage_resources()        # STRING PPI + CollecTRI (CellMarkerDB: manual)
+install_triage_dependencies(species = "human")   # CRAN/Bioconductor + CASSIA
+setup_triage_resources(species = "human")        # STRING PPI + CollecTRI
+# CellMarkerDB has no machine-readable official download; register the file
+# you downloaded manually:
+setup_triage_resources(species = "human",
+                       cellmarker_file = file.choose(),
+                       download_string = FALSE,
+                       download_collectri = FALSE)
 ```
 
-The primary entry point is the single-command workflow runner. Provide a
-cluster-level DEG/marker table, a species and a tissue. The runner executes
-the upstream reviewer-generation stages, maps reviewer labels with
-CL-Linker, and runs Triage adjudication in one workflow; deterministic
-cluster anonymization and the final post-summary are included:
+Check everything before spending API budget:
 
-```bash
-Rscript reproducibility/scripts/run_triage.R \
-  --deg path/to/markers.csv \
-  --species human \
-  --tissue pancreas \
-  --api-key "YOUR_API_KEY" \
-  --api-base-url "https://api.deepseek.com/chat/completions" \
-  --out results/
+```r
+triage_preflight(species = "human",
+                 api_key = "YOUR_API_KEY",
+                 api_base_url = "https://api.deepseek.com/chat/completions")
 ```
 
-Provide an API key and an OpenAI-compatible chat-completions endpoint for
-the LLM-backed stages. The `--api-key` and `--api-base-url` arguments can be
-omitted when `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` are already set as
-environment variables.
+Then run the full workflow on your own DEG table:
 
-Optional flags: `--study-context normal_adult`, `--dataset-name my_dataset`,
-`--workers 4`.
+```r
+result <- run_triage(
+  deg = "markers.csv",
+  species = "human",
+  tissue = "pancreas",
+  api_key = "YOUR_API_KEY",
+  api_base_url = "https://api.deepseek.com/chat/completions",
+  out = "results"
+)
+```
+
+`run_triage()` runs the complete chain — reviewer generation, CL-Linker
+label mapping, Triage adjudication and the final post-summary — using the
+validated pipeline scripts bundled with the installed package. External
+resources are resolved automatically from the Triage user-data directory
+populated by `setup_triage_resources()`; users never copy files into
+`inputs/raw/`. API keys are never printed. The arguments can be omitted
+when `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` are already set as
+environment variables. Optional: `study_context`, `dataset_name`,
+`workers`, `run_tag`, and `preflight_only = TRUE` to stop after the
+preflight check.
 
 The DEG table (csv/tsv) must contain these columns:
 
@@ -128,34 +142,16 @@ reviewer, CL-Linker or adjudication stages.
 You do **not** provide candidate tables, reviewer outputs, CL-Linker
 mappings, judge-input JSON, Handling Editor output or final adjudication
 JSON — the workflow generates all of these internally. Reference labels are
-optional evaluation inputs (supplied via `--reference-labels` for
+optional evaluation inputs (supplied via `reference_labels` for
 post-adjudication evaluation only) and are never used by the adjudication
-stages.
-
-To try the workflow on the bundled benchmark without preparing input:
-
-```bash
-Rscript reproducibility/scripts/run_triage.R \
-  --benchmark Census_immune \
-  --cluster-id cluster_1 \
-  --api-key "YOUR_API_KEY" \
-  --api-base-url "https://api.deepseek.com/chat/completions" \
-  --out results/
-```
-
-Before any analysis the runner executes a preflight check (all required R
-packages, API key, endpoint contract and external resources; run
-`reproducibility/scripts/preflight_check.R` directly, or pass
-`--preflight-only` to check and exit). Required packages and external
-resources are described in `docs/DEPENDENCIES.md` and
-`resources/README.md`. The released benchmark record for this cluster is
-bundled under `examples/census_immune_cluster1/outputs/`.
+stages. The released benchmark record for Census_immune cluster 1 is
+bundled under `examples/census_immune_cluster1/outputs/` in the repository.
 
 ## Minimal package API example
 
 This example demonstrates the deterministic package API on a precomputed
-Handling Editor draft. It is **not** the full manuscript workflow; use the
-runner above for that. No API key required; fixtures ship with the installed
+Handling Editor draft. It is **not** the full manuscript workflow; use
+`run_triage()` for that. No API key required; fixtures ship with the installed
 package (`system.file`), so no repository paths are used:
 
 ```r
@@ -224,6 +220,11 @@ examples/                 census_immune_cluster1 (no API), ts_pancreas_cluster1 
 
 ## Reproducing the manuscript analyses
 
+**Requires a repository checkout** — the `reproducibility/` tree is not
+installed with the package. The shell runner documented here is the
+advanced/reproduction entry point; ordinary users should use `run_triage()`
+(see [Run Triage on your data](#run-triage-on-your-data)).
+
 Layout:
 
 ```text
@@ -256,7 +257,7 @@ The selector check reproduces the published Table S10 / Fig. 3C-D controls,
 including the retrospective oracle value 84.908337 (Overall; see
 `docs/SELECTOR_REPRODUCTION.md`).
 
-The full primary pipeline can be rerun with:
+The full primary pipeline can be rerun with the batch runner:
 
 ```bash
 bash reproducibility/scripts/run_pipeline.sh \
@@ -264,8 +265,21 @@ bash reproducibility/scripts/run_pipeline.sh \
   --masked-deg reproducibility/primary/Census_immune/model_inputs/maskdeg.csv
 ```
 
-Reference labels are only introduced when `--true-label-csv` is explicitly
-supplied for Step 11 evaluation.
+For a single new-dataset run from a repository checkout, the equivalent
+shell runner is:
+
+```bash
+Rscript reproducibility/scripts/run_triage.R \
+  --deg path/to/markers.csv --species human --tissue pancreas \
+  --api-key "YOUR_API_KEY" \
+  --api-base-url "https://api.deepseek.com/chat/completions" \
+  --out results/
+# benchmark mode: --benchmark Census_immune --cluster-id cluster_1
+# preflight only: --preflight-only
+```
+
+Reference labels are only introduced when `--true-label-csv` (or
+`--reference-labels`) is explicitly supplied for Step 11 evaluation.
 
 ## Model configuration
 

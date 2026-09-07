@@ -177,24 +177,32 @@ install_triage_dependencies <- function(species = "human",
 #'
 #' Wiring notes printed by this function:
 #' \itemize{
-#'   \item STRING: set the environment variable
-#'     `TRIAGE_PPI_ROOT` to the returned `ppi` directory (the pipeline
-#'     honors this override).
-#'   \item CollecTRI and CellMarkerDB: the pipeline reads them from
-#'     `<repository>/inputs/raw/collectri/` and
-#'     `<repository>/inputs/raw/cellmarker/` (not environment-overridable);
-#'     copy the downloaded files into a checkout of the Triage repository.
+#'   \item Installed-package workflow (`run_triage()`): no wiring needed —
+#'     resources under the Triage user-data directory are resolved
+#'     automatically at run time.
+#'   \item Repository workflow (`Rscript
+#'     reproducibility/scripts/run_triage.R`): set `TRIAGE_PPI_ROOT` to the
+#'     STRING directory and copy the CollecTRI RDS and CellMarkerDB xlsx
+#'     into `<repository>/inputs/raw/collectri/` and
+#'     `<repository>/inputs/raw/cellmarker/`.
 #' }
 #'
 #' @param species "human" or "mouse".
 #' @param download_string logical; download the two STRING v12.0 files.
 #' @param download_collectri logical; retrieve CollecTRI via decoupleR.
+#' @param cellmarker_file optional path to a locally downloaded CellMarkerDB
+#'   spreadsheet (`Cell_marker_Human.xlsx` / `Cell_marker_Mouse.xlsx`).
+#'   CellMarkerDB has no machine-readable official download endpoint, so it
+#'   cannot be fetched automatically; supply the file you downloaded
+#'   manually (e.g. `cellmarker_file = file.choose()`) and it is registered
+#'   under the Triage user-data directory with the canonical file name.
 #'
 #' @return Invisibly, the target directory (a character path).
 #' @export
 setup_triage_resources <- function(species = "human",
                                    download_string = TRUE,
-                                   download_collectri = TRUE) {
+                                   download_collectri = TRUE,
+                                   cellmarker_file = NULL) {
   species <- match.arg(tolower(species), c("human", "mouse"))
   ppi_code <- if (species == "human") "9606" else "10090"
   organism <- if (species == "human") "human" else "mouse"
@@ -202,8 +210,10 @@ setup_triage_resources <- function(species = "human",
   base_dir <- tools::R_user_dir("Triage", "data")
   ppi_dir <- file.path(base_dir, "ppi")
   collectri_dir <- file.path(base_dir, "collectri")
+  cellmarker_dir <- file.path(base_dir, "cellmarker")
   dir.create(ppi_dir, recursive = TRUE, showWarnings = FALSE)
   dir.create(collectri_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(cellmarker_dir, recursive = TRUE, showWarnings = FALSE)
 
   if (isTRUE(download_string)) {
     if (!requireNamespace("R.utils", quietly = TRUE)) {
@@ -238,17 +248,30 @@ setup_triage_resources <- function(species = "human",
                            paste0("collectri_", species, "_network.rds")))
   }
 
+  if (!is.null(cellmarker_file) && nzchar(cellmarker_file)) {
+    if (!file.exists(cellmarker_file)) {
+      stop("setup_triage_resources: cellmarker_file not found: ",
+           cellmarker_file)
+    }
+    canonical <- if (species == "human") "Cell_marker_Human.xlsx" else
+      "Cell_marker_Mouse.xlsx"
+    dest <- file.path(cellmarker_dir, canonical)
+    file.copy(cellmarker_file, dest, overwrite = TRUE)
+    message("CellMarkerDB registered as ", dest)
+  }
+
   message("Resources directory: ", base_dir)
-  message("WIRING (manual, one-time):")
-  message("  1. STRING: set TRIAGE_PPI_ROOT=\"", ppi_dir, "\" ",
-          "(the pipeline honors this override).")
-  message("  2. CollecTRI: copy ",
+  message("WIRING:")
+  message("  - Installed-package workflow (run_triage()): no wiring needed; ",
+          "resources under ", base_dir, " are resolved automatically.")
+  message("  - Repository workflow (Rscript reproducibility/scripts/run_triage.R):")
+  message("    1. STRING: set TRIAGE_PPI_ROOT=\"", ppi_dir, "\".")
+  message("    2. CollecTRI: copy ",
           file.path(collectri_dir,
                     paste0("collectri_", species, "_network.rds")),
           " into <repository>/inputs/raw/collectri/.")
-  message("  3. CellMarkerDB: manual download; see ",
-          "resources/cellmarkerdb/README.md in the repository, then ",
-          "place the xlsx under <repository>/inputs/raw/cellmarker/.")
+  message("    3. CellMarkerDB: copy the xlsx into ",
+          "<repository>/inputs/raw/cellmarker/.")
 
   invisible(base_dir)
 }
