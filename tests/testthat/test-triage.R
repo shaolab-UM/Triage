@@ -7,7 +7,9 @@ test_that("package loads and exports the public API", {
   expect_true("Triage" %in% rownames(utils::installed.packages()))
   for (fn in c("read_triage_input", "run_cl_linker",
                "build_adjudication_input", "run_triage_adjudication",
-               "validate_triage_result", "load_triage_ontology")) {
+               "validate_triage_result", "load_triage_ontology",
+               "run_triage_example", "install_triage_dependencies",
+               "setup_triage_resources", "run_triage", "triage_preflight")) {
     expect_true(exists(fn, where = "package:Triage"), info = fn)
   }
   for (fn in c("map_cell_ontology", "build_reviewer_summary",

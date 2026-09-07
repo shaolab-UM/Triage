@@ -90,10 +90,19 @@ fail <- function(msg) {
   message("run_triage: ERROR: ", msg)
   quit(status = 1)
 }
+# Resolve the Rscript executable portably (Windows uses Rscript.exe).
+.triage_rscript <- function() {
+  exe <- if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"
+  rscript <- file.path(R.home("bin"), exe)
+  if (!file.exists(rscript)) {
+    fail(paste0("Rscript executable not found at ", rscript))
+  }
+  rscript
+}
 run_stage <- function(script, args, stage_label) {
   message(">>> [", stage_label, "] Rscript ", script)
-  status <- system2("Rscript",
-                    c(file.path(pipeline_dir, script), args),
+  status <- system2(.triage_rscript(),
+                    shQuote(c(file.path(pipeline_dir, script), args)),
                     stdout = "", stderr = "")
   if (!identical(as.integer(status), 0L)) {
     fail(paste0("stage ", stage_label, " (", script, ") failed with status ", status))
@@ -153,8 +162,9 @@ message("run_triage: output root = ", out_root)
 preflight_args <- c("--species", species)
 if (!is.null(opt$deg)) preflight_args <- c(preflight_args, "--deg", opt$deg)
 message(">>> [preflight] full-workflow dependency check")
-status <- system2("Rscript", c(file.path(script_dir, "preflight_check.R"),
-                               preflight_args), stdout = "", stderr = "")
+status <- system2(.triage_rscript(),
+                  shQuote(c(file.path(script_dir, "preflight_check.R"),
+                            preflight_args)), stdout = "", stderr = "")
 if (!identical(as.integer(status), 0L)) {
   fail("preflight check failed: resolve the reported prerequisites and rerun.")
 }

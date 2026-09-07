@@ -46,12 +46,11 @@ pkg_sets <- list(
                       "purrr", "tibble", "digest", "writexl", "rlang"),
   "evidence/LLM (05)" = c("httr", "glue", "data.table", "tidyr", "memoise",
                           "cachem", "knitr", "readxl", "tictoc", "future",
-                          "future.apply"),
+                          "future.apply", "xml2", "fs"),
   "in-house reviewer (06/06b)" = c("furrr", "rio", "AnnotationDbi",
                                    "org.Hs.eg.db"),
   "enrichment (05/06b)" = c("clusterProfiler", "DOSE", "ReactomePA", "enrichR",
-                            "decoupleR"),
-  "evidence extras (05)" = c("disgenet2r", "KEGG.db")
+                            "decoupleR")
 )
 cat("R packages:\n")
 for (nm in names(pkg_sets)) {
@@ -70,8 +69,64 @@ if (!requireNamespace("CASSIA", quietly = TRUE)) {
 } else {
   ok("R package: CASSIA")
 }
+if (requireNamespace("CASSIA", quietly = TRUE)) {
+  # Version-compatible lookup: check_python_env is present in the tested
+  # CASSIA revision (b008c0ac); getFromNamespace works whether or not the
+  # historical revision exports it.
+  py_ok <- tryCatch({
+    check_fun <- utils::getFromNamespace("check_python_env", "CASSIA")
+    suppressWarnings(isTRUE(check_fun()))
+  }, error = function(e) FALSE)
+  if (isTRUE(py_ok)) {
+    ok("CASSIA Python backend")
+  } else {
+    bad(paste0("CASSIA Python backend is not usable; run CASSIA::setup_cassia_env() ",
+               "once (one-time R command; creates the Python environment CASSIA needs)"))
+  }
+  cassia_sha <- tryCatch(packageDescription("CASSIA")$RemoteSha,
+                         error = function(e) NA_character_)
+  if (is.null(cassia_sha) || is.na(cassia_sha)) {
+    cassia_sha <- tryCatch(packageDescription("CASSIA")$GithubSHA1,
+                           error = function(e) NA_character_)
+  }
+  cassia_tested <- "b008c0ac3dd81b2c2dff131d20f5081a58aca027"
+  if (!is.na(cassia_sha) && cassia_sha != cassia_tested) {
+    soft(paste0("CASSIA revision ", substr(cassia_sha, 1, 12),
+                " differs from the tested revision ",
+                substr(cassia_tested, 1, 12),
+                "; reinstall with install_triage_dependencies() for the canonical configuration"))
+  } else {
+    ok("CASSIA revision matches the tested revision")
+  }
+}
+# DisGeNET is optional: disgenet2r is required only when its API key is set.
+if (nzchar(Sys.getenv("DISGENET_API_KEY", unset = "")) &&
+    !requireNamespace("disgenet2r", quietly = TRUE)) {
+  bad(paste0("disgenet2r is required when DISGENET_API_KEY is set; install with: ",
+             "remotes::install_gitlab(\"medbio/disgenet2r\")"))
+}
+# Canonical KEGG evidence (stage 05 enrichKEGG use_internal_data=TRUE) is
+# backed by KEGG.db (removed from current Bioconductor release).
+if (!requireNamespace("KEGG.db", quietly = TRUE)) {
+  bad(paste0("R package: KEGG.db (canonical KEGG evidence stage 05); install with install_triage_dependencies() ",
+             "or remotes::install_url(\"https://bioconductor.org/packages/3.11/data/annotation/src/contrib/KEGG.db_3.2.4.tar.gz\")"))
+} else if (!tryCatch(length(AnnotationDbi::keys(get("KEGGPATHID2EXTID",
+                                                    envir = asNamespace("KEGG.db")))) > 0,
+                     error = function(e) FALSE)) {
+  bad("R package: KEGG.db is installed but its KEGG data cannot be loaded")
+} else {
+  ok("R package: KEGG.db (canonical KEGG evidence)")
+}
+# Canonical Reactome evidence (stage 05 Reactome local enrichment).
+if (!requireNamespace("reactome.db", quietly = TRUE)) {
+  bad("R package: reactome.db (Reactome enrichment stage 05; install with install_triage_dependencies())")
+} else {
+  ok("R package: reactome.db")
+}
 soft("Seurat is required only for 01a --mode seurat (not for the CSV workflow)")
-if (species == "mouse") soft("mouse workflow additionally uses org.Mm.eg.db where available")
+if (species == "mouse" && !requireNamespace("org.Mm.eg.db", quietly = TRUE)) {
+  bad("R package: org.Mm.eg.db (required for mouse evidence analysis; install with BiocManager::install(\"org.Mm.eg.db\"))")
+}
 
 # --- 2. API credentials -----------------------------------------------------
 key_env <- Sys.getenv("LLM_API_KEY_ENV", unset = "DEEPSEEK_API_KEY")

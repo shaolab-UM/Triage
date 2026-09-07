@@ -66,10 +66,9 @@ The manuscript benchmark used a retained CollecTRI snapshot recorded in
 OmniPath; a freshly downloaded network is structurally valid for the
 workflow (the preflight check validates the data frame shape) but its bytes
 — and therefore its SHA-256 — may differ from the retained snapshot. Such a
-freshly retrieved file is sufficient to **run** the workflow (as done in the
-bundled one-cluster example), but reproducing the manuscript's exact
-quantitative evidence requires the retained snapshot matching
-`resources/CHECKSUMS.tsv`.
+freshly retrieved file is sufficient to **run** the workflow, but
+reproducing the manuscript's exact quantitative evidence requires the
+retained snapshot matching `resources/CHECKSUMS.tsv`.
 
 ## Cell Ontology snapshot
 

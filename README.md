@@ -10,15 +10,24 @@ maps free-text reviewer labels to Cell Ontology terms.
 The repository has **two components**:
 
 1. **The `Triage` R package** — an installable package exposing a compact
-   public API. It loads without any API keys; network access is only needed
-   for the optional API-backed adjudication path.
+   public API. The package loads without an API key, and the deterministic
+   Quick Start runs offline after installation. The full workflow requires
+   network access for dependency and resource acquisition, literature
+   retrieval and LLM-backed stages.
 2. **`reproducibility/`** — manuscript data, validation scripts and expected
    results for the Triage v1.0.0 publication release.
+
+The `reproducibility/` tree is **not installed with the package**: installing
+from GitHub gives you the package API plus the R-only full DEG-input
+workflow (`run_triage()` with bundled stage scripts). The repository
+checkout is only needed for the manuscript reproduction scripts, data and
+expected results (`Rscript reproducibility/scripts/...`).
 
 ## Navigation
 
 - [Installation](#installation)
-- [Full workflow from a DEG input](#full-workflow-from-a-deg-input)
+- [Quick start](#quick-start)
+- [Run Triage on your data](#run-triage-on-your-data)
 - [Minimal package API example](#minimal-package-api-example)
 - [What Triage does](#what-triage-does)
 - [Example workflows](#example-workflows)
@@ -32,38 +41,91 @@ The repository has **two components**:
 
 ## Installation
 
+From R / RStudio:
+
+```r
+install.packages("remotes")
+remotes::install_github("shaolab-UM/Triage")
+library(Triage)
+```
+
+Advanced (from a local clone):
+
 ```bash
 R CMD build .
 R CMD INSTALL Triage_1.0.0.tar.gz
 ```
 
-Or from GitHub: `remotes::install_github("shaolab-UM/Triage")`.
+## Quick start
 
-## Full workflow from a DEG input
+No API key, no clone and no working-directory assumptions are required —
+the example ships inside the installed package and runs deterministically:
 
-The primary entry point is the single-command workflow runner. Provide a
-cluster-level DEG/marker table, a species and a tissue. The runner executes
-the upstream reviewer-generation stages, maps reviewer labels with
-CL-Linker, and runs Triage adjudication in one workflow; deterministic
-cluster anonymization and the final post-summary are included:
-
-```bash
-Rscript reproducibility/scripts/run_triage.R \
-  --deg path/to/markers.csv \
-  --species human \
-  --tissue pancreas \
-  --api-key "YOUR_API_KEY" \
-  --api-base-url "https://api.deepseek.com/chat/completions" \
-  --out results/
+```r
+result <- run_triage_example()
+# Local gate OK
+# Result: classical monocyte | CL:0000860
 ```
 
-Provide an API key and an OpenAI-compatible chat-completions endpoint for
-the LLM-backed stages. The `--api-key` and `--api-base-url` arguments can be
-omitted when `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` are already set as
-environment variables.
+This reproduces the reported primary benchmark identity for `Census_immune`
+cluster 1 (classical monocyte, CL:0000860, confidence 0.93) by running the
+deterministic adjudication core on packaged fixtures. Helper functions for
+the full workflow environment:
 
-Optional flags: `--study-context normal_adult`, `--dataset-name my_dataset`,
-`--workers 4`.
+- `install_triage_dependencies()` — installs the CRAN/Bioconductor packages
+  and CASSIA needed by the full DEG-input workflow.
+- `setup_triage_resources()` — downloads STRING PPI and CollecTRI resources
+  for the full workflow; CellMarkerDB requires a manual download.
+
+## Run Triage on your data
+
+One-time environment setup (all from R — no clone, terminal or shell
+scripts required):
+
+```r
+install_triage_dependencies(species = "human")   # CRAN/Bioconductor + CASSIA
+setup_triage_resources(species = "human")        # STRING PPI + CollecTRI
+# CellMarkerDB: download the species file manually from the official
+# CellMarker 2.0 download page
+# (http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/CellMarker_download.html),
+# then register it:
+setup_triage_resources(species = "human",
+                       cellmarker_file = file.choose(),
+                       download_string = FALSE,
+                       download_collectri = FALSE)
+```
+
+Check everything before spending API budget:
+
+```r
+triage_preflight(species = "human",
+                 api_key = "YOUR_API_KEY",
+                 api_base_url = "https://api.deepseek.com/chat/completions")
+```
+
+Then run the full workflow on your own DEG table:
+
+```r
+result <- run_triage(
+  deg = "markers.csv",
+  species = "human",
+  tissue = "pancreas",
+  api_key = "YOUR_API_KEY",
+  api_base_url = "https://api.deepseek.com/chat/completions",
+  out = "results"
+)
+```
+
+`run_triage()` runs the complete chain — reviewer generation, CL-Linker
+label mapping, Triage adjudication and the final post-summary — using the
+validated pipeline scripts bundled with the installed package. External
+resources are resolved automatically from the Triage user-data directory
+populated by `setup_triage_resources()`; users never copy files into
+`inputs/raw/`. API keys are never printed. The arguments can be omitted
+when `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` are already set as
+environment variables. Optional: `study_context`, `dataset_name`,
+`workers`, `run_tag`, and `preflight_only = TRUE` to stop after the
+preflight check.
 
 The DEG table (csv/tsv) must contain these columns:
 
@@ -85,70 +147,40 @@ reviewer, CL-Linker or adjudication stages.
 You do **not** provide candidate tables, reviewer outputs, CL-Linker
 mappings, judge-input JSON, Handling Editor output or final adjudication
 JSON — the workflow generates all of these internally. Reference labels are
-optional evaluation inputs (supplied via `--reference-labels` for
+optional evaluation inputs (supplied via `reference_labels` for
 post-adjudication evaluation only) and are never used by the adjudication
-stages.
-
-Provide an API key and an OpenAI-compatible chat-completions endpoint for
-the LLM-backed stages directly on the command line:
-
-```bash
-Rscript reproducibility/scripts/run_triage.R \
-  --deg path/to/markers.csv \
-  --species human \
-  --tissue pancreas \
-  --api-key "YOUR_API_KEY" \
-  --api-base-url "https://api.deepseek.com/chat/completions" \
-  --out results/
-```
-
-Alternatively, `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` can be set as
-environment variables.
-
-To try the workflow on the bundled benchmark without preparing input:
-
-```bash
-Rscript reproducibility/scripts/run_triage.R \
-  --benchmark Census_immune \
-  --cluster-id cluster_1 \
-  --api-key "YOUR_API_KEY" \
-  --api-base-url "https://api.deepseek.com/chat/completions" \
-  --out results/
-```
-
-Before any analysis the runner executes a preflight check (all required R
-packages, API key, endpoint contract and external resources; run
-`reproducibility/scripts/preflight_check.R` directly, or pass
-`--preflight-only` to check and exit). Required packages and external
-resources are described in `docs/DEPENDENCIES.md` and
-`resources/README.md`. The released benchmark record for this cluster is
-bundled under `examples/census_immune_cluster1/outputs/`.
+stages. The released benchmark record for Census_immune cluster 1 is
+bundled under `examples/census_immune_cluster1/outputs/` in the repository.
 
 ## Minimal package API example
 
 This example demonstrates the deterministic package API on a precomputed
-Handling Editor draft. It is **not** the full manuscript workflow; use the
-runner above for that. No API key required
-(`examples/census_immune_cluster1/`):
+Handling Editor draft. It is **not** the full manuscript workflow; use
+`run_triage()` for that. No API key required; fixtures ship with the installed
+package (`system.file`), so no repository paths are used:
 
 ```r
 library(Triage)
 
+base <- system.file("extdata", "examples", "census_immune_cluster1",
+                    package = "Triage")
 ontology <- load_triage_ontology()
-jin <- read_triage_input("examples/census_immune_cluster1/cluster_1_round1.json")
+jin <- read_triage_input(file.path(base, "cluster_1_round1.json"))
 
 fin <- run_triage_adjudication(
   jin,
   ontology = ontology,
   use_api = FALSE,
-  head_output = "examples/census_immune_cluster1/head_round1.json",
+  head_output = file.path(base, "head_round1.json"),
   dataset_name = "census_immune",
-  project_root = "reproducibility/primary"
+  project_root = tempdir()
 )
 attr(fin, "gate")$ok                      # deterministic local gate
 fin$final_decision$primary_cell_type      # classical monocyte
 validate_triage_result(fin, jin)
 ```
+
+`run_triage_example()` wraps exactly this sequence (see Quick start).
 
 See the vignette: `vignette("getting-started", package = "Triage")`.
 
@@ -193,6 +225,12 @@ examples/                 census_immune_cluster1 (no API), ts_pancreas_cluster1 
 
 ## Reproducing the manuscript analyses
 
+**Requires a repository checkout** — the `reproducibility/` tree is not
+installed with the package. The shell runners documented here are the
+manuscript-reproduction entry points; ordinary users run the installed
+package workflow with `run_triage()` (see
+[Run Triage on your data](#run-triage-on-your-data)).
+
 Layout:
 
 ```text
@@ -225,7 +263,7 @@ The selector check reproduces the published Table S10 / Fig. 3C-D controls,
 including the retrospective oracle value 84.908337 (Overall; see
 `docs/SELECTOR_REPRODUCTION.md`).
 
-The full primary pipeline can be rerun with:
+The full primary pipeline can be rerun with the batch runner:
 
 ```bash
 bash reproducibility/scripts/run_pipeline.sh \
@@ -233,8 +271,22 @@ bash reproducibility/scripts/run_pipeline.sh \
   --masked-deg reproducibility/primary/Census_immune/model_inputs/maskdeg.csv
 ```
 
-Reference labels are only introduced when `--true-label-csv` is explicitly
-supplied for Step 11 evaluation.
+For a single new-dataset run without any repository checkout, use the
+installed-package `run_triage()` (above). The repository equivalent shell
+runner (requires a checkout) is:
+
+```bash
+Rscript reproducibility/scripts/run_triage.R \
+  --deg path/to/markers.csv --species human --tissue pancreas \
+  --api-key "YOUR_API_KEY" \
+  --api-base-url "https://api.deepseek.com/chat/completions" \
+  --out results/
+# benchmark mode: --benchmark Census_immune --cluster-id cluster_1
+# preflight only: --preflight-only
+```
+
+Reference labels are only introduced when `--true-label-csv` (or
+`--reference-labels`) is explicitly supplied for Step 11 evaluation.
 
 ## Model configuration
 
@@ -248,9 +300,17 @@ Never commit API credentials; placeholder values are written as `XXXXX`
 
 The Cell Ontology JSON ships with the package
 (`system.file("extdata/ontology", package = "Triage")`; env override
-`CL_LOCAL_JSON`). STRING/PPI, CollecTRI and CellMarkerDB spreadsheets are
-not redistributed; place local copies under `inputs/raw/` as specified in
-`resources/README.md` (checksums in `resources/CHECKSUMS.tsv`).
+`CL_LOCAL_JSON`).
+
+- **Installed-package users** (`run_triage()`): STRING/PPI, CollecTRI and
+  CellMarkerDB are resolved automatically from the Triage user-data
+  directory populated by `setup_triage_resources()` — no manual file
+  placement. CellMarkerDB must be downloaded manually from the official
+  CellMarker 2.0 download page and registered with
+  `setup_triage_resources(cellmarker_file = ...)`.
+- **Repository reproduction users** (`Rscript reproducibility/scripts/...`):
+  place local copies under `inputs/raw/` as specified in
+  `resources/README.md` (checksums in `resources/CHECKSUMS.tsv`).
 
 ## Reproducibility notes
 

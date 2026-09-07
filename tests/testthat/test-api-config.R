@@ -36,9 +36,9 @@ test_that("api_base_url is forwarded to the provider (NULL keeps env fallback)",
   expect_null(calls[[2]]$base_url)
 })
 
-test_that("NAMESPACE keeps exactly six exports", {
+test_that("NAMESPACE keeps exactly eleven exports", {
   ns_lines <- readLines(system.file("NAMESPACE", package = "Triage"))
-  expect_equal(sum(grepl("^export\\(", ns_lines)), 6L)
+  expect_equal(sum(grepl("^export\\(", ns_lines)), 11L)
 })
 
 test_that("CLI --api-key/--api-base-url override environment values and never echo the key", {
