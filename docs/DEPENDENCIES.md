@@ -10,9 +10,8 @@ Dependencies fall into two distinct groups:
    intentionally **not** declared in `DESCRIPTION`, so a plain package
    install stays lightweight.
 
-The manuscript reports R 4.5.1. The acceptance run of the one-command
-workflow (September 2026) used R 4.5.2. Versions below are recorded as
-*tested* versions, not requirements.
+The manuscript reports R 4.5.1; the versions below were tested on
+R 4.5.2. Versions are recorded as *tested* versions, not requirements.
 
 ## 1. Triage package core
 
@@ -60,8 +59,7 @@ preflight check reports all missing entries together before analysis:
 - KEGG.db (tested 1.0; deprecated upstream but still loadable)
 
 `06b_run_inter.R` contains an optional GitHub installation path for
-`clusterProfiler`; the exact historical GitHub commit was not retained in
-the available project record.
+`clusterProfiler` (`--install_clusterprofiler_github`).
 
 ## 4. Optional input preparation
 
@@ -76,12 +74,13 @@ are documented in `resources/README.md` and `resources/CHECKSUMS.tsv`.
 
 ## 6. API / network
 
-- A DeepSeek-compatible LLM endpoint. Set `LLM_API_BASE_URL` to the **full**
+- A DeepSeek-compatible LLM endpoint. Pass your key and the **full**
   chat-completions endpoint URL (e.g.
-  `https://api.deepseek.com/chat/completions`) and `DEEPSEEK_API_KEY`
-  to your key. The endpoint contract is used as-is (no path appending).
+  `https://api.deepseek.com/chat/completions`) directly on the command
+  line with `--api-key` and `--api-base-url`; alternatively set the
+  `DEEPSEEK_API_KEY` and `LLM_API_BASE_URL` environment variables. The
+  endpoint contract is used as-is (no path appending).
 - Internet access for the preflight reachability probe and, where used,
   resource downloads.
 
-The original complete environment snapshot was not retained; supported
-versions are summarized in `sessionInfo.txt`.
+Supported R/package versions are summarized in `sessionInfo.txt`.

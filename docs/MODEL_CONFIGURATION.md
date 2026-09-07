@@ -30,14 +30,14 @@ Handling Editor and Chief QC: GPT-5.4, Gemini-3 Pro Preview and Claude Opus
 experiment and do not define the primary workflow; no profiling result values
 are affected by this repository release.
 
-## Retained provenance
+## Endpoint and provenance
 
-The retained source code used a provider-hosted DeepSeek-compatible OpenAI
-Chat Completions API endpoint. The exact endpoint string and all credentials
-are intentionally masked from the public code. The retained reviewer mapping
-registry (`reproducibility/primary/reviewer_mapping_registry.tsv`) records
+The reported runs used a provider-hosted DeepSeek-compatible OpenAI Chat
+Completions endpoint. The reviewer mapping registry
+(`reproducibility/primary/reviewer_mapping_registry.tsv`) records
 `deepseek-v4-flash` for the primary reviewer runs.
 
-Model identifiers describe the historical analysis configuration. A new
-execution should use model identifiers accepted by the configured provider and
-should document any substitution as a new execution configuration.
+Model identifiers describe the configuration used for the reported
+analysis. A new execution should use model identifiers accepted by the
+configured provider and should document any substitution as a new
+execution configuration.

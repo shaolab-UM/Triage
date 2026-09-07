@@ -37,7 +37,7 @@ The repository has two components:
 R CMD build .
 R CMD INSTALL Triage_1.0.0.tar.gz
 
-# Or from GitHub (once pushed):
+# Or from GitHub:
 # remotes::install_github("shaolab-UM/Triage")
 library(Triage)
 ```
@@ -98,10 +98,12 @@ Two modes:
   precomputed Handling Editor output; the package executes only the
   deterministic downstream chain (release policy, CL normalization,
   local gate). The Handling Editor is NOT executed.
-- **Handling Editor API:** set `use_api = TRUE` with `DEEPSEEK_API_KEY`
-  and (optionally) `LLM_API_BASE_URL`; the optional Handling Editor API
-  path runs, then the same deterministic chain. The manuscript workflow
-  scripts are under `reproducibility/scripts/`.
+- **Handling Editor API:** set `use_api = TRUE` and supply an API key and
+  a chat-completions endpoint through `api_key` / `api_base_url` (or via
+  the `DEEPSEEK_API_KEY` / `LLM_API_BASE_URL` environment variables); the
+  optional Handling Editor API path runs, then the same deterministic
+  chain. The manuscript workflow scripts are under
+  `reproducibility/scripts/`.
 
 ```{r adjudication}
 # Deterministic example (see examples/census_immune_cluster1/):
@@ -117,7 +119,11 @@ attr(fin, "gate")$ok
 
 # API path (uses the package default model):
 # fin <- run_triage_adjudication(jin, ontology = ontology,
-#          use_api = TRUE, temperature = 0, prompt_profile = "compact")
+#          use_api = TRUE, temperature = 0, prompt_profile = "compact",
+#          api_key = "YOUR_API_KEY",
+#          api_base_url = "https://api.deepseek.com/chat/completions")
+# api_key / api_base_url can be omitted when the DEEPSEEK_API_KEY and
+# LLM_API_BASE_URL environment variables are set.
 ```
 
 ## 7. Validating results

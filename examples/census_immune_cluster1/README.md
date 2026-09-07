@@ -7,11 +7,10 @@ Handling Editor output and executes only deterministic downstream
 processing (release policy, CL normalization, citation gates, local
 validation gate). The Handling Editor is NOT executed.
 
-Provenance: `head_round1.json` is an example fixture constructed for
-demonstrating deterministic postprocessing; it mirrors the released
-decision but is not an original archived Handling Editor output (round
-outputs were not retained in the release). `cluster_1_round1.json` is the
-released reviewer-input record (byte-identical copy).
+`head_round1.json` is a precomputed Handling Editor fixture for the
+deterministic package example. `cluster_1_round1.json` is the corresponding
+reviewer-input record. These files support the deterministic package example;
+the archived end-to-end workflow example is provided under `full_workflow/`.
 
 ## Files
 

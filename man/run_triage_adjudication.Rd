@@ -66,9 +66,10 @@ Runs the deterministic adjudication core for one cluster. Two modes:
 \itemize{
 \item \code{use_api = TRUE} invokes the Handling Editor stage and then runs
 the deterministic downstream processing (release policy, CL
-normalization, citation gates, local validation gate). Requires
-\code{DEEPSEEK_API_KEY} (or an explicit \code{api_key}) and \code{LLM_API_BASE_URL};
-fails with a clear message when credentials are missing.
+normalization, citation gates, local validation gate). Requires an
+API key and a chat-completions endpoint, supplied either through
+\code{api_key} / \code{api_base_url} or the corresponding environment
+variables; fails with a clear message when credentials are missing.
 \item \code{use_api = FALSE} requires a precomputed Handling Editor output
 (\code{head_output}: a path to JSON, a JSON string, or a parsed list) and
 executes only the deterministic downstream processing. No network
