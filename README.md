@@ -16,9 +16,10 @@ The repository has **two components**:
    results for the Triage v1.0.0 publication release.
 
 The `reproducibility/` tree is **not installed with the package**: installing
-from GitHub gives you the package API only. The repository checkout is
-required for the full DEG-input workflow and for reproducing the manuscript
-analyses.
+from GitHub gives you the package API plus the R-only full DEG-input
+workflow (`run_triage()` with bundled stage scripts). The repository
+checkout is only needed for the manuscript reproduction scripts, data and
+expected results (`Rscript reproducibility/scripts/...`).
 
 ## Navigation
 
@@ -82,8 +83,10 @@ scripts required):
 ```r
 install_triage_dependencies(species = "human")   # CRAN/Bioconductor + CASSIA
 setup_triage_resources(species = "human")        # STRING PPI + CollecTRI
-# CellMarkerDB has no machine-readable official download; register the file
-# you downloaded manually:
+# CellMarkerDB: download the species file manually from the official
+# CellMarker 2.0 download page
+# (http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/CellMarker_download.html),
+# then register it:
 setup_triage_resources(species = "human",
                        cellmarker_file = file.choose(),
                        download_string = FALSE,
@@ -221,9 +224,10 @@ examples/                 census_immune_cluster1 (no API), ts_pancreas_cluster1 
 ## Reproducing the manuscript analyses
 
 **Requires a repository checkout** — the `reproducibility/` tree is not
-installed with the package. The shell runner documented here is the
-advanced/reproduction entry point; ordinary users should use `run_triage()`
-(see [Run Triage on your data](#run-triage-on-your-data)).
+installed with the package. The shell runners documented here are the
+manuscript-reproduction entry points; ordinary users run the installed
+package workflow with `run_triage()` (see
+[Run Triage on your data](#run-triage-on-your-data)).
 
 Layout:
 
@@ -265,8 +269,9 @@ bash reproducibility/scripts/run_pipeline.sh \
   --masked-deg reproducibility/primary/Census_immune/model_inputs/maskdeg.csv
 ```
 
-For a single new-dataset run from a repository checkout, the equivalent
-shell runner is:
+For a single new-dataset run without any repository checkout, use the
+installed-package `run_triage()` (above). The repository equivalent shell
+runner (requires a checkout) is:
 
 ```bash
 Rscript reproducibility/scripts/run_triage.R \
@@ -293,9 +298,17 @@ Never commit API credentials; placeholder values are written as `XXXXX`
 
 The Cell Ontology JSON ships with the package
 (`system.file("extdata/ontology", package = "Triage")`; env override
-`CL_LOCAL_JSON`). STRING/PPI, CollecTRI and CellMarkerDB spreadsheets are
-not redistributed; place local copies under `inputs/raw/` as specified in
-`resources/README.md` (checksums in `resources/CHECKSUMS.tsv`).
+`CL_LOCAL_JSON`).
+
+- **Installed-package users** (`run_triage()`): STRING/PPI, CollecTRI and
+  CellMarkerDB are resolved automatically from the Triage user-data
+  directory populated by `setup_triage_resources()` — no manual file
+  placement. CellMarkerDB must be downloaded manually from the official
+  CellMarker 2.0 download page and registered with
+  `setup_triage_resources(cellmarker_file = ...)`.
+- **Repository reproduction users** (`Rscript reproducibility/scripts/...`):
+  place local copies under `inputs/raw/` as specified in
+  `resources/README.md` (checksums in `resources/CHECKSUMS.tsv`).
 
 ## Reproducibility notes
 

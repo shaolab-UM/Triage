@@ -92,6 +92,26 @@
   missing
 }
 
+# Resolve the effective LLM key and endpoint once, honoring the primary
+# variables and the historical fallback variables (LLM_API_KEY_ENV-named
+# key variable, CASSIA_API_BASE_URL endpoint). Callers map the result onto
+# the canonical DEEPSEEK_API_KEY / LLM_API_BASE_URL names.
+.triage_resolve_api <- function(api_key, api_base_url) {
+  eff_key <- api_key
+  if (is.null(eff_key) || !nzchar(eff_key)) {
+    key_env <- Sys.getenv("LLM_API_KEY_ENV", unset = "DEEPSEEK_API_KEY")
+    eff_key <- Sys.getenv(key_env, unset = "")
+  }
+  eff_url <- api_base_url
+  if (is.null(eff_url) || !nzchar(eff_url)) {
+    eff_url <- Sys.getenv("LLM_API_BASE_URL", unset = "")
+    if (!nzchar(eff_url)) {
+      eff_url <- Sys.getenv("CASSIA_API_BASE_URL", unset = "")
+    }
+  }
+  list(key = eff_key, url = eff_url)
+}
+
 # Resolve the Rscript executable portably (Windows uses Rscript.exe);
 # never assume a shell can find it on PATH.
 .triage_rscript <- function() {
@@ -173,6 +193,36 @@ triage_preflight <- function(species = "human",
       missing <- c(missing,
                    "CASSIA Python backend (run CASSIA::setup_cassia_env() once, then re-run preflight)")
     }
+    cassia_sha <- tryCatch(utils::packageDescription("CASSIA")$RemoteSha,
+                           error = function(e) NA_character_)
+    if (is.null(cassia_sha) || is.na(cassia_sha)) {
+      cassia_sha <- tryCatch(utils::packageDescription("CASSIA")$GithubSHA1,
+                             error = function(e) NA_character_)
+    }
+    cassia_tested <- "b008c0ac3dd81b2c2dff131d20f5081a58aca027"
+    if (!is.na(cassia_sha) && cassia_sha != cassia_tested) {
+      note(paste0("CASSIA revision ", substr(cassia_sha, 1, 12),
+                  " differs from the tested revision ",
+                  substr(cassia_tested, 1, 12),
+                  "; reinstall with install_triage_dependencies() for the canonical configuration"))
+    }
+  }
+  # Canonical KEGG evidence (stage 05 enrichKEGG use_internal_data=TRUE) is
+  # backed by KEGG.db. Missing or unloadable KEGG data must fail clearly.
+  if (!requireNamespace("KEGG.db", quietly = TRUE)) {
+    missing <- c(missing,
+                 paste0("R package: KEGG.db (canonical KEGG evidence stage 05; ",
+                        "install with install_triage_dependencies() or ",
+                        "remotes::install_url(\"https://bioconductor.org/packages/3.11/data/annotation/src/contrib/KEGG.db_3.2.4.tar.gz\"))"))
+  } else if (!tryCatch(length(AnnotationDbi::keys(get("KEGGPATHID2EXTID",
+                                                       envir = asNamespace("KEGG.db")))) > 0,
+                       error = function(e) FALSE)) {
+    missing <- c(missing, "R package: KEGG.db (installed but KEGG data unloads)")
+  }
+  # Canonical Reactome evidence (stage 05 Reactome local enrichment).
+  if (!requireNamespace("reactome.db", quietly = TRUE)) {
+    missing <- c(missing,
+                 "R package: reactome.db (Reactome enrichment stage 05; install with install_triage_dependencies())")
   }
   disgenet_key <- Sys.getenv("DISGENET_API_KEY", unset = "")
   if (nzchar(disgenet_key) && !requireNamespace("disgenet2r", quietly = TRUE)) {
@@ -183,19 +233,12 @@ triage_preflight <- function(species = "human",
   if (species == "mouse" && !requireNamespace("org.Mm.eg.db", quietly = TRUE)) {
     missing <- c(missing,
                  "R package: org.Mm.eg.db (required for mouse evidence analysis; install with BiocManager::install(\"org.Mm.eg.db\"))")
-  } else {
-    note("mouse workflow additionally uses org.Mm.eg.db where available")
   }
 
   # API credentials
-  if (is.null(api_key) || !nzchar(api_key)) {
-    key_env <- Sys.getenv("LLM_API_KEY_ENV", unset = "DEEPSEEK_API_KEY")
-    api_key <- Sys.getenv(key_env, unset = "")
-  }
-  if (is.null(api_base_url) || !nzchar(api_base_url)) {
-    api_base_url <- Sys.getenv("LLM_API_BASE_URL",
-                               unset = Sys.getenv("CASSIA_API_BASE_URL", unset = ""))
-  }
+  eff <- .triage_resolve_api(api_key, api_base_url)
+  api_key <- eff$key
+  api_base_url <- eff$url
   if (!nzchar(api_key) || identical(api_key, "XXXXX")) {
     missing <- c(missing, "API key (pass api_key= or set DEEPSEEK_API_KEY)")
   }
@@ -315,9 +358,12 @@ triage_preflight <- function(species = "human",
 #'   user-data directory populated by `setup_triage_resources()`.
 #' @param ... reserved for future options; currently unused.
 #'
-#' @return Invisibly, a list with `out_root`, `runtime_home`,
+#' @return Invisibly, a list with `out_root`, `runtime_home`, `final_dir`,
+#'   `summary_path`, `summary` (parsed stage-10 summary data frame),
 #'   `dataset_name`, `species`, `tissue` and `run_tag`. A `preflight_only`
-#'   run returns the same list without stage outputs.
+#'   run returns the same list without `final_dir`/`summary_path`/`summary`
+#'   stage outputs. All environment-variable changes made for the run are
+#'   restored when the function exits (success, preflight-only, or error).
 #' @export
 run_triage <- function(deg,
                        species,
@@ -346,14 +392,19 @@ run_triage <- function(deg,
     stop("run_triage: tissue is required (e.g. tissue = \"pancreas\").")
   }
 
-  # Map API configuration onto the validated environment contract so every
-  # stage keeps its environment-variable interface; never print the key.
-  if (!is.null(api_key) && nzchar(api_key)) {
-    Sys.setenv(DEEPSEEK_API_KEY = api_key)
-  }
-  if (!is.null(api_base_url) && nzchar(api_base_url)) {
-    Sys.setenv(LLM_API_BASE_URL = api_base_url)
-  }
+  # Canonicalize API configuration once. run_triage() accepts the primary
+  # variables directly (api_key / api_base_url) and falls back to the
+  # historical fallback variables (LLM_API_KEY_ENV-named key variable and
+  # CASSIA_API_BASE_URL), but the child stages only consume the canonical
+  # DEEPSEEK_API_KEY / LLM_API_BASE_URL names. The effective values are
+  # resolved here once and mapped onto the canonical names for the duration
+  # of the run; original environment values are restored on exit (success,
+  # preflight_only, or stage error). The key is never printed.
+  eff <- .triage_resolve_api(api_key, api_base_url)
+  api_key <- eff$key
+  api_base_url <- eff$url
+  withr::local_envvar(DEEPSEEK_API_KEY = api_key,
+                      LLM_API_BASE_URL = api_base_url)
 
   resource_root <- .triage_resource_root(resource_root)
   workflow_dir <- .triage_workflow_dir()
@@ -395,11 +446,16 @@ run_triage <- function(deg,
   cm_dest <- file.path(cm_dir, cm_name)
   file.copy(cm_src, cm_dest, overwrite = TRUE)
 
-  Sys.setenv(TRIAGE_HOME = runtime_home)
-  Sys.setenv(PROJECT_ROOT = runtime_home)
-  Sys.setenv(CL_LOCAL_JSON = cl_json)
-  Sys.setenv(TRIAGE_PPI_ROOT = file.path(resource_root, "ppi"))
-  Sys.setenv(TRIAGE_WORKFLOW_DIR = workflow_dir)
+  # Stage-specific environment variables are also restored on exit (withr
+  # registers an exit handler on this frame); child Rscript processes
+  # inherit the staged values while the function runs.
+  withr::local_envvar(
+    TRIAGE_HOME = runtime_home,
+    PROJECT_ROOT = runtime_home,
+    CL_LOCAL_JSON = cl_json,
+    TRIAGE_PPI_ROOT = file.path(resource_root, "ppi"),
+    TRIAGE_WORKFLOW_DIR = workflow_dir
+  )
 
   # --- preflight (installed-package runtime) ------------------------------
   message(">>> [preflight] full-workflow dependency check")
@@ -589,7 +645,16 @@ run_triage <- function(deg,
   }
 
   message("run_triage: complete. Outputs under ", out_root)
+  final_dir <- file.path(run_dir, "09_judge_outputs", "final")
+  summary_path <- file.path(run_dir, "09_judge_outputs",
+                            "judge_post_summary", "summary.csv")
+  summary_df <- if (file.exists(summary_path)) {
+    tryCatch(readr::read_csv(summary_path, show_col_types = FALSE),
+             error = function(e) NULL)
+  } else NULL
   invisible(list(out_root = out_root, runtime_home = runtime_home,
+                 final_dir = final_dir, summary_path = summary_path,
+                 summary = summary_df,
                  dataset_name = dataset_name, species = species,
                  tissue = tissue, run_tag = run_tag))
 }

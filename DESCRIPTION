@@ -19,12 +19,17 @@ Description: Triage is a downstream workflow for adjudicating cell type
     CL-Linker maps free-text reviewer labels to Cell Ontology terms. The
     package provides deterministic postprocessing of Handling Editor
     adjudication outputs (normalization, release policy, deterministic
-    adjudication rules and the local validation gate); optional external
-    LLM execution applies to the Handling Editor stage only.
+    adjudication rules and the local validation gate); the lightweight
+    adjudication API may invoke the Handling Editor stage only. The
+    higher-level full DEG-input workflow (`run_triage()`, with the bundled
+    stage scripts) additionally invokes the upstream LLM-backed reviewer
+    stages (CASSIA reviewer, in-house reviewer, enrichment reviewer) plus
+    Handling Editor and Chief QC, so external LLM execution is not limited
+    to the Handling Editor once the full workflow is used.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Remotes:
-    TebaldiLab/cellmarkeraccordion
+    TebaldiLab/cellmarkeraccordion@v1.0.0
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.9
 Depends:
@@ -47,8 +52,10 @@ Imports:
     utils,
     withr
 Suggests:
+    AnnotationDbi,
     BiocManager,
     CASSIA,
+    KEGG.db,
     R.utils,
     Seurat,
     decoupleR,
@@ -56,6 +63,7 @@ Suggests:
     httr2,
     knitr,
     org.Mm.eg.db,
+    reactome.db,
     readxl,
     remotes,
     rmarkdown,

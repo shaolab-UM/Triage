@@ -10,8 +10,7 @@ install_triage_dependencies(species = "human", install_cassia = TRUE)
 \item{species}{"human" or "mouse"; selects the organism annotation
 package (\code{org.Hs.eg.db} vs \code{org.Mm.eg.db}).}
 
-\item{install_cassia}{logical; install CASSIA from its official
-GitHub source.}
+\item{install_cassia}{logical; install CASSIA at the tested revision.}
 }
 \value{
 Invisibly, a named list: \verb{$installed} (missing packages that
@@ -33,15 +32,23 @@ Behavior and limitations (stated explicitly):
 \item CRAN packages are installed with \code{install.packages()}.
 \item Bioconductor packages are installed with
 \code{BiocManager::install()} (\code{BiocManager} is installed automatically
-if missing).
-\item CASSIA is installed from its official source
-\code{remotes::install_github("ElliotXie/CASSIA", subdir = "CASSIA_R")}.
-CASSIA additionally requires a working Python environment for its
-bundled Python pipeline. This function never launches a Python
-environment setup automatically. After installing the R package,
-run \code{CASSIA::setup_cassia_env()} once (opt-in, R-only); the
-workflow preflight verifies readiness with
-\code{CASSIA::check_python_env()}.
+if missing). \code{reactome.db} (Reactome enrichment, stage 05) is part
+of the current Bioconductor release.
+\item \code{KEGG.db} is required for canonical KEGG evidence (stage 05
+\code{enrichKEGG(use_internal_data = TRUE)} is backed by KEGG.db) but
+was removed from Bioconductor with release 3.11. It is installed
+from the verified archived source tarball
+\verb{https://bioconductor.org/packages/3.11/data/annotation/src/contrib/KEGG.db_3.2.4.tar.gz}.
+\item CASSIA is installed at the tested revision
+\code{b008c0ac3dd81b2c2dff131d20f5081a58aca027}
+(\code{remotes::install_github("ElliotXie/CASSIA", ref = ..., subdir = "CASSIA_R")}), not at a moving HEAD. CASSIA additionally requires
+a working Python environment for its bundled Python pipeline.
+Loading CASSIA at this revision may itself invoke CASSIA's own
+\code{setup_cassia_env()} when its environment is absent (its
+\code{.onLoad()} does this); this helper does not call
+\code{setup_cassia_env()} itself. The workflow preflight verifies
+readiness with \code{CASSIA::check_python_env()} and checks the
+installed CASSIA provenance against the tested revision.
 \item \code{disgenet2r} is optional (only used for the optional
 DISGENET disease-evidence step and requires a
 \code{DISGENET_API_KEY}). It is reported, not installed; if a key is

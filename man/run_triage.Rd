@@ -61,9 +61,12 @@ user-data directory populated by \code{setup_triage_resources()}.}
 \item{...}{reserved for future options; currently unused.}
 }
 \value{
-Invisibly, a list with \code{out_root}, \code{runtime_home},
+Invisibly, a list with \code{out_root}, \code{runtime_home}, \code{final_dir},
+\code{summary_path}, \code{summary} (parsed stage-10 summary data frame),
 \code{dataset_name}, \code{species}, \code{tissue} and \code{run_tag}. A \code{preflight_only}
-run returns the same list without stage outputs.
+run returns the same list without \code{final_dir}/\code{summary_path}/\code{summary}
+stage outputs. All environment-variable changes made for the run are
+restored when the function exits (success, preflight-only, or error).
 }
 \description{
 Installed-package entry point for the complete DEG-input workflow: it

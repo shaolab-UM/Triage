@@ -13,15 +13,24 @@
 #'   \item CRAN packages are installed with `install.packages()`.
 #'   \item Bioconductor packages are installed with
 #'     `BiocManager::install()` (`BiocManager` is installed automatically
-#'     if missing).
-#'   \item CASSIA is installed from its official source
-#'     `remotes::install_github("ElliotXie/CASSIA", subdir = "CASSIA_R")`.
-#'     CASSIA additionally requires a working Python environment for its
-#'     bundled Python pipeline. This function never launches a Python
-#'     environment setup automatically. After installing the R package,
-#'     run `CASSIA::setup_cassia_env()` once (opt-in, R-only); the
-#'     workflow preflight verifies readiness with
-#'     `CASSIA::check_python_env()`.
+#'     if missing). `reactome.db` (Reactome enrichment, stage 05) is part
+#'     of the current Bioconductor release.
+#'   \item `KEGG.db` is required for canonical KEGG evidence (stage 05
+#'     `enrichKEGG(use_internal_data = TRUE)` is backed by KEGG.db) but
+#'     was removed from Bioconductor with release 3.11. It is installed
+#'     from the verified archived source tarball
+#'     `https://bioconductor.org/packages/3.11/data/annotation/src/contrib/KEGG.db_3.2.4.tar.gz`.
+#'   \item CASSIA is installed at the tested revision
+#'     `b008c0ac3dd81b2c2dff131d20f5081a58aca027`
+#'     (`remotes::install_github("ElliotXie/CASSIA", ref = ..., subdir =
+#'     "CASSIA_R")`), not at a moving HEAD. CASSIA additionally requires
+#'     a working Python environment for its bundled Python pipeline.
+#'     Loading CASSIA at this revision may itself invoke CASSIA's own
+#'     `setup_cassia_env()` when its environment is absent (its
+#'     `.onLoad()` does this); this helper does not call
+#'     `setup_cassia_env()` itself. The workflow preflight verifies
+#'     readiness with `CASSIA::check_python_env()` and checks the
+#'     installed CASSIA provenance against the tested revision.
 #'   \item `disgenet2r` is optional (only used for the optional
 #'     DISGENET disease-evidence step and requires a
 #'     `DISGENET_API_KEY`). It is reported, not installed; if a key is
@@ -33,8 +42,7 @@
 #'
 #' @param species "human" or "mouse"; selects the organism annotation
 #'   package (`org.Hs.eg.db` vs `org.Mm.eg.db`).
-#' @param install_cassia logical; install CASSIA from its official
-#'   GitHub source.
+#' @param install_cassia logical; install CASSIA at the tested revision.
 #'
 #' @return Invisibly, a named list: `$installed` (missing packages that
 #'   were installed), `$failed` (install attempts that failed), and
@@ -46,11 +54,13 @@ install_triage_dependencies <- function(species = "human",
 
   cran_pkgs <- c("optparse", "digest", "writexl", "glue", "memoise",
                  "cachem", "tictoc", "future", "future.apply", "furrr",
-                 "rio", "tidyr", "knitr", "readxl", "enrichR", "xml2", "fs")
+                 "rio", "tidyr", "knitr", "readxl", "enrichR", "xml2", "fs",
+                 "R.utils")
   bioc_pkgs <- c("AnnotationDbi",
                  if (species == "mouse") c("org.Mm.eg.db", "org.Hs.eg.db")
                  else "org.Hs.eg.db",
-                 "clusterProfiler", "DOSE", "ReactomePA", "decoupleR")
+                 "clusterProfiler", "DOSE", "ReactomePA", "decoupleR",
+                 "reactome.db")
 
   missing_cran <- cran_pkgs[!vapply(cran_pkgs, requireNamespace,
                                     logical(1), quietly = TRUE)]
@@ -83,6 +93,29 @@ install_triage_dependencies <- function(species = "human",
   }
 
   notes <- character(0)
+  # KEGG.db is required for canonical KEGG evidence (stage 05 uses
+  # clusterProfiler::enrichKEGG(use_internal_data = TRUE), which is backed
+  # by the KEGG.db data package). KEGG.db was removed from Bioconductor
+  # with release 3.11 ("use KEGGREST instead"), so the verified install
+  # route is the archived Bioconductor source tarball.
+  if (!requireNamespace("KEGG.db", quietly = TRUE)) {
+    message("Installing KEGG.db from the archived Bioconductor source ",
+            "(removed from the current Bioconductor release; URL verified) ...")
+    kegg_ok <- tryCatch({
+      if (!requireNamespace("remotes", quietly = TRUE)) {
+        utils::install.packages("remotes", quiet = TRUE)
+      }
+      remotes::install_url(
+        "https://bioconductor.org/packages/3.11/data/annotation/src/contrib/KEGG.db_3.2.4.tar.gz",
+        quiet = TRUE)
+      requireNamespace("KEGG.db", quietly = TRUE)
+    }, error = function(e) FALSE)
+    if (isTRUE(kegg_ok)) {
+      installed <- c(installed, "KEGG.db")
+    } else {
+      failed <- c(failed, "KEGG.db")
+    }
+  }
   if (!requireNamespace("disgenet2r", quietly = TRUE)) {
     notes <- c(notes,
                paste0("disgenet2r is OPTIONAL (only for the optional ",
@@ -99,14 +132,16 @@ install_triage_dependencies <- function(species = "human",
   }
 
   if (install_cassia && !requireNamespace("CASSIA", quietly = TRUE)) {
-    message("Installing CASSIA from its official source ",
-            "(ElliotXie/CASSIA, subdir CASSIA_R) ...")
+    message("Installing CASSIA at the tested revision ",
+            "(ElliotXie/CASSIA @ b008c0ac3dd81b2c2dff131d20f5081a58aca027, ",
+            "subdir CASSIA_R) ...")
     cassia_ok <- tryCatch({
       if (!requireNamespace("remotes", quietly = TRUE)) {
         utils::install.packages("remotes", quiet = TRUE)
       }
-      remotes::install_github("ElliotXie/CASSIA", subdir = "CASSIA_R",
-                              quiet = TRUE)
+      remotes::install_github("ElliotXie/CASSIA",
+                              ref = "b008c0ac3dd81b2c2dff131d20f5081a58aca027",
+                              subdir = "CASSIA_R", quiet = TRUE)
       requireNamespace("CASSIA", quietly = TRUE)
     }, error = function(e) FALSE)
     if (isTRUE(cassia_ok)) {
@@ -118,10 +153,13 @@ install_triage_dependencies <- function(species = "human",
   message(paste0(
     "CASSIA NOTE: CASSIA runs its annotation pipeline through a bundled ",
     "Python implementation (via reticulate). A working Python ",
-    "environment must be available. This function does NOT set up ",
-    "Python automatically. After installing the CASSIA R package, run ",
-    "CASSIA::setup_cassia_env() once (opt-in, R-only); the workflow ",
-    "preflight then verifies readiness with CASSIA::check_python_env()."))
+    "environment must be available. Loading CASSIA (or calling its ",
+    "checkers) may itself trigger CASSIA's own environment setup at its ",
+    "tested revision: CASSIA's .onLoad() can invoke setup_cassia_env() ",
+    "when its environment is absent. This helper does not call ",
+    "setup_cassia_env() itself, but it cannot prevent CASSIA from doing ",
+    "so at load time. The workflow preflight verifies readiness with ",
+    "CASSIA::check_python_env()."))
   if (!requireNamespace("CASSIA", quietly = TRUE) && !install_cassia) {
     notes <- c(notes, "CASSIA not installed (install_cassia = FALSE); ",
                "stage 03b requires it.")
@@ -147,8 +185,12 @@ install_triage_dependencies <- function(species = "human",
 #'   \item CollecTRI: retrieved programmatically with
 #'     `decoupleR::get_collectri()` (the official programmatic source
 #'     shipped with decoupleR) and saved as an RDS.
-#'   \item CellMarkerDB: NOT downloaded automatically. This repository
-#'     documents a manual download; see `resources/cellmarkerdb/README.md`.
+#'   \item CellMarkerDB: NOT downloaded automatically. The official source
+#'     is the CellMarker 2.0 site
+#'     (<http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/>, Download page
+#'     `CellMarker_download.html`); download
+#'     `Cell_marker_Human.xlsx` / `Cell_marker_Mouse.xlsx` manually — see
+#'     `resources/cellmarkerdb/README.md`.
 #' }
 #'
 #' Retained benchmark checksums (`resources/CHECKSUMS.tsv` and
@@ -173,10 +215,13 @@ install_triage_dependencies <- function(species = "human",
 #' @param download_collectri logical; retrieve CollecTRI via decoupleR.
 #' @param cellmarker_file optional path to a locally downloaded CellMarkerDB
 #'   spreadsheet (`Cell_marker_Human.xlsx` / `Cell_marker_Mouse.xlsx`).
-#'   CellMarkerDB has no machine-readable official download endpoint, so it
-#'   cannot be fetched automatically; supply the file you downloaded
-#'   manually (e.g. `cellmarker_file = file.choose()`) and it is registered
-#'   under the Triage user-data directory with the canonical file name.
+#'   CellMarkerDB has no machine-readable download contract, so it is not
+#'   fetched automatically; download the species file from the official
+#'   CellMarker 2.0 download page
+#'   (`http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/CellMarker_download.html`)
+#'   and supply the path (e.g. `cellmarker_file = file.choose()`); it is
+#'   registered under the Triage user-data directory with the canonical
+#'   file name. See `resources/cellmarkerdb/README.md`.
 #'
 #' @return Invisibly, the target directory (a character path).
 #' @export

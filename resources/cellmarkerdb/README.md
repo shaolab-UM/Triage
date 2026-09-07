@@ -14,7 +14,33 @@ inputs/raw/cellmarker/Cell_marker_Human.xlsx
 inputs/raw/cellmarker/Cell_marker_Mouse.xlsx
 ```
 
-`CHECKSUMS.tsv` records the exact file sizes and SHA-256 hashes of the copies used in the benchmark snapshot.
+## How to obtain the files
+
+The official source is the CellMarker 2.0 site (Harbin Medical University
+bio-bigdata group):
+
+- Top-level site: <http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/>
+- Download page: <http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/CellMarker_download.html>
+  (the "Download" menu on the top-level site links to the same page)
+
+The download page lists the species spreadsheets, including
+`Cell_marker_Human.xlsx` and `Cell_marker_Mouse.xlsx` (plus
+`Cell_marker_All.xlsx` and `Cell_marker_Seq.xlsx`, which this workflow does
+not use). At the time of writing the per-file links resolve directly, e.g.
+
+```text
+http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/CellMarker_download_files/file/Cell_marker_Human.xlsx
+```
+
+Download the two species files manually and place them under
+`inputs/raw/cellmarker/` (repository workflows) or register them with
+`setup_triage_resources(cellmarker_file = ...)` (installed-package
+workflows). The server may rate-limit or change its layout; if the direct
+per-file URL stops resolving, use the Download page instead.
+
+## Checksums versus current downloads
+
+`CHECKSUMS.tsv` records the exact file sizes and SHA-256 hashes of the copies used in the benchmark snapshot. A freshly downloaded file may differ from the retained benchmark snapshot; a functional hash mismatch is acceptable for running the workflow, but the retained checksums — not a fresh download — define the manuscript resource snapshot.
 
 ## Baseline reviewer versus sensitivity reviewer
 

@@ -109,6 +109,11 @@ test_that("run_triage preflight_only stages resources and resolves installed pat
                pct.2 = c(0.1, 0.2)),
     deg)
 
+  # environment contract: variables are set for the child stages and
+  # RESTORED to their pre-call values after run_triage() returns
+  env_pre <- vapply(c("TRIAGE_HOME", "PROJECT_ROOT", "CL_LOCAL_JSON",
+                      "TRIAGE_PPI_ROOT", "TRIAGE_WORKFLOW_DIR"),
+                    function(v) Sys.getenv(v, unset = ""), character(1))
   res <- withr::with_envvar(
     c(DEEPSEEK_API_KEY = "test-key", LLM_API_KEY_ENV = "DEEPSEEK_API_KEY",
       LLM_API_BASE_URL = "https://example.test/chat/completions"),
@@ -139,13 +144,11 @@ test_that("run_triage preflight_only stages resources and resolves installed pat
   expect_identical(normalizePath(res$runtime_home, mustWork = FALSE),
                    normalizePath(file.path(res$out_root, "runtime_home"),
                                  mustWork = FALSE))
-  # environment contract set for the stages
-  expect_equal(Sys.getenv("TRIAGE_PPI_ROOT"), file.path(rr, "ppi"))
-  expect_equal(Sys.getenv("TRIAGE_WORKFLOW_DIR"), wf)
+  # environment contract: restored to pre-call values after the call
+  env_post <- vapply(c("TRIAGE_HOME", "PROJECT_ROOT", "CL_LOCAL_JSON",
+                       "TRIAGE_PPI_ROOT", "TRIAGE_WORKFLOW_DIR"),
+                     function(v) Sys.getenv(v, unset = ""), character(1))
+  expect_identical(env_post, env_pre)
   # no stage outputs beyond preflight
   expect_false(file.exists(file.path(res$out_root, "03b_cassia")))
-
-  # restore the process environment for subsequent tests
-  Sys.unsetenv(c("TRIAGE_HOME", "PROJECT_ROOT", "CL_LOCAL_JSON",
-                 "TRIAGE_PPI_ROOT", "TRIAGE_WORKFLOW_DIR"))
 })

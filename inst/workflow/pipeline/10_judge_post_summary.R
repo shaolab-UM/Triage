@@ -160,7 +160,7 @@ parse_final_obj <- function(cid) {
     final_cell_type = as_chr1(fd$primary_cell_type %||% fd$final_cell_type %||% NULL),
     final_cell_ontology_id = as_chr1(fd$final_cell_ontology_id %||% NULL),
     decision_category = as_chr1(fd$decision_category %||% NULL),
-    confidence = as_num1(fd$confidence %||% NA_real_),
+    confidence = as_num1(fd$confidence_primary %||% fd$confidence %||% NA_real_),
     
     # Cassia verdict
     cassia_predicted_cell_type = as_chr1(mv$cassia$predicted_cell_type %||% NULL),

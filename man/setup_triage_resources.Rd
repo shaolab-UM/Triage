@@ -20,10 +20,13 @@ setup_triage_resources(
 
 \item{cellmarker_file}{optional path to a locally downloaded CellMarkerDB
 spreadsheet (\code{Cell_marker_Human.xlsx} / \code{Cell_marker_Mouse.xlsx}).
-CellMarkerDB has no machine-readable official download endpoint, so it
-cannot be fetched automatically; supply the file you downloaded
-manually (e.g. \code{cellmarker_file = file.choose()}) and it is registered
-under the Triage user-data directory with the canonical file name.}
+CellMarkerDB has no machine-readable download contract, so it is not
+fetched automatically; download the species file from the official
+CellMarker 2.0 download page
+(\verb{http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/CellMarker_download.html})
+and supply the path (e.g. \code{cellmarker_file = file.choose()}); it is
+registered under the Triage user-data directory with the canonical
+file name. See \code{resources/cellmarkerdb/README.md}.}
 }
 \value{
 Invisibly, the target directory (a character path).
@@ -44,8 +47,12 @@ downloaded and decompressed automatically.
 \item CollecTRI: retrieved programmatically with
 \code{decoupleR::get_collectri()} (the official programmatic source
 shipped with decoupleR) and saved as an RDS.
-\item CellMarkerDB: NOT downloaded automatically. This repository
-documents a manual download; see \code{resources/cellmarkerdb/README.md}.
+\item CellMarkerDB: NOT downloaded automatically. The official source
+is the CellMarker 2.0 site
+(\url{http://bio-bigdata.hrbmu.edu.cn/CellMarker2.0/}, Download page
+\code{CellMarker_download.html}); download
+\code{Cell_marker_Human.xlsx} / \code{Cell_marker_Mouse.xlsx} manually — see
+\code{resources/cellmarkerdb/README.md}.
 }
 
 Retained benchmark checksums (\code{resources/CHECKSUMS.tsv} and

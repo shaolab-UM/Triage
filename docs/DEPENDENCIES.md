@@ -26,7 +26,7 @@ R 4.5.2. Versions are recorded as *tested* versions, not requirements.
 
 Declared in `DESCRIPTION` (`Imports`):
 
-- cellmarkeraccordion (GitHub: `TebaldiLab/cellmarkeraccordion`, declared in
+- cellmarkeraccordion (pinned `TebaldiLab/cellmarkeraccordion@v1.0.0` in
   `Remotes`; tested 1.0.0)
 - data.table (tested 1.18.2)
 - dplyr (tested 1.2.1)
@@ -41,6 +41,8 @@ Declared in `DESCRIPTION` (`Imports`):
 - stringdist
 - stringr (tested 1.6.0)
 - tibble (tested 3.3.1)
+- R.utils (resource-helper decompression)
+- withr (environment restoration in `run_triage()`)
 
 The package loads and its deterministic paths run without any API key;
 network access is needed only for the optional API-backed adjudication path.
@@ -53,19 +55,39 @@ preflight check reports all missing entries together before analysis:
 - optparse, jsonlite, dplyr, readr, stringr, purrr, tibble, rlang
 - digest, writexl, glue, data.table, tidyr, knitr, readxl
 - httr, memoise, cachem, tictoc
-- future, future.apply, furrr
+- future, future.apply, furrr, xml2, fs
 - rio, AnnotationDbi, org.Hs.eg.db
 
 ## 3. Reviewer / enrichment packages (full workflow)
 
-- **CASSIA** (tested 0.1.0) — CASSIA reviewer stage (03b); not on CRAN,
-  install from its published source distribution.
+- **CASSIA** — CASSIA reviewer stage (03b); pinned to the tested revision
+  `b008c0ac3dd81b2c2dff131d20f5081a58aca027`
+  (`remotes::install_github("ElliotXie/CASSIA", ref = ..., subdir =
+  "CASSIA_R")`), installed by `install_triage_dependencies()`. CASSIA also
+  needs its Python backend (`CASSIA::setup_cassia_env()` once; the
+  preflight verifies with `CASSIA::check_python_env()` and compares the
+  installed revision against the tested SHA).
 - clusterProfiler (tested 4.19.4.8), DOSE (tested 4.4.0),
   ReactomePA (tested 1.52.0), enrichR (tested 3.4)
 - decoupleR (tested 2.14.0) — CollecTRI TF-activity evidence (stage 05)
-- disgenet2r (tested 1.2.4) — optional disease-evidence step
-  (`DISGENET_API_KEY` optional)
-- KEGG.db (tested 1.0; deprecated upstream but still loadable)
+- **reactome.db** (tested 1.92.0) — required for the canonical Reactome
+  enrichment dimension (stage 05); current Bioconductor release, installed
+  by `install_triage_dependencies()` and checked by both preflights
+  (without it stage 05 skips Reactome evidence).
+- **KEGG.db** — required for the canonical KEGG evidence dimension:
+  stage 05 calls `clusterProfiler::enrichKEGG(use_internal_data = TRUE)`,
+  which is backed by the KEGG.db data package and stops without it (the
+  stage's error handling would silently drop KEGG evidence). KEGG.db was
+  removed from Bioconductor with release 3.11 ("use KEGGREST instead");
+  the verified install route is the archived source tarball
+  `https://bioconductor.org/packages/3.11/data/annotation/src/contrib/KEGG.db_3.2.4.tar.gz`,
+  installed automatically by `install_triage_dependencies()` and checked
+  (including a data-load check) by both preflights.
+- disgenet2r (tested 1.2.4) — optional disease-evidence step, required
+  only when `DISGENET_API_KEY` is set
+  (`remotes::install_gitlab("medbio/disgenet2r")`)
+- R.utils — used by `setup_triage_resources()` to decompress the STRING
+  archives; installed by `install_triage_dependencies()`.
 
 `06b_run_inter.R` contains an optional GitHub installation path for
 `clusterProfiler` (`--install_clusterprofiler_github`).
