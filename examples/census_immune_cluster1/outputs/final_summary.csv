@@ -1,0 +1,2 @@
+dataset,cluster_id,primary_cell_type,final_cell_ontology_id,decision_category,confidence_primary
+Census_immune,cluster_1,classical monocyte,CL:0000860,,0.93

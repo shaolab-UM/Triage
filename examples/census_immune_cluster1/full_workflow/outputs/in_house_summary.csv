@@ -1,2 +1,0 @@
-cluster_id,report_source,main_pred,main_cell_ontology_id,main_confidence,subtype1_pred,subtype1_cell_ontology_id,subtype1_confidence,subtype2_core_pred,subtype2_core_cell_ontology_id,subtype2_confidence,step2_validation_status,gate_passed,gate_invalid_pmids_n,gate_pmid_overuse_n,step6_final_pass,step6_fail_stage
-cluster_1,final_passed,myeloid cell,CL:0000763,0,monocyte,CL:0000576,7,classical monocyte,CL:0000860,7,VALIDATION PASSED,TRUE,0,0,TRUE,NA
