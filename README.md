@@ -121,8 +121,8 @@ packages, API key, endpoint contract and external resources; run
 `reproducibility/scripts/preflight_check.R` directly, or pass
 `--preflight-only` to check and exit). Required packages and external
 resources are described in `docs/DEPENDENCIES.md` and
-`resources/README.md`. A real archived one-cluster end-to-end run is bundled
-under `examples/census_immune_cluster1/full_workflow/`.
+`resources/README.md`. The released benchmark record for this cluster is
+bundled under `examples/census_immune_cluster1/outputs/`.
 
 ## Minimal package API example
 
@@ -170,14 +170,12 @@ Full manuscript workflow orchestration is available under `reproducibility/scrip
 
 ## Example workflows
 
-- `examples/census_immune_cluster1/` — deterministic no-API
-  postprocessing of a precomputed Handling Editor draft for
-  `Census_immune` cluster 1 (released identity: classical monocyte,
-  CL:0000860). The precomputed draft is supplied for demonstration; it is
-  not an archived Handling Editor round output from the original run.
-- `examples/census_immune_cluster1/full_workflow/` — a real archived
-  one-cluster end-to-end run (anonymized DEG input through final
-  adjudication; no reference labels; see its README).
+- `examples/census_immune_cluster1/` — **Reported primary benchmark
+  example**: the released input and final adjudication records for
+  `Census_immune` cluster 1 (reported result: classical monocyte,
+  CL:0000860, confidence 0.93; published reference: CD14-positive
+  monocyte, CL:0001054), plus a deterministic no-API package demo using a
+  precomputed Handling Editor fixture.
 - `examples/ts_pancreas_cluster1/` — Handling Editor API call for
   `TS_pancreas` cluster 1 (released identity: B cell, CL:0000236; requires
   an API key; not part of the test suite).

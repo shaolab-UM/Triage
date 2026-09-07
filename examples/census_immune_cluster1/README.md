@@ -1,31 +1,52 @@
-# census_immune_cluster1 — deterministic postprocessing using a precomputed Handling Editor output
+# Reported primary benchmark example — Census_immune cluster_1
 
-Demonstrates the deterministic adjudication core for `Census_immune`
-cluster 1 (released identity: classical monocyte, CL:0000860). No API call
-is made: `run_triage_adjudication(use_api = FALSE)` requires a precomputed
-Handling Editor output and executes only deterministic downstream
-processing (release policy, CL normalization, citation gates, local
-validation gate). The Handling Editor is NOT executed.
+This example contains the released input and final adjudication records for
+`Census_immune` cluster 1 from the primary benchmark reported in the
+manuscript.
 
-`head_round1.json` is a precomputed Handling Editor fixture for the
-deterministic package example. `cluster_1_round1.json` is the corresponding
-reviewer-input record. These files support the deterministic package example;
-the archived end-to-end workflow example is provided under `full_workflow/`.
+The reported result is:
+
+- **Triage:** classical monocyte, CL:0000860, confidence 0.93
+
+Published reference:
+
+- CD14-positive monocyte, CL:0001054
+
+Reference labels are used only for post-adjudication evaluation (the
+`evaluation` block in the final record; they are never used by the
+adjudication stages).
 
 ## Files
 
-- `run_demo.R` — the demo script
-- `cluster_1_round1.json` — released reviewer-input record for cluster 1
-- `head_round1.json` — precomputed Handling Editor draft used as
-  demonstration input
+- `input/maskdeg.csv` — the released masked DEG input for cluster 1
+  (deterministic `cluster_1` subset of
+  `reproducibility/primary/Census_immune/model_inputs/maskdeg.csv`)
+- `outputs/final_adjudication.json` — the released final adjudication
+  record (`reproducibility/primary/Census_immune/final/cluster_1.json`),
+  including the final decision, reviewer records, evidence, QC disposition
+  and the evaluation block with the published reference and CL similarity
+  (78.3778251389102)
+- `outputs/reviewer_mapping_registry.tsv` — the released CL-Linker mapping
+  rows for cluster 1 (extracted from
+  `reproducibility/primary/reviewer_mapping_registry.tsv`)
+- `outputs/final_summary.csv` — the cluster's row from the released primary
+  benchmark summary (`reproducibility/expected_results/primary_summary.tsv`)
+- `cluster_1_round1.json` — the released reviewer-input record
+- `head_round1.json` — a precomputed Handling Editor fixture for the
+  deterministic package demo below
 
-## Run
-
-From the repository root:
+## Deterministic package demo (no API key required)
 
 ```r
 source("examples/census_immune_cluster1/run_demo.R")
 ```
 
-Expected output: `classical monocyte` / `CL:0000860`, decision category
-`cassia_better`, local gate OK.
+This runs the deterministic package API (postprocessing of the precomputed
+Handling Editor fixture; no network access) and returns the reported
+identity: classical monocyte, CL:0000860.
+
+## Reproducing the full workflow
+
+The full workflow runner, its requirements and the released benchmark data
+are described in the top-level `README.md`
+(`--benchmark Census_immune --cluster-id cluster_1`).
