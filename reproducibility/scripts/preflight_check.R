@@ -46,12 +46,11 @@ pkg_sets <- list(
                       "purrr", "tibble", "digest", "writexl", "rlang"),
   "evidence/LLM (05)" = c("httr", "glue", "data.table", "tidyr", "memoise",
                           "cachem", "knitr", "readxl", "tictoc", "future",
-                          "future.apply"),
+                          "future.apply", "xml2", "fs"),
   "in-house reviewer (06/06b)" = c("furrr", "rio", "AnnotationDbi",
                                    "org.Hs.eg.db"),
   "enrichment (05/06b)" = c("clusterProfiler", "DOSE", "ReactomePA", "enrichR",
-                            "decoupleR"),
-  "evidence extras (05)" = c("disgenet2r", "KEGG.db")
+                            "decoupleR")
 )
 cat("R packages:\n")
 for (nm in names(pkg_sets)) {
@@ -70,8 +69,28 @@ if (!requireNamespace("CASSIA", quietly = TRUE)) {
 } else {
   ok("R package: CASSIA")
 }
+if (requireNamespace("CASSIA", quietly = TRUE)) {
+  py_ok <- tryCatch(suppressWarnings(CASSIA::check_python_env()),
+                    error = function(e) FALSE)
+  if (isTRUE(py_ok)) {
+    ok("CASSIA Python backend")
+  } else {
+    bad(paste0("CASSIA Python backend is not usable; run CASSIA::setup_cassia_env() ",
+               "once (one-time R command; creates the Python environment CASSIA needs)"))
+  }
+}
+# DisGeNET is optional: disgenet2r is required only when its API key is set.
+if (nzchar(Sys.getenv("DISGENET_API_KEY", unset = "")) &&
+    !requireNamespace("disgenet2r", quietly = TRUE)) {
+  bad(paste0("disgenet2r is required when DISGENET_API_KEY is set; install with: ",
+             "remotes::install_gitlab(\"medbio/disgenet2r\")"))
+}
 soft("Seurat is required only for 01a --mode seurat (not for the CSV workflow)")
-if (species == "mouse") soft("mouse workflow additionally uses org.Mm.eg.db where available")
+if (species == "mouse" && !requireNamespace("org.Mm.eg.db", quietly = TRUE)) {
+  bad("R package: org.Mm.eg.db (required for mouse evidence analysis; install with BiocManager::install(\"org.Mm.eg.db\"))")
+} else {
+  soft("mouse workflow additionally uses org.Mm.eg.db where available")
+}
 
 # --- 2. API credentials -----------------------------------------------------
 key_env <- Sys.getenv("LLM_API_KEY_ENV", unset = "DEEPSEEK_API_KEY")

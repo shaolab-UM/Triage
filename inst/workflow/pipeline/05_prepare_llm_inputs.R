@@ -13,8 +13,8 @@ suppressPackageStartupMessages({
   library(dplyr); library(purrr); library(memoise); library(cachem)
   library(clusterProfiler); library(org.Hs.eg.db); library(DOSE); library(ReactomePA)
   library(enrichR); library(data.table); library(tidyr)
-  library(disgenet2r); library(knitr)
-  library(future); library(future.apply); library(KEGG.db); library(tictoc)
+  library(knitr)
+  library(future); library(future.apply); library(tictoc)
   library(decoupleR); library(tibble)
   library(readxl)    # retained as part of the released workflow structure
   library(optparse)  # retained as part of the released workflow structure
@@ -123,11 +123,8 @@ get_primary_context_value <- function(x, fallback = NULL) {
 }
 
 ###--- 3c. Other fixed configuration ---
-# DisGeNET credential is read from the environment when available.
-# Example: export DISGENET_API_KEY=...
-if (!nzchar(Sys.getenv("DISGENET_API_KEY", unset = ""))) {
-  message("[INFO] DISGENET_API_KEY is not set; DisGeNET-dependent evidence may be unavailable.")
-}
+# DisGeNET credential is read from the environment when available
+# (the optional disgenet2r dependency is handled when llm_run.R is sourced).
 
 # --- Optional: Step 2 validation (judge) ---
 # Set to TRUE only if you explicitly want to generate Step 2 validation queries.

@@ -7,11 +7,27 @@
 suppressPackageStartupMessages({
   library(httr); library(jsonlite); library(glue); library(stringr); library(readr); library(dplyr); library(purrr); library(memoise); library(cachem)
   library(clusterProfiler); library(org.Hs.eg.db); library(DOSE); library(ReactomePA); library(enrichR); library(data.table); library(tidyr)
-  library(disgenet2r); library(knitr)
-  library(future); library(future.apply); library(KEGG.db); library(tictoc)
-  library(decoupleR); library(tibble); library(org.Hs.eg.db); library(org.Mm.eg.db)
-  library(AnnotationDbi)
+  library(knitr)
+  library(future); library(future.apply); library(tictoc)
+  library(decoupleR); library(tibble); library(org.Hs.eg.db); library(AnnotationDbi)
 })
+# org.Mm.eg.db is a mouse-only annotation package; it is loaded
+# conditionally (mouse analysis loads and validates it explicitly).
+
+# DisGeNET disease evidence is OPTIONAL: it requires DISGENET_API_KEY and the
+# disgenet2r package. Without the key the workflow degrades gracefully —
+# the disease_disgenet evidence dimension is skipped with one informational
+# message and every other evidence dimension is unchanged.
+disgenet_key <- Sys.getenv("DISGENET_API_KEY", unset = "")
+if (nzchar(disgenet_key)) {
+  if (!requireNamespace("disgenet2r", quietly = TRUE)) {
+    stop("llm_run: DISGENET_API_KEY is set but the 'disgenet2r' package is ",
+         "missing. Install it with: remotes::install_gitlab(\"medbio/disgenet2r\")")
+  }
+  suppressPackageStartupMessages(library(disgenet2r))
+} else {
+  message("[INFO] DISGENET_API_KEY not set; DisGeNET disease evidence is skipped (all other evidence dimensions unchanged).")
+}
 
 # --- Project root for relative resource files (important for future workers) ---
 PROJECT_ROOT <- Sys.getenv("PROJECT_ROOT", unset = Sys.getenv("TRIAGE_HOME", unset = getwd()))
@@ -1864,10 +1880,16 @@ generate_expert_report_query <- function(processed_deg_data,
   future_packages <- c(
     "dplyr", "tibble", "purrr", "stringr", "glue", "readr", "rlang",
     "magrittr", "tictoc", "AnnotationDbi", "clusterProfiler", "ReactomePA",
-    "DOSE", "disgenet2r", "enrichR", "data.table", "tidyr", "decoupleR",
+    "DOSE", "enrichR", "data.table", "tidyr", "decoupleR",
     "org.Hs.eg.db", "httr", "jsonlite", "memoise",
-    "cachem", "knitr", "KEGG.db", "future", "future.apply"
+    "cachem", "knitr", "future", "future.apply"
   )
+  # disgenet2r is optional: only attach it in workers when it is installed
+  # and its API key is configured (the same condition as the main session).
+  if (nzchar(Sys.getenv("DISGENET_API_KEY", unset = "")) &&
+      requireNamespace("disgenet2r", quietly = TRUE)) {
+    future_packages <- c(future_packages, "disgenet2r")
+  }
   if (primary_species == "mouse") {
     future_packages <- c(future_packages, "org.Mm.eg.db")
   }

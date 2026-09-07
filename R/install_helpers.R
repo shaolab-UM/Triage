@@ -18,15 +18,15 @@
 #'     `remotes::install_github("ElliotXie/CASSIA", subdir = "CASSIA_R")`.
 #'     CASSIA additionally requires a working Python environment for its
 #'     bundled Python pipeline. This function never launches a Python
-#'     environment setup automatically; it prints instructions instead.
-#'   \item `KEGG.db` is deprecated upstream. An install attempt is made,
-#'     and if it fails the user is told how to proceed honestly rather
-#'     than silently skipping.
+#'     environment setup automatically. After installing the R package,
+#'     run `CASSIA::setup_cassia_env()` once (opt-in, R-only); the
+#'     workflow preflight verifies readiness with
+#'     `CASSIA::check_python_env()`.
 #'   \item `disgenet2r` is optional (only used for the optional
 #'     DISGENET disease-evidence step and requires a
-#'     `DISGENET_API_KEY`). It is reported, not installed, because no
-#'     authoritative automated install source is recorded in this
-#'     repository.
+#'     `DISGENET_API_KEY`). It is reported, not installed; if a key is
+#'     set, install it with
+#'     `remotes::install_gitlab("medbio/disgenet2r")`.
 #'   \item Seurat is only needed for the optional Seurat-object input
 #'     mode of the DEG preparation script; it is reported, not installed.
 #' }
@@ -46,7 +46,7 @@ install_triage_dependencies <- function(species = "human",
 
   cran_pkgs <- c("optparse", "digest", "writexl", "glue", "memoise",
                  "cachem", "tictoc", "future", "future.apply", "furrr",
-                 "rio", "tidyr", "knitr", "readxl", "enrichR")
+                 "rio", "tidyr", "knitr", "readxl", "enrichR", "xml2", "fs")
   bioc_pkgs <- c("AnnotationDbi",
                  if (species == "mouse") c("org.Mm.eg.db", "org.Hs.eg.db")
                  else "org.Hs.eg.db",
@@ -82,35 +82,15 @@ install_triage_dependencies <- function(species = "human",
     failed <- c(failed, still)
   }
 
-  # KEGG.db is deprecated upstream; attempt, then report honestly.
-  if (!requireNamespace("KEGG.db", quietly = TRUE)) {
-    message("Attempting KEGG.db (deprecated upstream; may fail) ...")
-    ok <- tryCatch({
-      if (!requireNamespace("BiocManager", quietly = TRUE)) {
-        utils::install.packages("BiocManager", quiet = TRUE)
-      }
-      BiocManager::install("KEGG.db", quiet = TRUE, update = FALSE,
-                           ask = FALSE)
-      requireNamespace("KEGG.db", quietly = TRUE)
-    }, error = function(e) FALSE)
-    if (isTRUE(ok)) {
-      installed <- c(installed, "KEGG.db")
-    } else {
-      failed <- c(failed, "KEGG.db")
-      message("KEGG.db could not be installed (deprecated upstream). ",
-              "Install a local copy manually if the preflight check ",
-              "reports it missing.")
-    }
-  }
-
   notes <- character(0)
   if (!requireNamespace("disgenet2r", quietly = TRUE)) {
     notes <- c(notes,
                paste0("disgenet2r is OPTIONAL (only for the optional ",
                       "DISGENET disease-evidence step, which requires a ",
-                      "DISGENET_API_KEY). No automated install source is ",
-                      "recorded in this repository; install it manually ",
-                      "only if you plan to use that step."))
+                      "DISGENET_API_KEY). Verified install command: ",
+                      "remotes::install_gitlab(\"medbio/disgenet2r\"). ",
+                      "Without it the workflow skips DisGeNET evidence ",
+                      "and every other evidence dimension is unchanged."))
   }
   if (!requireNamespace("Seurat", quietly = TRUE)) {
     notes <- c(notes,
@@ -139,8 +119,9 @@ install_triage_dependencies <- function(species = "human",
     "CASSIA NOTE: CASSIA runs its annotation pipeline through a bundled ",
     "Python implementation (via reticulate). A working Python ",
     "environment must be available. This function does NOT set up ",
-    "Python automatically; follow the Python setup documented in the ",
-    "CASSIA repository before running the CASSIA stage."))
+    "Python automatically. After installing the CASSIA R package, run ",
+    "CASSIA::setup_cassia_env() once (opt-in, R-only); the workflow ",
+    "preflight then verifies readiness with CASSIA::check_python_env()."))
   if (!requireNamespace("CASSIA", quietly = TRUE) && !install_cassia) {
     notes <- c(notes, "CASSIA not installed (install_cassia = FALSE); ",
                "stage 03b requires it.")

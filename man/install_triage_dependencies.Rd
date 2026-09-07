@@ -38,15 +38,15 @@ if missing).
 \code{remotes::install_github("ElliotXie/CASSIA", subdir = "CASSIA_R")}.
 CASSIA additionally requires a working Python environment for its
 bundled Python pipeline. This function never launches a Python
-environment setup automatically; it prints instructions instead.
-\item \code{KEGG.db} is deprecated upstream. An install attempt is made,
-and if it fails the user is told how to proceed honestly rather
-than silently skipping.
+environment setup automatically. After installing the R package,
+run \code{CASSIA::setup_cassia_env()} once (opt-in, R-only); the
+workflow preflight verifies readiness with
+\code{CASSIA::check_python_env()}.
 \item \code{disgenet2r} is optional (only used for the optional
 DISGENET disease-evidence step and requires a
-\code{DISGENET_API_KEY}). It is reported, not installed, because no
-authoritative automated install source is recorded in this
-repository.
+\code{DISGENET_API_KEY}). It is reported, not installed; if a key is
+set, install it with
+\code{remotes::install_gitlab("medbio/disgenet2r")}.
 \item Seurat is only needed for the optional Seurat-object input
 mode of the DEG preparation script; it is reported, not installed.
 }

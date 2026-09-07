@@ -36,7 +36,9 @@ stops when \code{ok} is \code{FALSE}.
 \description{
 Validates everything \code{run_triage()} needs in one pass, before any
 analysis: required R packages (pipeline stages 03a-10), CASSIA
-availability, external resources under the Triage user-data directory
+availability (including its Python backend via
+\code{CASSIA::check_python_env()}), external resources under the Triage
+user-data directory
 (STRING, CollecTRI, CellMarkerDB), the bundled Cell Ontology, an API
 key, and a full chat-completions endpoint. No analysis and no LLM calls
 are performed, and no repository checkout is assumed.

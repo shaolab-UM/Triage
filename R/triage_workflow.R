@@ -92,11 +92,25 @@
   missing
 }
 
+# Resolve the Rscript executable portably (Windows uses Rscript.exe);
+# never assume a shell can find it on PATH.
+.triage_rscript <- function() {
+  exe <- if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"
+  rscript <- file.path(R.home("bin"), exe)
+  if (!file.exists(rscript)) {
+    stop("run_triage: Rscript executable not found at ", rscript,
+         call. = FALSE)
+  }
+  rscript
+}
+
 #' Check the installed-package full-workflow prerequisites
 #'
 #' Validates everything `run_triage()` needs in one pass, before any
 #' analysis: required R packages (pipeline stages 03a-10), CASSIA
-#' availability, external resources under the Triage user-data directory
+#' availability (including its Python backend via
+#' `CASSIA::check_python_env()`), external resources under the Triage
+#' user-data directory
 #' (STRING, CollecTRI, CellMarkerDB), the bundled Cell Ontology, an API
 #' key, and a full chat-completions endpoint. No analysis and no LLM calls
 #' are performed, and no repository checkout is assumed.
@@ -137,12 +151,11 @@ triage_preflight <- function(species = "human",
                         "purrr", "tibble", "digest", "writexl", "rlang"),
     "evidence/LLM (05)" = c("httr", "glue", "data.table", "tidyr", "memoise",
                             "cachem", "knitr", "readxl", "tictoc", "future",
-                            "future.apply"),
+                            "future.apply", "xml2", "fs"),
     "in-house reviewer (06/06b)" = c("furrr", "rio", "AnnotationDbi",
                                      "org.Hs.eg.db"),
     "enrichment (05/06b)" = c("clusterProfiler", "DOSE", "ReactomePA",
-                              "enrichR", "decoupleR"),
-    "evidence extras (05)" = c("disgenet2r", "KEGG.db")
+                              "enrichR", "decoupleR")
   )
   for (nm in names(pkg_sets)) {
     miss <- pkg_sets[[nm]][!vapply(pkg_sets[[nm]], function(p)
@@ -154,8 +167,23 @@ triage_preflight <- function(species = "human",
   }
   if (!requireNamespace("CASSIA", quietly = TRUE)) {
     missing <- c(missing, "R package: CASSIA (stage 03b; install with install_triage_dependencies())")
+  } else {
+    py_ok <- tryCatch(isTRUE(CASSIA::check_python_env()), error = function(e) FALSE)
+    if (!py_ok) {
+      missing <- c(missing,
+                   "CASSIA Python backend (run CASSIA::setup_cassia_env() once, then re-run preflight)")
+    }
   }
-  if (species == "mouse") {
+  disgenet_key <- Sys.getenv("DISGENET_API_KEY", unset = "")
+  if (nzchar(disgenet_key) && !requireNamespace("disgenet2r", quietly = TRUE)) {
+    missing <- c(missing,
+                 paste0("R package: disgenet2r (DISGENET_API_KEY is set; ",
+                        "install with remotes::install_gitlab(\"medbio/disgenet2r\"))"))
+  }
+  if (species == "mouse" && !requireNamespace("org.Mm.eg.db", quietly = TRUE)) {
+    missing <- c(missing,
+                 "R package: org.Mm.eg.db (required for mouse evidence analysis; install with BiocManager::install(\"org.Mm.eg.db\"))")
+  } else {
     note("mouse workflow additionally uses org.Mm.eg.db where available")
   }
 
@@ -392,8 +420,8 @@ run_triage <- function(deg,
   fail <- function(msg) stop("run_triage: ", msg, call. = FALSE)
   run_stage <- function(script, args, stage_label) {
     message(">>> [", stage_label, "] Rscript ", script)
-    status <- system2("Rscript",
-                      c(file.path(pipeline_dir, script), args),
+    status <- system2(.triage_rscript(),
+                      shQuote(c(file.path(pipeline_dir, script), args)),
                       stdout = "", stderr = "")
     if (!identical(as.integer(status), 0L)) {
       fail(paste0("stage ", stage_label, " (", script,
