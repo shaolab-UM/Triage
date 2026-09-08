@@ -4,7 +4,7 @@
 # Takes a cluster-level DEG/marker table from the user, validates the required
 # columns, and produces the anonymized inputs consumed by pipeline stage 03a:
 #   <out_dir>/cluster_map.csv  (cluster_id,cluster_label)
-#   <out_dir>/maskdeg.csv      (user DEG rows with cluster mapped to cluster_anon)
+#   <out_dir>/maskdeg.csv      (user DEG rows with the anonymous cluster id in the `cluster` column)
 #
 # No true labels are generated. Original cluster names are preserved ONLY in
 # the local cluster_map.csv for traceability and are never interpreted
@@ -64,7 +64,7 @@ map <- tibble::tibble(cluster_label = orig,
 
 maskdeg <- deg %>%
   inner_join(map, by = c("cluster" = "cluster_label")) %>%
-  select(cluster_anon = cluster_id, gene, avg_log2FC, p_val, p_val_adj, pct.1, pct.2)
+  select(cluster = cluster_id, gene, avg_log2FC, p_val, p_val_adj, pct.1, pct.2)
 
 if (!is.null(opt$`cluster-id`)) {
   keep_id <- as.character(opt$`cluster-id`)
@@ -73,7 +73,7 @@ if (!is.null(opt$`cluster-id`)) {
          "' is not an anonymous cluster id generated from this DEG table.")
   }
   map <- map %>% filter(cluster_id == keep_id)
-  maskdeg <- maskdeg %>% filter(cluster_anon == keep_id)
+  maskdeg <- maskdeg %>% filter(cluster == keep_id)
 }
 
 if (!is.null(opt$`n-clusters`)) {
@@ -81,7 +81,7 @@ if (!is.null(opt$`n-clusters`)) {
   if (is.na(n) || n < 1L) stop("01b_prepare_user_deg.R: --n-clusters must be a positive integer.")
   keep <- paste0("cluster_", seq_len(n))
   map <- map %>% filter(cluster_id %in% keep)
-  maskdeg <- maskdeg %>% filter(cluster_anon %in% keep)
+  maskdeg <- maskdeg %>% filter(cluster %in% keep)
 }
 
 dir.create(opt$`out-dir`, recursive = TRUE, showWarnings = FALSE)

@@ -34,6 +34,26 @@ Behavior and limitations (stated explicitly):
 \code{BiocManager::install()} (\code{BiocManager} is installed automatically
 if missing). \code{reactome.db} (Reactome enrichment, stage 05) is part
 of the current Bioconductor release.
+\item \code{GOSemSim} and \code{clusterProfiler} are installed at the tested
+revisions \verb{67e3da1dd3ee9d7c5067b2044fcf979e0cf6480d} and
+\code{f9f0d502508cacd258ac1a1cba6d5d497b98fe6c}
+(\code{remotes::install_github(...)}; GOSemSim first, because the pinned
+clusterProfiler revision lazy-loads \code{get_organism()}, which only
+exists in the tested GOSemSim revision and is absent from the
+Bioconductor 3.22 release GOSemSim 2.36.0), not from the
+Bioconductor releases and not at a moving HEAD. The
+enrichment reviewer (stage 06b) requires the \code{interpret()} API that
+only exists from clusterProfiler 4.19.4 onward (the Bioconductor
+3.22 release is 4.18.x and does not export \code{interpret()}), and the
+tested \code{interpret()} routes model calls through the \code{fanyi}
+backend; modern revisions rerouted \code{interpret()} through \code{aisdk}.
+\item \code{fanyi} is required (NOT optional): the pinned
+\code{clusterProfiler::interpret()} routes its LLM calls through
+\code{fanyi::chat_request}, whose DeepSeek transport hard-codes the
+DeepSeek /v1 endpoint. The tested CRAN version 0.1.0 is pinned;
+CRAN 0.1.1 keeps the same hard-coded endpoint and has no base-url
+parameter. Stage 06b points the transport at the canonical
+\code{LLM_API_BASE_URL} with a temporary local shim.
 \item \code{KEGG.db} is required for canonical KEGG evidence (stage 05
 \code{enrichKEGG(use_internal_data = TRUE)} is backed by KEGG.db) but
 was removed from Bioconductor with release 3.11. It is installed

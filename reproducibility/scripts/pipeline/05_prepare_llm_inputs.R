@@ -65,13 +65,23 @@ option_list <- list(
   make_option(c("--disable_smart_context"), action="store_true", default=FALSE,
               help="(Recommended) Do not inject smart_context into the prompt context."),
   make_option(c("--cache_only"), action="store_true", default=FALSE,
-              help="Use cache only; skip new API/bioinfo calls if cache miss.")
+              help="Use cache only; skip new API/bioinfo calls if cache miss."),
+  make_option(c("--intermediate_root"), type="character", default="",
+              help="Absolute root for intermediate enrichment TSVs (wired through TRIAGE_INTERMEDIATE_ROOT). Default keeps the historical working-directory-relative location.")
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 
 # Ensure resource files are resolvable in future workers
 Sys.setenv(PROJECT_ROOT = opt$project_root)
 try(setwd(opt$project_root), silent = TRUE)
+# Separate resource/project root from the intermediate-output root: when an
+# explicit --intermediate_root is supplied it is wired through
+# TRIAGE_INTERMEDIATE_ROOT so enrichment TSVs land under the run directory
+# regardless of working directories.
+if (nzchar(opt$intermediate_root)) {
+  dir.create(opt$intermediate_root, recursive = TRUE, showWarnings = FALSE)
+  Sys.setenv(TRIAGE_INTERMEDIATE_ROOT = normalizePath(opt$intermediate_root, mustWork = TRUE))
+}
 
 set.seed(opt$seed)
 

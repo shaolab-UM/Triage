@@ -45,6 +45,7 @@ CL_LOCAL_JSON <- Sys.getenv("CL_LOCAL_JSON", unset = file.path(PROJECT_ROOT, "in
 CL_CFG_CACHE <- NULL
 CL_GRAPH_CACHE <- NULL
 
+
 get_cl_cfg <- function() {
   if (!is.null(CL_CFG_CACHE)) return(CL_CFG_CACHE)
   if (!nzchar(CL_LOCAL_JSON) || !file.exists(CL_LOCAL_JSON)) return(NULL)
@@ -162,6 +163,27 @@ build_program_evidence_from_markers <- function(degs_state_df, degs_df) {
 ###################################################################
 # SECTION 1: Five-dimension hybrid analysis module (MODIFIED)
 ###################################################################
+
+# Explicit intermediate-output root (backward compatible). When
+# TRIAGE_INTERMEDIATE_ROOT is set to an absolute path, enrichment TSVs are
+# written under that root regardless of worker working directories; when it
+# is unset, the historical working-directory-relative location is preserved.
+resolve_bioinfo_dir <- function(run_name_prefix, masked_qid, intermediate_root = NULL) {
+  # The explicit root is preferred: multisession workers are spawned when the
+  # future plan is created, which happens BEFORE stage 05 exports
+  # TRIAGE_INTERMEDIATE_ROOT, so the parent-resolved value must be forwarded
+  # as a future global rather than read from the worker environment.
+  explicit_root <- if (!is.null(intermediate_root) && nzchar(intermediate_root)) {
+    intermediate_root
+  } else {
+    Sys.getenv("TRIAGE_INTERMEDIATE_ROOT", unset = "")
+  }
+  if (nzchar(explicit_root)) {
+    file.path(explicit_root, run_name_prefix, "bioinformatics_tsv", masked_qid)
+  } else {
+    file.path("intermediate_outputs", run_name_prefix, "bioinformatics_tsv", masked_qid)
+  }
+}
 
 save_enrichment_tsv <- function(result_obj, analysis_name, output_dir) {
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
@@ -1914,6 +1936,11 @@ generate_expert_report_query <- function(processed_deg_data,
     "summarize_enrich" = summarize_enrich,
     "get_species_resources" = get_species_resources,
     "save_enrichment_tsv" = save_enrichment_tsv,
+    "resolve_bioinfo_dir" = resolve_bioinfo_dir,
+    # Read at globals-build time (inside the query-generation function,
+    # AFTER stage 05 exported TRIAGE_INTERMEDIATE_ROOT); workers do not see
+    # environment variables exported after the future plan was created.
+    "triage_intermediate_root" = Sys.getenv("TRIAGE_INTERMEDIATE_ROOT", unset = ""),
     "analyze_ppi_from_local_file" = analyze_ppi_from_local_file,
     "analyze_disgenet_enrichment" = analyze_disgenet_enrichment,
     "run_decoupleR_gsea" = run_decoupleR_gsea,
@@ -2067,7 +2094,8 @@ generate_expert_report_query <- function(processed_deg_data,
         # --- Step 2.2: Save TSV + Summarize ---
         tictoc::tic("  -> Step 2.2/4: Saving TSV files & Summarizing for Dossier")
         
-        tsv_output_dir <- file.path("intermediate_outputs", run_name_prefix, "bioinformatics_tsv", masked_qid)
+        tsv_output_dir <- resolve_bioinfo_dir(run_name_prefix, masked_qid,
+                                             intermediate_root = triage_intermediate_root)
         
         save_enrichment_tsv(bioinfo$go_bp, "go_biological_process", tsv_output_dir)
         save_enrichment_tsv(bioinfo$go_cc, "go_cellular_component", tsv_output_dir)

@@ -45,19 +45,33 @@ ensure_dir <- function(p) if (!dir.exists(p)) dir.create(p, recursive = TRUE, sh
 
 suppressMessages(library(Triage))
 
-is_github_clusterprofiler <- function() {
-  if (!requireNamespace("clusterProfiler", quietly = TRUE)) return(FALSE)
+# The enrichment reviewer (stage 06b) requires the interpret() API that only
+# exists from clusterProfiler 4.19.4 onward, and the tested execution route
+# is the fanyi-backed interpret() at the exact revision below. Never install
+# a moving HEAD: modern revisions rerouted interpret() through aisdk.
+TRIAGE_TESTED_CLUSTERPROFILER_SHA <- "f9f0d502508cacd258ac1a1cba6d5d497b98fe6c"
+
+clusterprofiler_sha_matches <- function() {
   desc <- tryCatch(utils::packageDescription("clusterProfiler"), error = function(e) NULL)
   if (is.null(desc)) return(FALSE)
-  isTRUE(tolower(desc$RemoteType %||% "") == "github")
+  sha <- desc$RemoteSha %||% desc$GithubSHA1 %||% ""
+  nzchar(sha) && identical(sha, TRIAGE_TESTED_CLUSTERPROFILER_SHA)
 }
 
 ensure_clusterprofiler_github <- function() {
-  if (is_github_clusterprofiler()) return(invisible(TRUE))
+  if (clusterprofiler_sha_matches()) return(invisible(TRUE))
   if (!requireNamespace("remotes", quietly = TRUE)) {
     install.packages("remotes")
   }
-  remotes::install_github("YuLab-SMU/clusterProfiler", upgrade = "never")
+  remotes::install_github("YuLab-SMU/clusterProfiler",
+                          ref = TRIAGE_TESTED_CLUSTERPROFILER_SHA,
+                          upgrade = "never")
+  if (!clusterprofiler_sha_matches()) {
+    stop("06b_run_inter: clusterProfiler is not the tested revision ",
+         "(GitHub sha ", TRIAGE_TESTED_CLUSTERPROFILER_SHA,
+         "). Install it with: remotes::install_github(\"YuLab-SMU/clusterProfiler\", ref = \"",
+         TRIAGE_TESTED_CLUSTERPROFILER_SHA, "\")")
+  }
   invisible(TRUE)
 }
 
@@ -108,8 +122,12 @@ if (is.null(opt$marker_csv) || !nzchar(opt$marker_csv) || identical(opt$marker_c
 }
 if (isTRUE(opt$install_clusterprofiler_github)) {
   ensure_clusterprofiler_github()
-} else if (!is_github_clusterprofiler()) {
-  warning("clusterProfiler is not a GitHub build. Run with --install_clusterprofiler_github when GitHub API is available.")
+} else if (!clusterprofiler_sha_matches()) {
+  warning("clusterProfiler is not the tested revision (GitHub sha ",
+          TRIAGE_TESTED_CLUSTERPROFILER_SHA, "). The interpret() API used by ",
+          "the enrichment reviewer requires clusterProfiler >= 4.19.4 with the ",
+          "fanyi route; run with --install_clusterprofiler_github when GitHub ",
+          "access is available.")
 }
 ensure_dir(opt$out_dir)
 ensure_dir(file.path(opt$out_dir, "final_passed"))
@@ -271,6 +289,12 @@ process_cluster <- function(cid, opt, cl_cfg) {
   }
 
   api_key <- Sys.getenv("DEEPSEEK_API_KEY", unset = NA_character_)
+  # Canonical LLM transport for the enrichment reviewer: the same full
+  # chat-completions endpoint (LLM_API_BASE_URL) and the same model
+  # (opt$model) used by every other Triage LLM stage. The endpoint/model
+  # reach clusterProfiler::interpret() through Triage:::.triage_interpret().
+  base_url <- Sys.getenv("LLM_API_BASE_URL", unset = Sys.getenv("CASSIA_API_BASE_URL", unset = ""))
+  if (is.na(api_key) || !nzchar(api_key)) api_key <- NULL
   if (!is.na(api_key) && nzchar(api_key)) {
     options(yulab_translate = list(dsk = list(key = api_key, user_model = opt$model)))
     if (requireNamespace("fanyi", quietly = TRUE)) {
@@ -318,7 +342,9 @@ process_cluster <- function(cid, opt, cl_cfg) {
     last_err <- NULL
     for (attempt in 1:3) {
       tryCatch({
-        interpret_out <- clusterProfiler::interpret(enrich_list, context = context_text, task = "annotation")
+        interpret_out <- Triage:::.triage_interpret(
+          enrich_list, context = context_text, model = opt$model,
+          api_key = api_key, base_url = base_url, task = "annotation")
         break
       }, error = function(e) {
         last_err <<- e

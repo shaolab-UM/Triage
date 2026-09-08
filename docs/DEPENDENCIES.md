@@ -93,9 +93,20 @@ preflight check reports all missing entries together before analysis:
   (`remotes::install_gitlab("medbio/disgenet2r")`)
 - R.utils — used by `setup_triage_resources()` to decompress the STRING
   archives; installed by `install_triage_dependencies()`.
+- **fanyi (tested 0.1.0)** — required for stage 06b: the enrichment
+  reviewer's `clusterProfiler::interpret()` call routes its LLM transport
+  through `fanyi::chat_request()`. fanyi hard-codes
+  `https://api.deepseek.com/v1/chat/completions` and has no base-url
+  parameter (0.1.1 is identical), so stage 06b overrides the endpoint with
+  the canonical `LLM_API_BASE_URL` value via a narrow, self-restoring
+  namespace shim (`Triage:::.triage_interpret()`). fanyi is pinned to the
+  tested version (`remotes::install_version("fanyi", version = "0.1.0")`),
+  installed by `install_triage_dependencies()` and checked by both
+  preflights.
 
 `06b_run_inter.R` contains an optional GitHub installation path for
-`clusterProfiler` (`--install_clusterprofiler_github`).
+`clusterProfiler` (`--install_clusterprofiler_github`), pinned to the
+tested revisions (GOSemSim then clusterProfiler).
 
 ## 4. Optional input preparation
 
