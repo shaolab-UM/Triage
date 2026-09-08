@@ -168,8 +168,9 @@ if (!requireNamespace("reactome.db", quietly = TRUE)) {
     bad(paste0("R package: fanyi at the tested version (",
                Triage:::.triage_tested_fanyi_version(),
                "; the enrichment reviewer stage 06b routes its LLM calls through ",
-"fanyi::chat_request; install with remotes::install_version('fanyi', version = '",
-               Triage:::.triage_tested_fanyi_version(), "\"))"))
+               "fanyi::chat_request; install with ",
+               "remotes::install_version(\"fanyi\", version = \"",
+               Triage:::.triage_tested_fanyi_version(), "\")"))
   } else {
     ok("R package: fanyi (tested version, chat_request available)")
   }

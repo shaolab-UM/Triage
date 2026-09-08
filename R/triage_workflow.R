@@ -267,8 +267,8 @@ triage_preflight <- function(species = "human",
                         .triage_tested_fanyi_version(),
                         "; the enrichment reviewer stage 06b routes its LLM calls ",
                         "through fanyi::chat_request; install with ",
-"remotes::install_version('fanyi', version = '",
-                        .triage_tested_fanyi_version(), "\"))"))
+                        "remotes::install_version(\"fanyi\", version = \"",
+                        .triage_tested_fanyi_version(), "\")"))
   }
   disgenet_key <- Sys.getenv("DISGENET_API_KEY", unset = "")
   if (nzchar(disgenet_key) && !requireNamespace("disgenet2r", quietly = TRUE)) {
