@@ -57,6 +57,7 @@ Suggests:
     BiocManager,
     CASSIA,
     clusterProfiler,
+    fanyi,
     GOSemSim,
     KEGG.db,
     R.utils,

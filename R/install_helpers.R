@@ -61,6 +61,13 @@
 #'     3.22 release is 4.18.x and does not export `interpret()`), and the
 #'     tested `interpret()` routes model calls through the `fanyi`
 #'     backend; modern revisions rerouted `interpret()` through `aisdk`.
+#'   \item `fanyi` is required (NOT optional): the pinned
+#'     `clusterProfiler::interpret()` routes its LLM calls through
+#'     `fanyi::chat_request`, whose DeepSeek transport hard-codes the
+#'     DeepSeek /v1 endpoint. The tested CRAN version 0.1.0 is pinned;
+#'     CRAN 0.1.1 keeps the same hard-coded endpoint and has no base-url
+#'     parameter. Stage 06b points the transport at the canonical
+#'     `LLM_API_BASE_URL` with a temporary local shim.
 #'   \item `KEGG.db` is required for canonical KEGG evidence (stage 05
 #'     `enrichKEGG(use_internal_data = TRUE)` is backed by KEGG.db) but
 #'     was removed from Bioconductor with release 3.11. It is installed
@@ -151,6 +158,27 @@ install_triage_dependencies <- function(species = "human",
       installed <- c(installed, "clusterProfiler")
     } else {
       failed <- c(failed, "clusterProfiler")
+    }
+  }
+
+  # fanyi: REQUIRED for the enrichment reviewer LLM transport (stage 06b;
+  # the pinned clusterProfiler::interpret() routes its LLM calls through
+  # fanyi::chat_request). The tested revision is CRAN 0.1.0, whose
+  # .deepseek_query_messages transport stage 06b's endpoint shim mirrors.
+  # CRAN 0.1.1 keeps the same hard-coded endpoint and still has no
+  # base-url parameter; the exact tested version is pinned below.
+  fy_ver <- .triage_tested_fanyi_version()
+  if (!.triage_fanyi_version_matches(fy_ver)) {
+    if (!requireNamespace("remotes", quietly = TRUE)) {
+      utils::install.packages("remotes", quiet = TRUE)
+    }
+    message("Installing fanyi at the tested version (", fy_ver, ") ...")
+    remotes::install_version("fanyi", version = fy_ver,
+                             upgrade = "always", quiet = TRUE)
+    if (.triage_fanyi_version_matches(fy_ver)) {
+      installed <- c(installed, "fanyi")
+    } else {
+      failed <- c(failed, "fanyi")
     }
   }
 

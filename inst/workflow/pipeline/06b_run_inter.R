@@ -289,6 +289,12 @@ process_cluster <- function(cid, opt, cl_cfg) {
   }
 
   api_key <- Sys.getenv("DEEPSEEK_API_KEY", unset = NA_character_)
+  # Canonical LLM transport for the enrichment reviewer: the same full
+  # chat-completions endpoint (LLM_API_BASE_URL) and the same model
+  # (opt$model) used by every other Triage LLM stage. The endpoint/model
+  # reach clusterProfiler::interpret() through Triage:::.triage_interpret().
+  base_url <- Sys.getenv("LLM_API_BASE_URL", unset = Sys.getenv("CASSIA_API_BASE_URL", unset = ""))
+  if (is.na(api_key) || !nzchar(api_key)) api_key <- NULL
   if (!is.na(api_key) && nzchar(api_key)) {
     options(yulab_translate = list(dsk = list(key = api_key, user_model = opt$model)))
     if (requireNamespace("fanyi", quietly = TRUE)) {
@@ -336,7 +342,9 @@ process_cluster <- function(cid, opt, cl_cfg) {
     last_err <- NULL
     for (attempt in 1:3) {
       tryCatch({
-        interpret_out <- clusterProfiler::interpret(enrich_list, context = context_text, task = "annotation")
+        interpret_out <- Triage:::.triage_interpret(
+          enrich_list, context = context_text, model = opt$model,
+          api_key = api_key, base_url = base_url, task = "annotation")
         break
       }, error = function(e) {
         last_err <<- e

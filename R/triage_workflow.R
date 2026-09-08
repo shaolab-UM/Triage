@@ -255,6 +255,21 @@ triage_preflight <- function(species = "human",
                         "interpret() API; install with remotes::install_github(\"YuLab-SMU/clusterProfiler\", ref = \"",
                         cp_sha, "\"))"))
   }
+  # fanyi: REQUIRED for the enrichment reviewer LLM transport (stage 06b).
+  # The tested CRAN version is pinned; CRAN 0.1.1 keeps the same hard-coded
+  # DeepSeek endpoint and has no base-url parameter, so the exact tested
+  # version is enforced.
+  if (!requireNamespace("fanyi", quietly = TRUE) ||
+      !"chat_request" %in% getNamespaceExports("fanyi") ||
+      !.triage_fanyi_version_matches()) {
+    missing <- c(missing,
+                 paste0("R package: fanyi at the tested version (",
+                        .triage_tested_fanyi_version(),
+                        "; the enrichment reviewer stage 06b routes its LLM calls ",
+                        "through fanyi::chat_request; install with ",
+"remotes::install_version('fanyi', version = '",
+                        .triage_tested_fanyi_version(), "\"))"))
+  }
   disgenet_key <- Sys.getenv("DISGENET_API_KEY", unset = "")
   if (nzchar(disgenet_key) && !requireNamespace("disgenet2r", quietly = TRUE)) {
     missing <- c(missing,

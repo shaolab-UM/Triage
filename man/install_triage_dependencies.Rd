@@ -47,6 +47,13 @@ only exists from clusterProfiler 4.19.4 onward (the Bioconductor
 3.22 release is 4.18.x and does not export \code{interpret()}), and the
 tested \code{interpret()} routes model calls through the \code{fanyi}
 backend; modern revisions rerouted \code{interpret()} through \code{aisdk}.
+\item \code{fanyi} is required (NOT optional): the pinned
+\code{clusterProfiler::interpret()} routes its LLM calls through
+\code{fanyi::chat_request}, whose DeepSeek transport hard-codes the
+DeepSeek /v1 endpoint. The tested CRAN version 0.1.0 is pinned;
+CRAN 0.1.1 keeps the same hard-coded endpoint and has no base-url
+parameter. Stage 06b points the transport at the canonical
+\code{LLM_API_BASE_URL} with a temporary local shim.
 \item \code{KEGG.db} is required for canonical KEGG evidence (stage 05
 \code{enrichKEGG(use_internal_data = TRUE)} is backed by KEGG.db) but
 was removed from Bioconductor with release 3.11. It is installed

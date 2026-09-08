@@ -156,6 +156,24 @@ if (!requireNamespace("reactome.db", quietly = TRUE)) {
     ok("R package: clusterProfiler (tested revision, interpret() available)")
   }
 }
+# fanyi: REQUIRED for the enrichment reviewer LLM transport (stage 06b).
+# The tested CRAN version is pinned; CRAN 0.1.1 keeps the same hard-coded
+# DeepSeek endpoint and has no base-url parameter, so the exact tested
+# version is enforced.
+{
+  fy_ok <- requireNamespace("fanyi", quietly = TRUE) &&
+    "chat_request" %in% getNamespaceExports("fanyi") &&
+    Triage:::.triage_fanyi_version_matches()
+  if (!fy_ok) {
+    bad(paste0("R package: fanyi at the tested version (",
+               Triage:::.triage_tested_fanyi_version(),
+               "; the enrichment reviewer stage 06b routes its LLM calls through ",
+"fanyi::chat_request; install with remotes::install_version('fanyi', version = '",
+               Triage:::.triage_tested_fanyi_version(), "\"))"))
+  } else {
+    ok("R package: fanyi (tested version, chat_request available)")
+  }
+}
 soft("Seurat is required only for 01a --mode seurat (not for the CSV workflow)")
 if (species == "mouse" && !requireNamespace("org.Mm.eg.db", quietly = TRUE)) {
   bad("R package: org.Mm.eg.db (required for mouse evidence analysis; install with BiocManager::install(\"org.Mm.eg.db\"))")
